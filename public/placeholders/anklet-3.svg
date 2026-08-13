@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500" role="img" aria-label="anklet placeholder">
+  <rect width="1200" height="1500" fill="#f2f0ea"/>
+  <rect x="48" y="48" width="1104" height="1404" fill="none" stroke="#c29438" stroke-width="2" opacity="0.28"/>
+  <g stroke-linecap="round">
+    <path d="M 300 670 q 300 247.00000000000003 600 0"
+          fill="none" stroke="#244b47" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="444" cy="782.1056" r="15"
+                   fill="none" stroke="#c29438" stroke-width="8"/><circle cx="522" cy="807.1514" r="15"
+                   fill="none" stroke="#c29438" stroke-width="8"/><circle cx="600" cy="815.5" r="15"
+                   fill="none" stroke="#c29438" stroke-width="8"/><circle cx="678" cy="807.1514" r="15"
+                   fill="none" stroke="#c29438" stroke-width="8"/><circle cx="756" cy="782.1056" r="15"
+                   fill="none" stroke="#c29438" stroke-width="8"/></g>
+  <text x="600" y="1392" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="34"
+        letter-spacing="9" fill="#244b47" opacity="0.5">AASTHA</text>
+  <text x="600" y="1426" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="17"
+        letter-spacing="6" fill="#244b47" opacity="0.32">SILVER &amp; JEWELS</text>
+</svg>

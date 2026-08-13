@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500" role="img" aria-label="pendant placeholder">
+  <rect width="1200" height="1500" fill="#faf8f5"/>
+  <rect x="48" y="48" width="1104" height="1404" fill="none" stroke="#c29438" stroke-width="2" opacity="0.28"/>
+  <g stroke-linecap="round">
+    <path d="M 410 460 q 190 150 190 230"
+          fill="none" stroke="#244b47" stroke-width="7"/>
+    <path d="M 790 460 q -190 150 -190 230"
+          fill="none" stroke="#244b47" stroke-width="7"/>
+    <circle cx="600" cy="800" r="112" fill="none" stroke="#c29438" stroke-width="11"/>
+    <circle cx="600" cy="800" r="64" fill="none" stroke="#244b47" stroke-width="6" opacity="0.5"/>
+    <circle cx="600" cy="800" r="20" fill="#c29438" opacity="0.55"/></g>
+  <text x="600" y="1392" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="34"
+        letter-spacing="9" fill="#244b47" opacity="0.5">AASTHA</text>
+  <text x="600" y="1426" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="17"
+        letter-spacing="6" fill="#244b47" opacity="0.32">SILVER &amp; JEWELS</text>
+</svg>

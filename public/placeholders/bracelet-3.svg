@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500" role="img" aria-label="bracelet placeholder">
+  <rect width="1200" height="1500" fill="#f2f0ea"/>
+  <rect x="48" y="48" width="1104" height="1404" fill="none" stroke="#c29438" stroke-width="2" opacity="0.28"/>
+  <g stroke-linecap="round"><rect x="326" y="684" width="68" height="52" rx="26"
+               fill="none" stroke="#244b47" stroke-width="9"/><rect x="406" y="704.3664996503146" width="68" height="52" rx="26"
+               fill="none" stroke="#c29438" stroke-width="9"/><rect x="486" y="709.3200384028331" width="68" height="52" rx="26"
+               fill="none" stroke="#244b47" stroke-width="9"/><rect x="566" y="695.1118768860796" width="68" height="52" rx="26"
+               fill="none" stroke="#c29438" stroke-width="9"/><rect x="646" y="672.4944684743339" width="68" height="52" rx="26"
+               fill="none" stroke="#244b47" stroke-width="9"/><rect x="726" y="658.5842169407075" width="68" height="52" rx="26"
+               fill="none" stroke="#c29438" stroke-width="9"/><rect x="806" y="663.9081233235444" width="68" height="52" rx="26"
+               fill="none" stroke="#244b47" stroke-width="9"/></g>
+  <text x="600" y="1392" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="34"
+        letter-spacing="9" fill="#244b47" opacity="0.5">AASTHA</text>
+  <text x="600" y="1426" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="17"
+        letter-spacing="6" fill="#244b47" opacity="0.32">SILVER &amp; JEWELS</text>
+</svg>

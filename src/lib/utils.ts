@@ -1,0 +1,111 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+/** Merge Tailwind classes with conflict resolution. */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+/**
+ * Convert arbitrary text into a URL-safe slug.
+ * Used for products, categories, collections and campaigns.
+ */
+export function slugify(input: string): string {
+  return input
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+}
+
+/** Truncate to a character budget on a word boundary, appending an ellipsis. */
+export function truncate(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+}
+
+/** Strip HTML tags — used to derive meta descriptions from rich text. */
+export function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function formatDate(
+  date: Date | string,
+  style: "short" | "long" = "short",
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: style === "long" ? "long" : "medium",
+    timeZone: "Asia/Kolkata",
+  }).format(d);
+}
+
+export function formatDateTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata",
+  }).format(d);
+}
+
+/**
+ * Normalise an Indian mobile number to E.164 digits without the "+".
+ * Accepts "9876543210", "+91 98765 43210", "09876543210".
+ * Returns null when the input is not a plausible Indian mobile number.
+ */
+export function normaliseMobile(input: string): string | null {
+  const digits = input.replace(/\D/g, "");
+
+  if (digits.length === 10 && /^[6-9]/.test(digits)) return `91${digits}`;
+  if (digits.length === 11 && digits.startsWith("0")) {
+    const rest = digits.slice(1);
+    return /^[6-9]/.test(rest) ? `91${rest}` : null;
+  }
+  if (digits.length === 12 && digits.startsWith("91")) {
+    const rest = digits.slice(2);
+    return /^[6-9]/.test(rest) ? digits : null;
+  }
+  return null;
+}
+
+/** Render a stored E.164 mobile for display: "919876543210" → "+91 98765 43210". */
+export function formatMobile(e164: string): string {
+  if (e164.length === 12 && e164.startsWith("91")) {
+    const n = e164.slice(2);
+    return `+91 ${n.slice(0, 5)} ${n.slice(5)}`;
+  }
+  return `+${e164}`;
+}
+
+/** Mask a mobile for confirmation screens: "919876543210" → "+91 ***** 43210". */
+export function maskMobile(e164: string): string {
+  if (e164.length === 12 && e164.startsWith("91")) {
+    return `+91 ***** ${e164.slice(-5)}`;
+  }
+  return `+${e164.slice(0, 2)}*****${e164.slice(-4)}`;
+}
+
+/** Stable, dependency-free array chunking for batch operations. */
+export function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
+  return out;
+}
+
+/** Remove null/undefined entries so objects can be spread into Prisma calls. */
+export function compact<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined && v !== null),
+  ) as Partial<T>;
+}
