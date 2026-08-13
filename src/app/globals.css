@@ -110,6 +110,72 @@
   /* --- Motion: quick and understated ----------------------------------- */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Overlay/drawer/accordion transitions, driven by Radix `data-state`.
+     Defined here rather than pulled from tailwindcss-animate so the set stays
+     small and the durations match the rest of the system. */
+  --animate-fade-in: fade-in 200ms var(--ease-out-quart);
+  --animate-fade-out: fade-out 150ms var(--ease-in-out-soft);
+  --animate-slide-in-left: slide-in-left 300ms var(--ease-out-quart);
+  --animate-slide-out-left: slide-out-left 220ms var(--ease-in-out-soft);
+  --animate-slide-in-right: slide-in-right 300ms var(--ease-out-quart);
+  --animate-slide-out-right: slide-out-right 220ms var(--ease-in-out-soft);
+  --animate-slide-in-bottom: slide-in-bottom 300ms var(--ease-out-quart);
+  --animate-slide-out-bottom: slide-out-bottom 220ms var(--ease-in-out-soft);
+  --animate-scale-in: scale-in 180ms var(--ease-out-quart);
+  --animate-scale-out: scale-out 140ms var(--ease-in-out-soft);
+  --animate-accordion-down: accordion-down 220ms var(--ease-out-quart);
+  --animate-accordion-up: accordion-up 180ms var(--ease-in-out-soft);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-out-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+@keyframes slide-in-bottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes slide-out-bottom {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.97); }
+}
+/* Radix publishes the measured height as a custom property on the content. */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
 }
 
 /* -----------------------------------------------------------------------------

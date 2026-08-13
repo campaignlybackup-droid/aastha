@@ -74,7 +74,7 @@ const ART = {
     <circle cx="${CX}" cy="${CY + 90}" r="${64 * s}" fill="none" stroke="${INK}" stroke-width="6" opacity="0.5"/>
     <circle cx="${CX}" cy="${CY + 90}" r="${20 * s}" fill="${GOLD}" opacity="0.55"/>`,
 
-  bracelet: (s) => {
+  bracelet: () => {
     const links = [];
     for (let i = 0; i < 7; i += 1) {
       const x = CX - 240 + i * 80;
@@ -114,7 +114,7 @@ const ART = {
     ${charms}`;
   },
 
-  chain: (s) => {
+  chain: () => {
     const links = [];
     for (let i = 0; i < 9; i += 1) {
       const y = CY - 300 + i * 76;
@@ -162,6 +162,54 @@ function svg(kind, index) {
 `;
 }
 
+/* -----------------------------------------------------------------------------
+ * Hero art
+ *
+ * Heroes carry light text over a dark scrim, so they need a DARK ground. Using
+ * the same pale product art here produces a flat grey wash once the overlay is
+ * applied. Two aspect ratios: wide for desktop, tall for the mobile crop.
+ * -------------------------------------------------------------------------- */
+
+function heroSvg(kind, index, width, height) {
+  const cx = width / 2;
+  const cy = height / 2;
+  const scale = Math.min(width, height) / 1400;
+
+  // Concentric arcs suggesting a necklace/bangle, in gold on deep teal.
+  const arcs = [0, 1, 2, 3]
+    .map((i) => {
+      const r = (300 + i * 130) * scale;
+      const opacity = 0.5 - i * 0.1;
+      return `<circle cx="${cx}" cy="${cy - 40 * scale}" r="${r}"
+                fill="none" stroke="#c29438" stroke-width="${2.5 - i * 0.4}"
+                opacity="${opacity.toFixed(2)}"/>`;
+    })
+    .join("");
+
+  const focal =
+    index % 2 === 0
+      ? `<path d="M ${cx} ${cy - 150 * scale} l ${110 * scale} ${150 * scale} l ${-110 * scale} ${190 * scale} l ${-110 * scale} ${-190 * scale} Z"
+             fill="none" stroke="#dfbe74" stroke-width="${5 * scale}" stroke-linejoin="round"/>
+         <circle cx="${cx}" cy="${cy + 20 * scale}" r="${34 * scale}" fill="#c29438" opacity="0.35"/>`
+      : `<circle cx="${cx}" cy="${cy}" r="${170 * scale}" fill="none" stroke="#dfbe74" stroke-width="${5 * scale}"/>
+         <circle cx="${cx}" cy="${cy}" r="${96 * scale}" fill="none" stroke="#c29438" stroke-width="${3 * scale}" opacity="0.6"/>
+         <circle cx="${cx}" cy="${cy}" r="${30 * scale}" fill="#c29438" opacity="0.4"/>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="hero placeholder">
+  <defs>
+    <radialGradient id="g${index}" cx="50%" cy="42%" r="72%">
+      <stop offset="0%" stop-color="#2e5f5a"/>
+      <stop offset="62%" stop-color="#1c3b38"/>
+      <stop offset="100%" stop-color="#0c1d1b"/>
+    </radialGradient>
+  </defs>
+  <rect width="${width}" height="${height}" fill="url(#g${index})"/>
+  <g>${arcs}</g>
+  <g>${focal}</g>
+</svg>
+`;
+}
+
 mkdirSync(outDir, { recursive: true });
 
 let written = 0;
@@ -170,6 +218,12 @@ for (const kind of Object.keys(ART)) {
     writeFileSync(resolve(outDir, `${kind}-${i}.svg`), svg(kind, i));
     written += 1;
   }
+}
+
+for (let i = 1; i <= 3; i += 1) {
+  writeFileSync(resolve(outDir, `hero-wide-${i}.svg`), heroSvg("hero", i, 2400, 1200));
+  writeFileSync(resolve(outDir, `hero-tall-${i}.svg`), heroSvg("hero", i, 1200, 1600));
+  written += 2;
 }
 
 console.log(`Generated ${written} placeholder images in public/placeholders/`);

@@ -21,6 +21,9 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+/** Next sets this while `next build` is prerendering. */
+const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+
 function createClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
@@ -31,9 +34,27 @@ function createClient() {
 
   const adapter = new PrismaPg({
     connectionString,
-    // Serverless functions are short-lived; a large pool per instance just
-    // exhausts the database's connection limit.
-    max: process.env.NODE_ENV === "production" ? 5 : 10,
+    // Pool size.
+    //
+    // Production (Neon pooled endpoint): serverless instances are short-lived
+    // and numerous, so a small pool per instance avoids exhausting the
+    // database's connection budget.
+    //
+    // Development: the local `prisma dev` server accepts exactly 10
+    // simultaneous connections and RESETS the 11th. Claiming all 10 here means
+    // that running `prisma db seed` or `prisma studio` alongside `next dev`
+    // knocks the app's connections out, surfacing as P1017 "Server has closed
+    // the connection". Four leaves room for those tools.
+    //
+    // Build: `next build` fans out across one worker process per core, each
+    // importing this module. A pool of 4 × 7 workers is 28 connections for
+    // work that is a handful of sequential reads per worker — one connection
+    // each is plenty, and keeps the total under any sane server limit.
+    max: isBuild ? 1 : process.env.NODE_ENV === "production" ? 5 : 4,
+    // Retire idle connections before any upstream pooler drops them.
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
+    maxLifetimeSeconds: 600,
   });
 
   return new PrismaClient({

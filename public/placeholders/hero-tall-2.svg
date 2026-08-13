@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" width="1200" height="1600" role="img" aria-label="hero placeholder">
+  <defs>
+    <radialGradient id="g2" cx="50%" cy="42%" r="72%">
+      <stop offset="0%" stop-color="#2e5f5a"/>
+      <stop offset="62%" stop-color="#1c3b38"/>
+      <stop offset="100%" stop-color="#0c1d1b"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="1600" fill="url(#g2)"/>
+  <g><circle cx="600" cy="765.7142857142857" r="257.1428571428571"
+                fill="none" stroke="#c29438" stroke-width="2.5"
+                opacity="0.50"/><circle cx="600" cy="765.7142857142857" r="368.57142857142856"
+                fill="none" stroke="#c29438" stroke-width="2.1"
+                opacity="0.40"/><circle cx="600" cy="765.7142857142857" r="480"
+                fill="none" stroke="#c29438" stroke-width="1.7"
+                opacity="0.30"/><circle cx="600" cy="765.7142857142857" r="591.4285714285714"
+                fill="none" stroke="#c29438" stroke-width="1.2999999999999998"
+                opacity="0.20"/></g>
+  <g><path d="M 600 671.4285714285714 l 94.28571428571428 128.57142857142856 l -94.28571428571428 162.85714285714286 l -94.28571428571428 -162.85714285714286 Z"
+             fill="none" stroke="#dfbe74" stroke-width="4.285714285714286" stroke-linejoin="round"/>
+         <circle cx="600" cy="817.1428571428571" r="29.142857142857142" fill="#c29438" opacity="0.35"/></g>
+</svg>

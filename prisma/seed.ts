@@ -53,6 +53,31 @@ type ArtKind =
   | "chain"
   | "set";
 
+/**
+ * Hero art uses a dark ground so the light overlay text keeps its contrast.
+ * `shape` picks the desktop (wide) or mobile (tall) crop.
+ */
+async function upsertHeroMedia(shape: "wide" | "tall", index: number) {
+  const publicId = `placeholder/hero-${shape}-${index}`;
+  const url = `/placeholders/hero-${shape}-${index}.svg`;
+  return db.media.upsert({
+    where: { publicId },
+    update: {},
+    create: {
+      publicId,
+      url,
+      secureUrl: url,
+      folder: "HERO",
+      format: "svg",
+      width: shape === "wide" ? 2400 : 1200,
+      height: shape === "wide" ? 1200 : 1600,
+      alt: "Hero placeholder artwork",
+      filename: `hero-${shape}-${index}.svg`,
+      tags: ["placeholder", "hero"],
+    },
+  });
+}
+
 async function upsertPlaceholderMedia(kind: ArtKind, index: number) {
   const publicId = `placeholder/${kind}-${index}`;
   const url = `/placeholders/${kind}-${index}.svg`;
@@ -851,6 +876,8 @@ async function seedCategories() {
         imageId: media.id,
         position: index,
         isFeatured: spec.featured ?? false,
+        seoTitle: spec.name,
+        seoDescription: spec.description.slice(0, 155),
       },
       create: {
         name: spec.name,
@@ -860,7 +887,7 @@ async function seedCategories() {
         position: index,
         isActive: true,
         isFeatured: spec.featured ?? false,
-        seoTitle: `${spec.name} — 925 Sterling Silver | Aastha Silver & Jewels`,
+        seoTitle: `${spec.name} — 925 Sterling Silver`,
         seoDescription: spec.description.slice(0, 155),
       },
     });
@@ -895,7 +922,13 @@ async function seedCollections() {
     const media = await upsertPlaceholderMedia(spec.art, (index % 4) + 1);
     const collection = await db.collection.upsert({
       where: { slug: spec.slug },
-      update: { name: spec.name, description: spec.description, position: index },
+      update: {
+        name: spec.name,
+        description: spec.description,
+        position: index,
+        seoTitle: spec.name,
+        seoDescription: spec.description.slice(0, 155),
+      },
       create: {
         name: spec.name,
         slug: spec.slug,
@@ -904,7 +937,7 @@ async function seedCollections() {
         position: index,
         isActive: true,
         isFeatured: spec.featured,
-        seoTitle: `${spec.name} | Aastha Silver & Jewels`,
+        seoTitle: spec.name,
         seoDescription: spec.description.slice(0, 155),
       },
     });
@@ -950,6 +983,9 @@ async function seedProducts(
         pricePaise: rs(spec.price),
         salesCount: spec.salesCount ?? 0,
         isFeatured: spec.featured ?? false,
+        publishedAt: new Date(Date.now() - index * 9 * 24 * 60 * 60 * 1000),
+        seoTitle: `${spec.name} — 925 Sterling Silver`,
+        seoDescription: spec.short,
       },
       create: {
         name: spec.name,
@@ -961,7 +997,12 @@ async function seedProducts(
         tags: spec.tags,
         status: "ACTIVE",
         isFeatured: spec.featured ?? false,
-        publishedAt: new Date(Date.now() - index * 36 * 60 * 60 * 1000),
+        // Staggered ~9 days apart so only the first few fall inside the
+        // 30-day "New" window. Publishing everything today would badge the
+        // entire catalogue as new, which tells the customer nothing.
+        publishedAt: new Date(
+          Date.now() - index * 9 * 24 * 60 * 60 * 1000,
+        ),
         mrpPaise: rs(spec.mrp),
         pricePaise: rs(spec.price),
         taxPercent: 3,
@@ -985,7 +1026,7 @@ async function seedProducts(
         whatsIncluded:
           "Jewellery piece, anti-tarnish pouch, polishing cloth, authenticity certificate, gift box.",
         salesCount: spec.salesCount ?? 0,
-        seoTitle: `${spec.name} — 925 Silver | Aastha Silver & Jewels`,
+        seoTitle: `${spec.name} — 925 Silver`,
         seoDescription: spec.short,
         ogImageId: media[0].id,
       },
@@ -1202,8 +1243,10 @@ async function seedHomepage() {
   // re-seeding produces a known-good layout rather than accumulating sections.
   await db.homepageSection.deleteMany({ where: { campaignId: null } });
 
-  const heroImage = await upsertPlaceholderMedia("necklace", 2);
-  const heroImage2 = await upsertPlaceholderMedia("earring", 1);
+  const heroImage = await upsertHeroMedia("wide", 1);
+  const heroImageMobile = await upsertHeroMedia("tall", 1);
+  const heroImage2 = await upsertHeroMedia("wide", 2);
+  const heroImage2Mobile = await upsertHeroMedia("tall", 2);
   const splitImage = await upsertPlaceholderMedia("bangle", 3);
   const promoImage = await upsertPlaceholderMedia("set", 4);
 
@@ -1224,9 +1267,16 @@ async function seedHomepage() {
             desktopImage: {
               mediaId: heroImage.id,
               url: heroImage.secureUrl,
-              alt: "Silver temple necklace on a warm sand background",
+              alt: "A silver pendant lit against a deep green ground",
+              width: 2400,
+              height: 1200,
+            },
+            mobileImage: {
+              mediaId: heroImageMobile.id,
+              url: heroImageMobile.secureUrl,
+              alt: "A silver pendant lit against a deep green ground",
               width: 1200,
-              height: 1500,
+              height: 1600,
             },
             eyebrow: "Handcrafted in Jaipur",
             heading: "Silver worth keeping",
@@ -1243,9 +1293,16 @@ async function seedHomepage() {
             desktopImage: {
               mediaId: heroImage2.id,
               url: heroImage2.secureUrl,
-              alt: "Oxidised silver jhumka earrings",
+              alt: "A silver bangle catching light against a dark ground",
+              width: 2400,
+              height: 1200,
+            },
+            mobileImage: {
+              mediaId: heroImage2Mobile.id,
+              url: heroImage2Mobile.secureUrl,
+              alt: "A silver bangle catching light against a dark ground",
               width: 1200,
-              height: 1500,
+              height: 1600,
             },
             eyebrow: "Oxidised Heritage",
             heading: "Traditional forms, made properly",
@@ -1459,7 +1516,7 @@ async function seedCampaign() {
     where: { campaignId: campaign.id },
   });
   if (existing === 0) {
-    const heroMedia = await upsertPlaceholderMedia("set", 1);
+    const heroMedia = await upsertHeroMedia("wide", 3);
     await db.homepageSection.create({
       data: {
         campaignId: campaign.id,
@@ -1477,8 +1534,8 @@ async function seedCampaign() {
                 mediaId: heroMedia.id,
                 url: heroMedia.secureUrl,
                 alt: "Silver jewellery set for Diwali gifting",
-                width: 1200,
-                height: 1500,
+                width: 2400,
+                height: 1200,
               },
               eyebrow: "Diwali Edit",
               heading: "Gift something that lasts",
