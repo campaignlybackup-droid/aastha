@@ -287,3 +287,46 @@ export async function setCampaignStatus(
 
   return { ok: true, message: `Campaign set to ${status.toLowerCase()}.` };
 }
+
+/* -----------------------------------------------------------------------------
+ * Static content pages
+ * -------------------------------------------------------------------------- */
+
+const staticPageSchema = z.object({
+  slug: z.string().min(1).max(40),
+  title: z.string().trim().min(2).max(120),
+  intro: z.string().trim().max(300),
+  body: z.string().max(40_000),
+  seoTitle: z.string().trim().max(120),
+  seoDescription: z.string().trim().max(300),
+});
+
+export async function saveStaticPage(
+  input: z.input<typeof staticPageSchema>,
+): Promise<CmsResult> {
+  await requireArea("seo");
+
+  const parsed = staticPageSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Please check the fields.",
+    };
+  }
+
+  const { slug, ...content } = parsed.data;
+
+  await db.setting.upsert({
+    where: { key: `page:${slug}` },
+    update: { value: content as never },
+    create: { key: `page:${slug}`, value: content as never },
+  });
+
+  // A page moves from noindex to indexable the moment it has a body, so its
+  // metadata has to be regenerated, not just its markup.
+  revalidatePath(`/${slug}`);
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/admin/pages");
+
+  return { ok: true, message: "Page saved." };
+}

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { db } from "@/lib/db";
+import { getAllStaticPages } from "@/server/pages";
 import { publicEnv } from "@/lib/env";
 
 /**
@@ -31,17 +32,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   ]);
 
+  // Content pages are listed only once written. An unwritten page is noindex,
+  // and listing a noindex URL in a sitemap is a contradictory signal that
+  // Search Console reports as an error.
+  const contentPages = (await getAllStaticPages())
+    .filter((page) => page.body)
+    .map((page) => ({
+      url: `${base}/${page.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }));
+
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${base}/`, changeFrequency: "daily", priority: 1 },
     { url: `${base}/shop`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${base}/about`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/contact`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/care-guide`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/shipping-policy`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/return-policy`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/privacy-policy`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${base}/terms`, changeFrequency: "yearly", priority: 0.2 },
+    ...contentPages,
   ];
 
   return [

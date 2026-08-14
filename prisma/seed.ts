@@ -1028,7 +1028,7 @@ async function seedProducts(
         careInstructions:
           "Store in the pouch provided, away from moisture and perfume. Clean with the silver cloth included; avoid chemical dips on oxidised finishes.",
         warrantyInfo:
-          "Six-month warranty against manufacturing defects, including plating and clasp failure.",
+          "[SET THIS] Six-month warranty against manufacturing defects, including plating and clasp failure.",
         authenticityInfo:
           "Hallmarked 925 sterling silver. Every order ships with a stamped authenticity certificate.",
         whatsIncluded:
@@ -1201,25 +1201,25 @@ async function seedFaqs() {
       category: "Shipping",
       question: "How long does delivery take?",
       answer:
-        "Dispatch and delivery timings are shown at checkout. Made-to-order pieces are marked on the product page and take longer — the product page states how long.",
+        "[SET THIS] Dispatch and delivery timings are shown at checkout once you set them under Settings → Shipping.",
     },
     {
       category: "Shipping",
       question: "Do you offer free shipping?",
       answer:
-        "Shipping is complimentary on orders above ₹1,500. Below that a flat ₹79 applies.",
+        "[SET THIS — must match Settings → Shipping] Shipping is complimentary on orders above ₹1,500. Below that a flat ₹79 applies.",
     },
     {
       category: "Returns",
       question: "What is your return policy?",
       answer:
-        "Return anything unworn within 7 days of delivery, in its original packaging with the authenticity certificate. Refunds are issued to the original payment method within 5–7 business days of the return reaching us.",
+        "[SET THIS — confirm your actual return window and refund timeline before launch] Return anything unworn within 7 days of delivery, in its original packaging with the authenticity certificate.",
     },
     {
       category: "Returns",
       question: "Can I exchange a ring for a different size?",
       answer:
-        "Yes, once per order at no charge, subject to availability. Engraved and made-to-order pieces cannot be exchanged.",
+        "[SET THIS — confirm your exchange policy] Yes, once per order at no charge, subject to availability. Engraved and made-to-order pieces cannot be exchanged.",
     },
     {
       category: "Orders",

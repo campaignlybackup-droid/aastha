@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 
@@ -116,13 +117,13 @@ export function LoginForm({ next }: { next?: string }) {
         <p className="flex items-start gap-2 text-xs leading-relaxed text-content-subtle">
           <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           By continuing you agree to our{" "}
-          <a href="/terms" className="underline underline-offset-2">
+          <Link href="/terms" className="underline underline-offset-2">
             Terms
-          </a>{" "}
+          </Link>{" "}
           and{" "}
-          <a href="/privacy-policy" className="underline underline-offset-2">
+          <Link href="/privacy-policy" className="underline underline-offset-2">
             Privacy Policy
-          </a>
+          </Link>
           .
         </p>
       </form>

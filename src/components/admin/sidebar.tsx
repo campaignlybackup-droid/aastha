@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LayoutTemplate,
   LogOut,
+  FileText,
   Menu,
   Package,
   Search,
@@ -65,6 +66,7 @@ const NAV: Array<{ heading: string; items: NavItem[] }> = [
     heading: "Storefront",
     items: [
       { href: "/admin/homepage", label: "Homepage", icon: LayoutTemplate, area: "homepage" },
+      { href: "/admin/pages", label: "Pages", icon: FileText, area: "seo" },
       { href: "/admin/campaigns", label: "Campaigns", icon: CalendarClock, area: "campaigns" },
       { href: "/admin/seo", label: "SEO", icon: Search, area: "seo" },
       { href: "/admin/settings", label: "Settings", icon: Settings, area: "settings" },
