@@ -213,6 +213,12 @@ changes.
 
 ---
 
+## Going live
+
+**[`docs/GO-LIVE.md`](docs/GO-LIVE.md) is the checklist** — accounts to create,
+content you must write, and what to verify before announcing. Two items have
+multi-day lead times (MSG91 DLT registration, Razorpay KYC); start those first.
+
 ## Deployment
 
 See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). In short: Vercel + Neon, set the
