@@ -9,6 +9,7 @@ import {
   SESSION_COOKIE,
   verifySessionToken,
 } from "@/lib/auth/session";
+import { canAccess, isStaff, type AdminArea } from "@/lib/auth/roles";
 import type { Role } from "@/generated/prisma/enums";
 
 /**
@@ -86,20 +87,6 @@ export async function requireUser(next?: string): Promise<CurrentUser> {
   return user;
 }
 
-/** Roles permitted to reach /admin at all. */
-const STAFF_ROLES: Role[] = [
-  "SUPER_ADMIN",
-  "ADMIN",
-  "PRODUCT_MANAGER",
-  "ORDER_MANAGER",
-  "MARKETING_MANAGER",
-  "CONTENT_MANAGER",
-];
-
-export function isStaff(role: Role): boolean {
-  return STAFF_ROLES.includes(role);
-}
-
 export async function requireStaff(next = "/admin"): Promise<CurrentUser> {
   const user = await requireUser(next);
   if (!isStaff(user.role)) {
@@ -110,31 +97,13 @@ export async function requireStaff(next = "/admin"): Promise<CurrentUser> {
   return user;
 }
 
-/**
- * Capability check for a specific admin area.
- * SUPER_ADMIN and ADMIN can do everything; the rest are scoped.
- */
-export const AREA_ROLES: Record<string, Role[]> = {
-  products: ["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"],
-  inventory: ["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"],
-  orders: ["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"],
-  customers: ["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"],
-  coupons: ["SUPER_ADMIN", "ADMIN", "MARKETING_MANAGER"],
-  campaigns: ["SUPER_ADMIN", "ADMIN", "MARKETING_MANAGER", "CONTENT_MANAGER"],
-  homepage: ["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER", "MARKETING_MANAGER"],
-  media: ["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER", "PRODUCT_MANAGER"],
-  reviews: ["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"],
-  seo: ["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER", "MARKETING_MANAGER"],
-  settings: ["SUPER_ADMIN", "ADMIN"],
-  staff: ["SUPER_ADMIN"],
-};
-
-export function canAccess(role: Role, area: keyof typeof AREA_ROLES): boolean {
-  return AREA_ROLES[area]?.includes(role) ?? false;
-}
-
-export async function requireArea(area: keyof typeof AREA_ROLES) {
+export async function requireArea(area: AdminArea) {
   const user = await requireStaff();
+  // Server-side enforcement. The sidebar hides links it should not show, but
+  // hiding is not security — this is the check that matters.
   if (!canAccess(user.role, area)) redirect("/admin");
   return user;
 }
+
+// Re-exported so server modules can import role helpers from one place.
+export { canAccess, isStaff, AREA_ROLES, type AdminArea } from "@/lib/auth/roles";

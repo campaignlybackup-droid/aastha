@@ -13,12 +13,23 @@
 
 export const CURRENCY = "INR" as const;
 
+/**
+ * Rupees → paise.
+ *
+ * Input domain is rupee amounts with at most TWO decimal places, which is the
+ * only thing a price field can meaningfully hold. Rounding is applied because
+ * `19.99 * 100` is `1998.9999999999998` in IEEE 754 and truncating would
+ * undercharge by a paisa on every such price.
+ *
+ * A third decimal place (0.145) sits between representable values and will
+ * round according to its actual float value rather than the decimal literal.
+ * That is accepted: it is not a price a jeweller can enter.
+ */
 export function rupeesToPaise(rupees: number | string): number {
   const value = typeof rupees === "string" ? Number(rupees) : rupees;
   if (!Number.isFinite(value)) {
     throw new Error(`Cannot convert non-numeric value to paise: ${rupees}`);
   }
-  // Round rather than truncate so 19.99 → 1999, not 1998.
   return Math.round(value * 100);
 }
 

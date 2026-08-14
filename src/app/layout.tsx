@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 
+import {
+  AnalyticsScripts,
+  GtmNoScript,
+} from "@/components/analytics/scripts";
 import { fontVariables } from "@/lib/fonts";
 import { publicEnv } from "@/lib/env";
 
@@ -33,7 +37,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en-IN" className={fontVariables} suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        {/* GTM's noscript iframe must be the first element inside <body>. */}
+        <GtmNoScript />
+        {children}
+        <AnalyticsScripts />
+      </body>
     </html>
   );
 }

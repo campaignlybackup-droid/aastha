@@ -63,18 +63,22 @@ export function formatDateTime(date: Date | string): string {
  * Returns null when the input is not a plausible Indian mobile number.
  */
 export function normaliseMobile(input: string): string | null {
-  const digits = input.replace(/\D/g, "");
+  let digits = input.replace(/\D/g, "");
 
-  if (digits.length === 10 && /^[6-9]/.test(digits)) return `91${digits}`;
-  if (digits.length === 11 && digits.startsWith("0")) {
-    const rest = digits.slice(1);
-    return /^[6-9]/.test(rest) ? `91${rest}` : null;
+  // Strip a leading STD "0" first, so "09876543210" and "0919876543210" both
+  // reduce to the cases below. Every spelling of one number must normalise to
+  // the same string — this is the identity key for a customer account, and a
+  // miss here creates a duplicate account instead of signing them in.
+  if (digits.length > 10 && digits.startsWith("0")) {
+    digits = digits.replace(/^0+/, "");
   }
+
+  // Country code, with or without it.
   if (digits.length === 12 && digits.startsWith("91")) {
-    const rest = digits.slice(2);
-    return /^[6-9]/.test(rest) ? digits : null;
+    digits = digits.slice(2);
   }
-  return null;
+
+  return digits.length === 10 && /^[6-9]/.test(digits) ? `91${digits}` : null;
 }
 
 /** Render a stored E.164 mobile for display: "919876543210" → "+91 98765 43210". */
