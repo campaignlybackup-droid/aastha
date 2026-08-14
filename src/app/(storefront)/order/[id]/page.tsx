@@ -53,7 +53,10 @@ export default async function OrderPage({
 
   if (!order) notFound();
 
-  const contact = await getSetting("contact");
+  const [contact, shipping] = await Promise.all([
+    getSetting("contact"),
+    getSetting("shipping"),
+  ]);
   const whatsapp = contact.whatsapp || publicEnv.supportWhatsapp;
 
   const confirmed = order.status === "CONFIRMED";
@@ -76,8 +79,10 @@ export default async function OrderPage({
               Order placed successfully
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
-              Thank you, {order.shipName.split(" ")[0]}. We&rsquo;ve sent a
-              confirmation and will dispatch from Jaipur within 48 hours.
+              Thank you, {order.shipName.split(" ")[0]}. We&rsquo;ve sent you a
+              confirmation.
+              {/* Only promise a dispatch time if the owner has set one. */}
+              {shipping.dispatchCopy ? ` ${shipping.dispatchCopy}` : ""}
             </p>
           </>
         ) : (

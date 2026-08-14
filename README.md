@@ -66,6 +66,11 @@ scripts/              Dev utilities (placeholder art, webhook simulator…).
 
 ### Rules the codebase holds to
 
+**No invented business facts.** Dispatch times, addresses, opening hours and
+the brand story are settings, seeded blank. Every surface hides the field when
+it is empty, so an unfilled setting shows nothing rather than a promise the
+store never made. Do not hard-code any of them back in.
+
 **Money is integer paise, everywhere.** Never a float rupee. `src/lib/money.ts`
 is the only place that converts. Razorpay is also denominated in paise, so the
 number we compute is the number we charge.
@@ -145,6 +150,11 @@ window contains the current instant and its status is `SCHEDULED` or `ACTIVE`.
 When the window closes the resolver stops selecting it and the default homepage
 returns on the next request. There is no cron job and no manual step. Overlaps
 resolve by `priority`.
+
+Section content is edited through generated forms (`src/lib/cms/fields.ts`)
+rather than hand-written per type: a field spec declares label, kind and help
+text, and the editor renders it. Zod still validates on save, so a spec that
+drifts from its schema fails loudly instead of writing bad settings.
 
 Adding a section type takes three edits: the enum in `schema.prisma`, a schema
 in `sections.ts`, and a case in `components/sections/render.tsx`. The renderer's

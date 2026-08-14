@@ -609,6 +609,8 @@ export type ContactSettings = {
   phone: string;
   whatsapp: string;
   addressLines: string[];
+  city: string;
+  state: string;
   hours: string;
 };
 
@@ -631,11 +633,29 @@ export type SocialSettings = {
   youtube?: string;
 };
 
+/**
+ * Editable brand copy.
+ *
+ * Everything here is a claim about the business — where it is based, who makes
+ * the jewellery, how fast it ships. None of it can be invented on the owner's
+ * behalf: a wrong dispatch promise is a consumer-law problem, and a wrong
+ * address is worse. Defaults are deliberately generic and true of any
+ * hallmarked-silver seller; the owner replaces them in Settings.
+ */
+export type BrandSettings = {
+  /** One-line footer tagline. */
+  tagline: string;
+  /** Locality for schema.org and the "made in" line. Blank = omit entirely. */
+  city: string;
+  state: string;
+};
+
 type SettingMap = {
   contact: ContactSettings;
   shipping: ShippingSettings;
   announcement: AnnouncementSettings;
   social: SocialSettings;
+  brand: BrandSettings;
 };
 
 // Annotated with SettingMap rather than `satisfies` on each entry: `satisfies`
@@ -643,20 +663,30 @@ type SettingMap = {
 // that the defaults omit, so callers could not read `announcement.href`.
 const SETTING_DEFAULTS: SettingMap = {
   contact: {
-    email: "hello@aasthasilver.in",
+    email: "",
     phone: "",
     whatsapp: "",
     addressLines: [],
+    city: "",
+    state: "",
     hours: "",
   },
   shipping: {
     freeAbovePaise: 150000,
     flatRatePaise: 7900,
+    // Blank rather than a guessed promise. Every surface that shows dispatch
+    // or delivery timing hides itself when these are empty, so an unfilled
+    // setting shows nothing instead of a commitment the store cannot keep.
     dispatchCopy: "",
     deliveryCopy: "",
   },
   announcement: { enabled: false, text: "" },
   social: {},
+  brand: {
+    tagline: "Hallmarked 925 sterling silver jewellery.",
+    city: "",
+    state: "",
+  },
 };
 
 /**

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | Aastha Silver & Jewels",
   },
   description:
-    "Hallmarked 925 sterling silver jewellery, handcrafted in India. Rings, earrings, necklaces, bangles and anklets with a lifetime authenticity guarantee.",
+    "Hallmarked 925 sterling silver jewellery. Rings, earrings, necklaces, bangles and anklets, with a certificate of authenticity on every order.",
   applicationName: "Aastha Silver & Jewels",
   referrer: "strict-origin-when-cross-origin",
   formatDetection: { telephone: false, address: false, email: false },

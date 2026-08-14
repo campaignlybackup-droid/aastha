@@ -811,16 +811,17 @@ async function seedSettings() {
   const settings: Array<[string, unknown]> = [
     [
       "contact",
+      // Placeholders. These are claims about a real business, so the seed
+      // must not invent them — the owner fills these in under Settings and
+      // every surface hides the field until they do.
       {
-        email: "hello@aasthasilver.in",
-        phone: "+91 99999 99999",
-        whatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "919999999999",
-        addressLines: [
-          "Aastha Silver & Jewels",
-          "Johari Bazaar",
-          "Jaipur, Rajasthan 302003",
-        ],
-        hours: "Mon–Sat, 10:30am – 7:30pm IST",
+        email: "",
+        phone: "",
+        whatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "",
+        addressLines: [],
+        city: "",
+        state: "",
+        hours: "",
       },
     ],
     [
@@ -829,17 +830,24 @@ async function seedSettings() {
         // Free shipping above ₹1,500; ₹79 flat below that.
         freeAbovePaise: rs(1500),
         flatRatePaise: rs(79),
-        dispatchCopy: "Dispatched within 48 hours from Jaipur.",
-        deliveryCopy: "Delivery in 3–7 business days across India.",
+        // Blank until the owner commits to a timeframe. A dispatch promise is
+        // a contractual claim, not filler copy.
+        dispatchCopy: "",
+        deliveryCopy: "",
+      },
+    ],
+    [
+      "brand",
+      {
+        tagline: "Hallmarked 925 sterling silver jewellery.",
+        city: "",
+        state: "",
       },
     ],
     [
       "social",
-      {
-        instagram: "https://instagram.com/aasthasilverjewels",
-        facebook: "https://facebook.com/aasthasilverjewels",
-        youtube: "",
-      },
+      // Left blank: guessed social URLs could point at someone else's account.
+      { instagram: "", facebook: "", youtube: "" },
     ],
     [
       "announcement",
@@ -1193,7 +1201,7 @@ async function seedFaqs() {
       category: "Shipping",
       question: "How long does delivery take?",
       answer:
-        "Orders are dispatched from Jaipur within 48 hours and arrive in 3–7 business days across India. Made-to-order pieces are marked on the product page and take 7–10 days.",
+        "Dispatch and delivery timings are shown at checkout. Made-to-order pieces are marked on the product page and take longer — the product page states how long.",
     },
     {
       category: "Shipping",
@@ -1278,7 +1286,7 @@ async function seedHomepage() {
               width: 1200,
               height: 1600,
             },
-            eyebrow: "Handcrafted in Jaipur",
+            eyebrow: "Hallmarked 925 Silver",
             heading: "Silver worth keeping",
             subheading:
               "Hallmarked 925 sterling silver, finished by hand and made to be worn — not stored away for an occasion that never comes.",
@@ -1386,14 +1394,12 @@ async function seedHomepage() {
         },
         imageSide: "left",
         eyebrow: "Our workshop",
-        heading: "Made by nine people in Johari Bazaar",
-        body: "<p>Aastha is not a warehouse operation. Nine silversmiths work out of a first-floor workshop in Jaipur's Johari Bazaar, and every piece that carries our name passes through their hands.</p><p>That constrains how much we can make. It also means a hammered kada has genuine variation across its surface, and a jhumka's ghungroos are strung one at a time — differences you can feel, not just claims on a page.</p>",
+        heading: "Our story",
+        // Placeholder. Replace in Admin → Homepage with the real story of the
+        // business; nothing here asserts a fact that has not been verified.
+        body: "<p>Tell customers who makes your jewellery and how. Edit this section under Admin → Homepage.</p><p>Specifics earn trust — where you work, how a piece is finished, what you will not compromise on. Keep it true and keep it yours.</p>",
         cta: { label: "Read our story", href: "/about" },
-        stats: [
-          { value: "925", label: "Hallmarked purity" },
-          { value: "9", label: "Silversmiths" },
-          { value: "48hr", label: "Dispatch" },
-        ],
+        stats: [{ value: "925", label: "Hallmarked purity" }],
       },
     },
     {
@@ -1420,7 +1426,7 @@ async function seedHomepage() {
           {
             icon: "Truck",
             title: "Free shipping above ₹1,500",
-            description: "Dispatched from Jaipur within 48 hours.",
+            description: "On every order above the threshold.",
           },
           {
             icon: "RotateCcw",

@@ -32,6 +32,8 @@ export function organizationJsonLd(contact: {
   email?: string;
   phone?: string;
   addressLines?: string[];
+  city?: string;
+  state?: string;
 }): JsonLdObject {
   return {
     "@context": "https://schema.org",
@@ -40,18 +42,21 @@ export function organizationJsonLd(contact: {
     name: "Aastha Silver & Jewels",
     url: publicEnv.siteUrl,
     description:
-      "Handcrafted hallmarked 925 sterling silver jewellery, made in Jaipur, India.",
+      "Hallmarked 925 sterling silver jewellery.",
     priceRange: "₹₹",
     currenciesAccepted: "INR",
     ...(contact.email ? { email: contact.email } : {}),
     ...(contact.phone ? { telephone: contact.phone } : {}),
+    // Emitted only when the owner has actually filled the address in.
+    // A fabricated PostalAddress is worse than no address: Google surfaces it
+    // in local results and customers turn up at it.
     ...(contact.addressLines?.length
       ? {
           address: {
             "@type": "PostalAddress",
-            streetAddress: contact.addressLines.slice(1, -1).join(", ") || contact.addressLines[0],
-            addressLocality: "Jaipur",
-            addressRegion: "Rajasthan",
+            streetAddress: contact.addressLines.join(", "),
+            ...(contact.city ? { addressLocality: contact.city } : {}),
+            ...(contact.state ? { addressRegion: contact.state } : {}),
             addressCountry: "IN",
           },
         }

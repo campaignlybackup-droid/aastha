@@ -36,7 +36,7 @@ export default async function ShopPage({
         ]}
         eyebrow="The collection"
         title="All Jewellery"
-        description="Every piece is hallmarked 925 sterling silver, finished by hand in our Jaipur workshop, and ships with a certificate of authenticity."
+        description="Every piece is hallmarked 925 sterling silver and ships with a certificate of authenticity."
       >
         <div className="mt-8">
           <ActiveFilterChips pathname="/shop" searchParams={params} />

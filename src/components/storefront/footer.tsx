@@ -11,11 +11,12 @@ import { NewsletterForm } from "@/components/storefront/newsletter-form";
 import { getCategoryTree, getCollections, getSetting } from "@/server/catalog";
 
 export async function Footer() {
-  const [categories, collections, contact, social] = await Promise.all([
+  const [categories, collections, contact, social, brand] = await Promise.all([
     getCategoryTree(),
     getCollections(true),
     getSetting("contact"),
     getSetting("social"),
+    getSetting("brand"),
   ]);
 
   const shopLinks = categories.filter((c) => c.isFeatured).slice(0, 7);
@@ -27,10 +28,11 @@ export async function Footer() {
           {/* Brand ---------------------------------------------------------- */}
           <div className="space-y-5">
             <Logo tone="light" size="md" />
-            <p className="max-w-xs text-sm leading-relaxed text-sand-300">
-              Hallmarked 925 sterling silver, handcrafted by nine silversmiths in
-              Jaipur&rsquo;s Johari Bazaar.
-            </p>
+            {brand.tagline ? (
+              <p className="max-w-xs text-sm leading-relaxed text-sand-300">
+                {brand.tagline}
+              </p>
+            ) : null}
 
             {(social.instagram || social.facebook || social.youtube) && (
               <div className="flex items-center gap-2">

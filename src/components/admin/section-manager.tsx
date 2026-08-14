@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowUp,
   CalendarClock,
   Copy,
+  Pencil,
   Eye,
   EyeOff,
   Plus,
@@ -181,6 +183,15 @@ export function SectionManager({ sections }: { sections: Section[] }) {
 
                 {/* Actions ------------------------------------------------ */}
                 <div className="flex flex-wrap items-center gap-1.5">
+                  <Link
+                    href={`/admin/homepage/${section.id}`}
+                    aria-label={`Edit ${section.label} content`}
+                    title="Edit content"
+                    className="inline-flex size-8 items-center justify-center rounded-xs border border-line-strong text-content-muted transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                  >
+                    <Pencil className="size-3.5" aria-hidden="true" />
+                  </Link>
+
                   <IconButton
                     label={section.isActive ? "Hide section" : "Show section"}
                     disabled={pending}
