@@ -12,6 +12,7 @@ import { ProductViewTracker } from "@/components/storefront/product-view-tracker
 import { PurchasePanel } from "@/components/storefront/purchase-panel";
 import { RecentlyViewed } from "@/components/storefront/recently-viewed";
 import { SpecTable } from "@/components/storefront/spec-table";
+import { WishlistButton } from "@/components/storefront/wishlist-button";
 import { Rating, SectionHeading } from "@/components/ui/primitives";
 import { db } from "@/lib/db";
 import { sanitizeRichText, toPlainText } from "@/lib/cms/sanitize";
@@ -210,6 +211,10 @@ export default async function ProductPage({ params }: Props) {
               variants={variants}
               freeShippingAbovePaise={shipping.freeAbovePaise}
             />
+
+            {/* Resolves its own saved state after hydration — reading the
+                session here would make every product page dynamic. */}
+            <WishlistButton productId={product.id} productSlug={product.slug} />
 
             {/* Trust strip ------------------------------------------------- */}
             <ul className="grid grid-cols-2 gap-4 border-y border-line py-5">

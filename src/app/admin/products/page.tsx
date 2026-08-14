@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 
 import {
   AdminHeading,
@@ -109,6 +110,15 @@ export default async function AdminProductsPage({
       <AdminHeading
         title="Products"
         description={`${total} ${total === 1 ? "product" : "products"}`}
+        action={
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center gap-1.5 rounded-sm bg-brand-800 px-4 py-2.5 text-xs text-sand-50 transition-colors hover:bg-brand-900"
+          >
+            <Plus className="size-3.5" aria-hidden="true" />
+            New product
+          </Link>
+        }
       />
 
       <div className="mb-5 flex flex-wrap items-center gap-3">

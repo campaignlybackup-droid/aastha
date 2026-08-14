@@ -148,9 +148,9 @@ Not bugs — V1 scope decisions, all architected for later:
   schema but nothing sets them.
 - No refunds from the admin. Refund in the Razorpay dashboard; the webhook
   records it.
-- Product **creation and editing** is partial: status, pricing and stock are
-  editable in the admin, but full product authoring (descriptions, images,
-  variants, jewellery attributes) still goes through the seed or the database.
-  This is the largest remaining build item.
-- Wishlist has no button on the product page yet, though the model, the action
-  and the account page all work.
+- No bulk product import. Products are added one at a time in the admin; a CSV
+  importer would be the next thing to build if the catalogue is large.
+- Media files cannot be deleted from the admin. A file may be referenced by a
+  product, category, hero slide or campaign, and removing one out from under a
+  live page is not recoverable from that screen — manage deletions in
+  Cloudinary, which keeps its own history.

@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Check, Copy } from "lucide-react";
 
+import { MediaUpload } from "@/components/admin/media-upload";
 import { MediaImage } from "@/components/ui/media-image";
 import { Badge } from "@/components/ui/primitives";
 import { formatDate } from "@/lib/utils";
@@ -65,6 +66,8 @@ export function MediaLibrary({
 
   return (
     <div>
+      <MediaUpload enabled={uploadsEnabled} />
+
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
         <nav aria-label="Filter by folder" className="flex flex-wrap gap-1.5">
           <Link
@@ -116,14 +119,6 @@ export function MediaLibrary({
           </button>
         </form>
       </div>
-
-      {uploadsEnabled ? (
-        <p className="border-b border-line bg-surface-sunken px-5 py-3 text-xs text-content-muted">
-          Upload new photography in Cloudinary under the{" "}
-          <code>aastha</code> folder; it appears here once attached to a
-          product.
-        </p>
-      ) : null}
 
       {media.length === 0 ? (
         <p className="px-5 py-16 text-center text-sm text-content-muted">
