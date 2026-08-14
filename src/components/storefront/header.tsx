@@ -11,6 +11,11 @@ import { cn } from "@/lib/utils";
 /**
  * Storefront header.
  *
+ * Logo sits top-left, nav runs beside it, actions sit right. A centred logo
+ * splits the nav into two halves and leaves neither enough width — that is
+ * what made longer labels wrap. Anchoring left gives the nav one continuous
+ * run and room for more categories.
+ *
  * Server component: the category tree and collections come from the database
  * so the navigation reflects whatever the admin has configured, with no
  * hard-coded menu. Only the interactive pieces (mobile drawer, search overlay)
@@ -22,23 +27,34 @@ export async function Header() {
     getCollections(true),
   ]);
 
-  // Five is what fits either side of a centred logo at 1280px without the
-  // labels wrapping. Everything else lives in the footer and the mobile drawer.
-  const primaryNav = categories.filter((c) => c.isFeatured).slice(0, 5);
+  // Seven fits at 1280px but collides with the action icons at 1024px, so the
+  // last three are revealed only at xl. Everything stays reachable from the
+  // footer and the mobile drawer regardless.
+  const primaryNav = categories.filter((c) => c.isFeatured).slice(0, 7);
+  const ALWAYS_VISIBLE = 4;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-sm supports-[backdrop-filter]:bg-surface/80">
       <div className="u-container">
-        <div className="flex h-16 items-center justify-between gap-4 lg:h-[5.5rem]">
+        <div className="flex h-16 items-center gap-3 lg:h-20 lg:gap-8">
           {/* Mobile: menu ------------------------------------------------- */}
-          <div className="flex flex-1 items-center gap-1 lg:hidden">
+          <div className="lg:hidden">
             <MobileNav categories={categories} collections={collections} />
           </div>
 
-          {/* Desktop: primary navigation ---------------------------------- */}
+          {/* Logo ----------------------------------------------------------
+              Two renders rather than a responsive size prop: the wordmark's
+              letter-spacing is tuned per size, so it needs the discrete step
+              rather than a fluid one. Only one is ever in the layout. */}
+          <div className="shrink-0">
+            <Logo size="sm" align="left" className="lg:hidden" />
+            <Logo size="md" align="left" className="hidden lg:flex" />
+          </div>
+
+          {/* Desktop: primary navigation ----------------------------------- */}
           <nav
             aria-label="Primary"
-            className="hidden flex-1 items-center gap-5 lg:flex xl:gap-7"
+            className="hidden min-w-0 flex-1 items-center gap-5 lg:flex xl:gap-7"
           >
             <Link
               href="/shop"
@@ -46,18 +62,17 @@ export async function Header() {
             >
               All Jewellery
             </Link>
-            {primaryNav.map((category) => (
-              <NavItem key={category.id} category={category} />
+            {primaryNav.map((category, index) => (
+              <NavItem
+                key={category.id}
+                category={category}
+                className={index >= ALWAYS_VISIBLE ? "hidden xl:block" : undefined}
+              />
             ))}
           </nav>
 
-          {/* Logo ---------------------------------------------------------- */}
-          <div className="flex shrink-0 justify-center px-4 lg:flex-none">
-            <Logo size="md" />
-          </div>
-
           {/* Actions ------------------------------------------------------- */}
-          <div className="flex flex-1 items-center justify-end gap-0.5 sm:gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
             <SearchTrigger>
               <span className="sr-only">Search</span>
               <Search className="size-[1.15rem]" aria-hidden="true" />
@@ -96,8 +111,10 @@ const actionClass =
  */
 function NavItem({
   category,
+  className,
 }: {
   category: Awaited<ReturnType<typeof getCategoryTree>>[number];
+  className?: string;
 }) {
   const hasChildren = category.children.length > 0;
 
@@ -105,7 +122,10 @@ function NavItem({
     return (
       <Link
         href={`/category/${category.slug}`}
-        className="u-eyebrow whitespace-nowrap text-content transition-colors hover:text-[var(--color-accent)]"
+        className={cn(
+          "u-eyebrow whitespace-nowrap text-content transition-colors hover:text-[var(--color-accent)]",
+          className,
+        )}
       >
         {category.name}
       </Link>
@@ -113,7 +133,7 @@ function NavItem({
   }
 
   return (
-    <div className="group/nav relative">
+    <div className={cn("group/nav relative", className)}>
       <Link
         href={`/category/${category.slug}`}
         className="u-eyebrow inline-flex items-center whitespace-nowrap py-2 text-content transition-colors hover:text-[var(--color-accent)]"
@@ -123,7 +143,9 @@ function NavItem({
 
       <div
         className={cn(
-          "invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 pt-2 opacity-0",
+          // Left-aligned to its trigger rather than centred: the first nav item
+          // sits near the page gutter, and a centred panel would overflow it.
+          "invisible absolute left-0 top-full z-50 w-56 pt-2 opacity-0",
           "transition-[opacity,visibility] duration-200",
           "group-hover/nav:visible group-hover/nav:opacity-100",
           "group-focus-within/nav:visible group-focus-within/nav:opacity-100",

@@ -1,5 +1,24 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+/**
+ * tailwind-merge has to be told about our custom font sizes.
+ *
+ * Its default config only knows Tailwind's built-in scale, so it parses an
+ * unrecognised `text-*` as a COLOUR. That made `cn("text-display-md",
+ * "text-sand-50")` silently drop the size — the two looked like competing
+ * colours — and every display heading combined with a colour rendered at the
+ * 16px base instead. Registering them as font sizes fixes the whole class.
+ */
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      "font-size": [
+        { text: ["display-sm", "display-md", "display-lg", "display-xl"] },
+      ],
+    },
+  },
+});
 
 /** Merge Tailwind classes with conflict resolution. */
 export function cn(...inputs: ClassValue[]) {

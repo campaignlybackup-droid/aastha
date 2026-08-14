@@ -14,12 +14,15 @@ export function Logo({
   className,
   tone = "dark",
   size = "md",
+  align = "center",
   asLink = true,
 }: {
   className?: string;
   /** "dark" for light backgrounds, "light" for the teal footer and hero overlays. */
   tone?: "dark" | "light";
   size?: "sm" | "md" | "lg";
+  /** The wordmark is two stacked lines; this aligns them to each other. */
+  align?: "left" | "center";
   asLink?: boolean;
 }) {
   const sizes = {
@@ -29,7 +32,13 @@ export function Logo({
   }[size];
 
   const content = (
-    <span className={cn("flex flex-col items-center leading-none", className)}>
+    <span
+      className={cn(
+        "flex flex-col leading-none",
+        align === "left" ? "items-start" : "items-center",
+        className,
+      )}
+    >
       <span
         className={cn(
           "font-display font-normal tracking-[0.14em]",
