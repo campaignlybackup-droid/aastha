@@ -16,6 +16,17 @@ import "dotenv/config";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 
+import {
+  AUTHENTICITY_COPY,
+  FOUNDER_SPEAK_HTML,
+  HOMEPAGE_STORY_HTML,
+  HOMEPAGE_TRUST_BADGES,
+  ORDER_POLICY_SUMMARY,
+  PLATED_ITEMS_COPY,
+  PRODUCT_CARE_COPY,
+  SHIPPING_COPY,
+  STATIC_PAGE_CONTENT,
+} from "../src/content/brand.js";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import type { Gender, SectionType } from "../src/generated/prisma/enums.js";
 
@@ -105,11 +116,18 @@ async function upsertPlaceholderMedia(kind: ArtKind, index: number) {
 
 const CATEGORIES: Array<{
   name: string;
+  slug?: string;
   art: ArtKind;
   featured?: boolean;
   children?: string[];
   description: string;
 }> = [
+  {
+    name: "Chains",
+    art: "chain",
+    featured: true,
+    description: "Box, rope and Cuban chains in multiple lengths and gauges.",
+  },
   {
     name: "Rings",
     art: "ring",
@@ -119,25 +137,10 @@ const CATEGORIES: Array<{
       "Hand-finished 925 sterling silver rings — from everyday stackable bands to occasion-worthy statement pieces.",
   },
   {
-    name: "Earrings",
-    art: "earring",
+    name: "Anklets",
+    art: "anklet",
     featured: true,
-    children: ["Studs", "Jhumkas", "Hoops", "Drop Earrings"],
-    description:
-      "Studs, jhumkas and drops in hallmarked sterling silver, weighted for all-day comfort.",
-  },
-  {
-    name: "Necklaces",
-    art: "necklace",
-    featured: true,
-    description:
-      "Temple-inspired and contemporary silver necklaces, finished with secure lobster clasps.",
-  },
-  {
-    name: "Pendants",
-    art: "pendant",
-    featured: true,
-    description: "Symbolic and minimal silver pendants, sold with or without a chain.",
+    description: "Payals with hand-set ghungroos, sold as pairs.",
   },
   {
     name: "Bracelets",
@@ -146,27 +149,36 @@ const CATEGORIES: Array<{
     description: "Link, cuff and charm bracelets in solid 925 silver.",
   },
   {
+    name: "Pendants & Charms",
+    slug: "pendants",
+    art: "pendant",
+    featured: true,
+    description: "Symbolic pendants and charms in genuine 925 sterling silver.",
+  },
+  {
+    name: "Earrings",
+    art: "earring",
+    children: ["Studs", "Jhumkas", "Hoops", "Drop Earrings"],
+    description:
+      "Studs, jhumkas and drops in hallmarked sterling silver, weighted for all-day comfort.",
+  },
+  {
+    name: "Necklaces",
+    art: "necklace",
+    description:
+      "Temple-inspired and contemporary silver necklaces, finished with secure lobster clasps.",
+  },
+  {
     name: "Bangles",
     art: "bangle",
-    featured: true,
-    description: "Traditional kadas and slim bangles, sized to standard Indian measurements.",
-  },
-  {
-    name: "Anklets",
-    art: "anklet",
-    featured: true,
-    description: "Payals with hand-set ghungroos, sold as pairs.",
-  },
-  {
-    name: "Chains",
-    art: "chain",
-    description: "Box, rope and Cuban chains in multiple lengths and gauges.",
+    description:
+      "Traditional kadas and slim bangles, sized to standard Indian measurements.",
   },
   {
     name: "Jewellery Sets",
     art: "set",
-    featured: true,
-    description: "Coordinated necklace and earring sets for weddings and festivals.",
+    description:
+      "Coordinated necklace and earring sets for weddings and festivals.",
   },
   {
     name: "Men's Jewellery",
@@ -181,7 +193,6 @@ const CATEGORIES: Array<{
   {
     name: "Gifting",
     art: "set",
-    featured: true,
     description: "Ready-to-gift silver, boxed and finished with a care card.",
   },
 ];
@@ -190,7 +201,11 @@ const CATEGORIES: Array<{
  * PRODUCTS
  * ========================================================================== */
 
-type VariantSpec = { title: string; options: Record<string, string>; stock: number };
+type VariantSpec = {
+  title: string;
+  options: Record<string, string>;
+  stock: number;
+};
 
 type ProductSpec = {
   name: string;
@@ -791,7 +806,8 @@ const COLLECTIONS = [
     name: "Under ₹2,000",
     art: "pendant" as ArtKind,
     featured: true,
-    description: "Real 925 silver that does not need an occasion to justify it.",
+    description:
+      "Real 925 silver that does not need an occasion to justify it.",
   },
   {
     slug: "gifting-favourites",
@@ -830,10 +846,8 @@ async function seedSettings() {
         // Free shipping above ₹1,500; ₹79 flat below that.
         freeAbovePaise: rs(1500),
         flatRatePaise: rs(79),
-        // Blank until the owner commits to a timeframe. A dispatch promise is
-        // a contractual claim, not filler copy.
-        dispatchCopy: "",
-        deliveryCopy: "",
+        dispatchCopy: SHIPPING_COPY.dispatch,
+        deliveryCopy: SHIPPING_COPY.delivery,
       },
     ],
     [
@@ -857,6 +871,10 @@ async function seedSettings() {
         href: "/shop",
       },
     ],
+    ["page:about", STATIC_PAGE_CONTENT.about],
+    ["page:care-guide", STATIC_PAGE_CONTENT["care-guide"]],
+    ["page:shipping-policy", STATIC_PAGE_CONTENT["shipping-policy"]],
+    ["page:return-policy", STATIC_PAGE_CONTENT["return-policy"]],
   ];
 
   for (const [key, value] of settings) {
@@ -874,7 +892,7 @@ async function seedCategories() {
 
   for (const [index, spec] of CATEGORIES.entries()) {
     const media = await upsertPlaceholderMedia(spec.art, (index % 4) + 1);
-    const slug = slugify(spec.name);
+    const slug = spec.slug ?? slugify(spec.name);
 
     const category = await db.category.upsert({
       where: { slug },
@@ -987,11 +1005,15 @@ async function seedProducts(
       where: { slug },
       update: {
         name: spec.name,
+        categoryId,
         mrpPaise: rs(spec.mrp),
         pricePaise: rs(spec.price),
         salesCount: spec.salesCount ?? 0,
         isFeatured: spec.featured ?? false,
         publishedAt: new Date(Date.now() - index * 9 * 24 * 60 * 60 * 1000),
+        careInstructions: PRODUCT_CARE_COPY,
+        warrantyInfo: null,
+        authenticityInfo: AUTHENTICITY_COPY,
         seoTitle: `${spec.name} — 925 Sterling Silver`,
         seoDescription: spec.short,
       },
@@ -1008,9 +1030,7 @@ async function seedProducts(
         // Staggered ~9 days apart so only the first few fall inside the
         // 30-day "New" window. Publishing everything today would badge the
         // entire catalogue as new, which tells the customer nothing.
-        publishedAt: new Date(
-          Date.now() - index * 9 * 24 * 60 * 60 * 1000,
-        ),
+        publishedAt: new Date(Date.now() - index * 9 * 24 * 60 * 60 * 1000),
         mrpPaise: rs(spec.mrp),
         pricePaise: rs(spec.price),
         taxPercent: 3,
@@ -1025,12 +1045,9 @@ async function seedProducts(
         occasion: spec.occasion,
         gender: spec.gender,
         isAdjustable: spec.adjustable ?? false,
-        careInstructions:
-          "Store in the pouch provided, away from moisture and perfume. Clean with the silver cloth included; avoid chemical dips on oxidised finishes.",
-        warrantyInfo:
-          "[SET THIS] Six-month warranty against manufacturing defects, including plating and clasp failure.",
-        authenticityInfo:
-          "Hallmarked 925 sterling silver. Every order ships with a stamped authenticity certificate.",
+        careInstructions: PRODUCT_CARE_COPY,
+        warrantyInfo: null,
+        authenticityInfo: AUTHENTICITY_COPY,
         whatsIncluded:
           "Jewellery piece, anti-tarnish pouch, polishing cloth, authenticity certificate, gift box.",
         salesCount: spec.salesCount ?? 0,
@@ -1091,7 +1108,9 @@ async function seedProducts(
       const collectionId = collectionIds.get(collectionSlug);
       if (!collectionId) continue;
       await db.productOnCollection.upsert({
-        where: { productId_collectionId: { productId: product.id, collectionId } },
+        where: {
+          productId_collectionId: { productId: product.id, collectionId },
+        },
         update: { position: cIndex },
         create: { productId: product.id, collectionId, position: cIndex },
       });
@@ -1101,27 +1120,32 @@ async function seedProducts(
     const faqs = [
       {
         question: "Is this real silver?",
-        answer: `Yes — ${spec.purity}, hallmarked. Every order includes a stamped authenticity certificate.`,
+        answer: `Yes. ${AUTHENTICITY_COPY}`,
       },
       {
         question: "Will it tarnish?",
-        answer:
-          "All silver oxidises over time. Ours ships with an anti-tarnish pouch and polishing cloth, and the finish is sealed to slow the process considerably.",
+        answer: `Yes, natural oxidation can occur with real sterling silver. It is not a defect, and the shine can be restored with proper care. ${PRODUCT_CARE_COPY}`,
       },
       {
         question: "Can I return it if the size is wrong?",
-        answer:
-          "Yes. Returns are accepted within 7 days of delivery, provided the piece is unworn and in its original packaging.",
+        answer: ORDER_POLICY_SUMMARY,
       },
     ];
 
-    const existingFaqs = await db.productFaq.count({
-      where: { productId: product.id },
-    });
-    if (existingFaqs === 0) {
-      await db.productFaq.createMany({
-        data: faqs.map((f, i) => ({ ...f, productId: product.id, position: i })),
+    for (const [faqIndex, faq] of faqs.entries()) {
+      const existingFaq = await db.productFaq.findFirst({
+        where: { productId: product.id, question: faq.question },
       });
+      if (existingFaq) {
+        await db.productFaq.update({
+          where: { id: existingFaq.id },
+          data: { ...faq, position: faqIndex },
+        });
+      } else {
+        await db.productFaq.create({
+          data: { ...faq, productId: product.id, position: faqIndex },
+        });
+      }
     }
 
     count += 1;
@@ -1176,8 +1200,7 @@ async function seedFaqs() {
     {
       category: "Authenticity",
       question: "Is Aastha jewellery real 925 sterling silver?",
-      answer:
-        "Yes. Every piece is 925 sterling silver — 92.5% pure silver alloyed with 7.5% copper for strength, which is the international standard for silver jewellery. Each order ships with a stamped authenticity certificate.",
+      answer: AUTHENTICITY_COPY,
     },
     {
       category: "Authenticity",
@@ -1188,8 +1211,7 @@ async function seedFaqs() {
     {
       category: "Care",
       question: "How do I stop my silver from tarnishing?",
-      answer:
-        "Tarnish is a reaction with sulphur in the air, accelerated by moisture, perfume and cosmetics. Put jewellery on last when dressing, take it off before swimming or bathing, and store it in the anti-tarnish pouch supplied. Light tarnish comes off with the polishing cloth included in every order.",
+      answer: PRODUCT_CARE_COPY,
     },
     {
       category: "Care",
@@ -1200,26 +1222,24 @@ async function seedFaqs() {
     {
       category: "Shipping",
       question: "How long does delivery take?",
-      answer:
-        "[SET THIS] Dispatch and delivery timings are shown at checkout once you set them under Settings → Shipping.",
+      answer: `${SHIPPING_COPY.dispatch} ${SHIPPING_COPY.delivery} ${PLATED_ITEMS_COPY}`,
     },
     {
       category: "Shipping",
       question: "Do you offer free shipping?",
       answer:
-        "[SET THIS — must match Settings → Shipping] Shipping is complimentary on orders above ₹1,500. Below that a flat ₹79 applies.",
+        "Shipping is complimentary on orders above ₹1,500. Below that a flat ₹79 applies.",
     },
     {
       category: "Returns",
       question: "What is your return policy?",
-      answer:
-        "[SET THIS — confirm your actual return window and refund timeline before launch] Return anything unworn within 7 days of delivery, in its original packaging with the authenticity certificate.",
+      answer: ORDER_POLICY_SUMMARY,
     },
     {
       category: "Returns",
       question: "Can I exchange a ring for a different size?",
       answer:
-        "[SET THIS — confirm your exchange policy] Yes, once per order at no charge, subject to availability. Engraved and made-to-order pieces cannot be exchanged.",
+        "No. We do not accept exchanges, returns or refunds for sizing issues. Please review the size guide and product measurements carefully before ordering.",
     },
     {
       category: "Orders",
@@ -1236,9 +1256,14 @@ async function seedFaqs() {
   ];
 
   for (const [index, f] of faqs.entries()) {
-    const existing = await db.faq.findFirst({ where: { question: f.question } });
+    const existing = await db.faq.findFirst({
+      where: { question: f.question },
+    });
     if (existing) {
-      await db.faq.update({ where: { id: existing.id }, data: { ...f, position: index } });
+      await db.faq.update({
+        where: { id: existing.id },
+        data: { ...f, position: index },
+      });
     } else {
       await db.faq.create({ data: { ...f, position: index, isActive: true } });
     }
@@ -1291,7 +1316,10 @@ async function seedHomepage() {
             subheading:
               "Hallmarked 925 sterling silver, finished by hand and made to be worn — not stored away for an occasion that never comes.",
             primaryCta: { label: "Shop the collection", href: "/shop" },
-            secondaryCta: { label: "The Bridal Edit", href: "/collections/bridal-edit" },
+            secondaryCta: {
+              label: "The Bridal Edit",
+              href: "/collections/bridal-edit",
+            },
             align: "left",
             position: "middle",
             overlayOpacity: 30,
@@ -1393,13 +1421,23 @@ async function seedHomepage() {
           height: 1500,
         },
         imageSide: "left",
-        eyebrow: "Our workshop",
-        heading: "Our story",
-        // Placeholder. Replace in Admin → Homepage with the real story of the
-        // business; nothing here asserts a fact that has not been verified.
-        body: "<p>Tell customers who makes your jewellery and how. Edit this section under Admin → Homepage.</p><p>Specifics earn trust — where you work, how a piece is finished, what you will not compromise on. Keep it true and keep it yours.</p>",
+        eyebrow: "Our legacy",
+        heading: "The Story of Aastha Silver",
+        body: HOMEPAGE_STORY_HTML,
         cta: { label: "Read our story", href: "/about" },
-        stats: [{ value: "925", label: "Hallmarked purity" }],
+        stats: [
+          { value: "40+ years", label: "Family legacy" },
+          { value: "21", label: "Founder age" },
+        ],
+      },
+    },
+    {
+      type: "RICH_TEXT",
+      label: "Founder Speak",
+      settings: {
+        title: "Founder Speak",
+        html: FOUNDER_SPEAK_HTML,
+        width: "narrow",
       },
     },
     {
@@ -1417,28 +1455,7 @@ async function seedHomepage() {
       label: "Trust badges",
       settings: {
         theme: "light",
-        items: [
-          {
-            icon: "BadgeCheck",
-            title: "Hallmarked 925 silver",
-            description: "Certificate of authenticity with every order.",
-          },
-          {
-            icon: "Truck",
-            title: "Free shipping above ₹1,500",
-            description: "On every order above the threshold.",
-          },
-          {
-            icon: "RotateCcw",
-            title: "7-day returns",
-            description: "Unworn and boxed, no questions asked.",
-          },
-          {
-            icon: "ShieldCheck",
-            title: "6-month warranty",
-            description: "Against clasp, plating and setting defects.",
-          },
-        ],
+        items: HOMEPAGE_TRUST_BADGES.map((item) => ({ ...item })),
       },
     },
     {
@@ -1459,7 +1476,7 @@ async function seedHomepage() {
         eyebrow: "Good to know",
         title: "Frequently asked questions",
         description: "",
-        limit: 6,
+        limit: 8,
       },
     },
     {
@@ -1512,7 +1529,11 @@ async function seedCampaign() {
       priority: 10,
       announcementText: "Diwali Edit is live · 15% off with FESTIVE15",
       announcementLink: "/collections/gifting-favourites",
-      theme: { accent: "#855d26", accentHover: "#6e4c25", accentContrast: "#ffffff" },
+      theme: {
+        accent: "#855d26",
+        accentHover: "#6e4c25",
+        accentContrast: "#ffffff",
+      },
       featuredCategoryIds: [],
       featuredProductIds: [],
     },
@@ -1546,8 +1567,11 @@ async function seedCampaign() {
               eyebrow: "Diwali Edit",
               heading: "Gift something that lasts",
               subheading:
-                "Boxed silver, dispatched in 48 hours, with 15% off using FESTIVE15.",
-              primaryCta: { label: "Shop gifting", href: "/collections/gifting-favourites" },
+                "Boxed silver, dispatched in 3–4 business days, with 15% off using FESTIVE15.",
+              primaryCta: {
+                label: "Shop gifting",
+                href: "/collections/gifting-favourites",
+              },
               align: "center",
               position: "middle",
               overlayOpacity: 42,
@@ -1575,7 +1599,10 @@ async function seedCampaign() {
             limit: 8,
             productIds: [],
           },
-          viewAll: { label: "View all", href: "/collections/gifting-favourites" },
+          viewAll: {
+            label: "View all",
+            href: "/collections/gifting-favourites",
+          },
         } as never,
       },
     });
@@ -1585,7 +1612,9 @@ async function seedCampaign() {
 }
 
 async function seedUsersAndReviews() {
-  const bootstrapMobiles = (process.env.ADMIN_BOOTSTRAP_MOBILES || "919999999999")
+  const bootstrapMobiles = (
+    process.env.ADMIN_BOOTSTRAP_MOBILES || "919999999999"
+  )
     .split(",")
     .map((m) => m.trim())
     .filter(Boolean);
@@ -1640,7 +1669,7 @@ async function seedUsersAndReviews() {
       slug: slugify("Anaya Floral Band Ring"),
       rating: 4,
       title: "Beautiful engraving, sizing runs slightly small",
-      body: "The marigold detail is genuinely hand-done — you can see slight variation between the flowers, which I like. I would size up one from your usual. Support arranged the exchange without any fuss.",
+      body: "The marigold detail is genuinely hand-done — you can see slight variation between the flowers, which I like. The size guide helped me choose the right fit before ordering.",
     },
     {
       slug: slugify("Payal Ghungroo Anklets"),

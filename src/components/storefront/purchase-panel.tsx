@@ -34,12 +34,14 @@ export function PurchasePanel({
   categoryName,
   variants,
   freeShippingAbovePaise,
+  dispatchCopy,
 }: {
   productId: string;
   productName: string;
   categoryName: string;
   variants: PurchaseVariant[];
   freeShippingAbovePaise: number;
+  dispatchCopy?: string;
 }) {
   const router = useRouter();
 
@@ -66,9 +68,7 @@ export function PurchasePanel({
     }
     return keys.map((key) => ({
       key,
-      values: [
-        ...new Set(variants.map((v) => v.options[key]).filter(Boolean)),
-      ],
+      values: [...new Set(variants.map((v) => v.options[key]).filter(Boolean))],
     }));
   }, [variants]);
 
@@ -157,8 +157,7 @@ export function PurchasePanel({
                     dimensions
                       .filter((d) => d.key !== dimension.key)
                       .every(
-                        (d) =>
-                          v.options[d.key] === selected?.options[d.key],
+                        (d) => v.options[d.key] === selected?.options[d.key],
                       ),
                 ) ?? variants.find((v) => v.options[dimension.key] === value);
 
@@ -180,7 +179,9 @@ export function PurchasePanel({
                     // Out-of-stock options stay selectable so the customer can
                     // see the price and stock message rather than being
                     // silently blocked.
-                    unavailable && !isSelected && "text-content-subtle line-through",
+                    unavailable &&
+                      !isSelected &&
+                      "text-content-subtle line-through",
                   )}
                 >
                   {value}
@@ -203,7 +204,7 @@ export function PurchasePanel({
           </Badge>
         ) : (
           <Badge variant="success" size="md">
-            In stock · dispatched in 48 hours
+            In stock{dispatchCopy ? ` · ${dispatchCopy}` : ""}
           </Badge>
         )}
       </div>

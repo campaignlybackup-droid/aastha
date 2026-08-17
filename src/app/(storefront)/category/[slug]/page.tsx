@@ -59,7 +59,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     { name: "Home", href: "/" },
     { name: "All Jewellery", href: "/shop" },
     ...(category.parent
-      ? [{ name: category.parent.name, href: `/category/${category.parent.slug}` }]
+      ? [
+          {
+            name: category.parent.name,
+            href: `/category/${category.parent.slug}`,
+          },
+        ]
       : []),
     { name: category.name, href: pathname },
   ];

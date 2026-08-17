@@ -151,7 +151,7 @@ export function MobileNav({
             <div className="mt-6 border-t border-line px-3 pt-4">
               <div className="space-y-0.5">
                 {[
-                  { href: "/shop", label: "All Jewellery" },
+                  { href: "/shop?sort=popular", label: "Best Selling" },
                   { href: "/account/orders", label: "My Orders" },
                   { href: "/account/wishlist", label: "Wishlist" },
                   { href: "/about", label: "Our Story" },

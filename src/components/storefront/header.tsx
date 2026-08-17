@@ -27,10 +27,9 @@ export async function Header() {
     getCollections(true),
   ]);
 
-  // Seven fits at 1280px but collides with the action icons at 1024px, so the
-  // last three are revealed only at xl. Everything stays reachable from the
-  // footer and the mobile drawer regardless.
-  const primaryNav = categories.filter((c) => c.isFeatured).slice(0, 7);
+  // Four category links fit comfortably at lg; any additional featured links
+  // are revealed at xl. Every category remains available in the mobile drawer.
+  const primaryNav = categories.filter((c) => c.isFeatured).slice(0, 8);
   const ALWAYS_VISIBLE = 4;
 
   return (
@@ -54,19 +53,21 @@ export async function Header() {
           {/* Desktop: primary navigation ----------------------------------- */}
           <nav
             aria-label="Primary"
-            className="hidden min-w-0 flex-1 items-center gap-5 lg:flex xl:gap-7"
+            className="hidden min-w-0 flex-1 items-center gap-4 lg:flex xl:gap-5"
           >
             <Link
-              href="/shop"
+              href="/shop?sort=popular"
               className="u-eyebrow whitespace-nowrap text-content transition-colors hover:text-[var(--color-accent)]"
             >
-              All Jewellery
+              Best Selling
             </Link>
             {primaryNav.map((category, index) => (
               <NavItem
                 key={category.id}
                 category={category}
-                className={index >= ALWAYS_VISIBLE ? "hidden xl:block" : undefined}
+                className={
+                  index >= ALWAYS_VISIBLE ? "hidden xl:block" : undefined
+                }
               />
             ))}
           </nav>

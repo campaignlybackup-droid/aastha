@@ -41,8 +41,7 @@ export function organizationJsonLd(contact: {
     "@id": ORG_ID,
     name: "Aastha Silver & Jewels",
     url: publicEnv.siteUrl,
-    description:
-      "Hallmarked 925 sterling silver jewellery.",
+    description: "Hallmarked 925 sterling silver jewellery.",
     priceRange: "₹₹",
     currenciesAccepted: "INR",
     ...(contact.email ? { email: contact.email } : {}),
@@ -186,11 +185,7 @@ export function productJsonLd({
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
         applicableCountry: "IN",
-        returnPolicyCategory:
-          "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7,
-        returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn",
+        returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
       },
     },
     // Only emit a rating when one genuinely exists — a fabricated

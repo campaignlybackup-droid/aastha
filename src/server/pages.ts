@@ -10,11 +10,8 @@ import { db } from "@/lib/db";
  * Stored as Settings keyed `page:<slug>` rather than a new table — they are a
  * handful of singleton documents, and a model plus migration would buy nothing.
  *
- * They ship with an OUTLINE, not with text. Return windows, shipping terms and
- * privacy commitments are legally operative statements about a specific
- * business; inventing them would put words in the owner's mouth that a customer
- * could hold them to. Each page therefore renders its own placeholder notice
- * until it is filled in, and is excluded from the sitemap while empty.
+ * Pages without owner-approved copy ship with an outline rather than invented
+ * claims. Completed pages are stored in Settings and included in the sitemap.
  */
 
 export type StaticPageSlug =
@@ -65,14 +62,14 @@ export const PAGE_DEFINITIONS: Record<
     ],
   },
   "care-guide": {
-    title: "Silver Care Guide",
-    intro: "How to keep silver looking new.",
+    title: "Jewellery Care",
+    intro: "How to store, clean and protect genuine sterling silver.",
     prompts: [
       "Day-to-day wear — perfume, water, swimming",
       "Cleaning polished silver",
       "Cleaning oxidised silver (chemical dips strip the finish)",
       "Storage",
-      "What your warranty does and does not cover",
+      "Why natural tarnishing is not a defect and how to restore the shine",
     ],
   },
   "privacy-policy": {
@@ -93,7 +90,7 @@ export const PAGE_DEFINITIONS: Record<
     prompts: [
       "Who you are as a legal entity, and your GSTIN",
       "Pricing, taxes and when a contract is formed",
-      "Cancellation before dispatch",
+      "Orders cannot be cancelled once placed",
       "Governing law and jurisdiction",
       "Have a lawyer review this before launch",
     ],
@@ -102,23 +99,20 @@ export const PAGE_DEFINITIONS: Record<
     title: "Shipping Policy",
     intro: "How and when orders arrive.",
     prompts: [
-      "Dispatch time — must match the Settings → Shipping value",
-      "Delivery estimates, and whether they differ by region",
-      "Shipping charges and the free-shipping threshold",
-      "Which courier partners you use",
-      "What happens to a failed or refused delivery",
+      "Dispatch in 3–4 business days",
+      "Delivery in 5–6 business days",
+      "Additional dispatch time and natural wear for plated items",
+      "Orders cannot be cancelled once placed",
+      "Raw unboxing-video requirements for defect or wrong-item claims",
     ],
   },
   "return-policy": {
     title: "Returns & Exchanges",
     intro: "When and how a customer can return something.",
     prompts: [
-      "The return window, and when it starts",
-      "Condition required: unworn, original packaging, certificate included",
-      "What cannot be returned — engraved, made-to-order, earrings for hygiene",
-      "Who pays return shipping",
-      "How long a refund takes and where it goes",
-      "The exchange process for ring sizes",
+      "No exchanges, returns or refunds for sizing or other non-defect reasons",
+      "Orders cannot be cancelled once placed",
+      "Raw unboxing-video requirements for defect or wrong-item claims",
     ],
   },
 };
@@ -128,7 +122,9 @@ const KEY_PREFIX = "page:";
 export const getStaticPage = cache(
   async (slug: StaticPageSlug): Promise<StaticPage> => {
     const definition = PAGE_DEFINITIONS[slug];
-    const row = await db.setting.findUnique({ where: { key: `${KEY_PREFIX}${slug}` } });
+    const row = await db.setting.findUnique({
+      where: { key: `${KEY_PREFIX}${slug}` },
+    });
 
     const stored =
       row && typeof row.value === "object" && row.value !== null

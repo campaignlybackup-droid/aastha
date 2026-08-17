@@ -46,7 +46,14 @@ const theme = z.enum(["light", "dark"]).default("dark");
 /** How many products/categories a carousel pulls, and from where. */
 const productSource = z.object({
   mode: z
-    .enum(["new", "bestsellers", "featured", "category", "collection", "manual"])
+    .enum([
+      "new",
+      "bestsellers",
+      "featured",
+      "category",
+      "collection",
+      "manual",
+    ])
     .default("new"),
   categorySlug: z.string().optional(),
   collectionSlug: z.string().optional(),
@@ -302,7 +309,7 @@ export const SECTION_DESCRIPTIONS: Record<SectionType, string> = {
   RICH_TEXT: "A formatted block of text.",
   CTA: "Headline with one or two buttons.",
   NEWSLETTER: "Email capture form.",
-  TRUST_BADGES: "Icon row for hallmarking, returns, shipping.",
+  TRUST_BADGES: "Icon row for authenticity, care, shipping and policies.",
   CUSTOM_HTML: "Raw HTML for one-off needs. Sanitised before display.",
 };
 

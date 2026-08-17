@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { Panel } from "@/components/admin/ui";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, Input, Label, NativeSelect, Textarea } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  Input,
+  Label,
+  NativeSelect,
+  Textarea,
+} from "@/components/ui/field";
 import { adminSaveSetting } from "@/server/actions/admin";
 import { INDIAN_STATES } from "@/lib/india";
 
@@ -56,9 +63,10 @@ export function SettingsForm({ initial }: { initial: Initial }) {
 function useSave(key: string) {
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
-  const [result, setResult] = React.useState<
-    { tone: "success" | "danger"; text: string } | null
-  >(null);
+  const [result, setResult] = React.useState<{
+    tone: "success" | "danger";
+    text: string;
+  } | null>(null);
 
   const save = (value: unknown) => {
     setResult(null);
@@ -180,9 +188,9 @@ function ContactPanel({ initial }: { initial: Initial["contact"] }) {
             placeholder={"Shop name\nStreet\nArea"}
           />
           <FieldDescription>
-            One line per row. Leave blank to omit the address entirely — a
-            wrong address published in search results sends customers to the
-            wrong door.
+            One line per row. Leave blank to omit the address entirely — a wrong
+            address published in search results sends customers to the wrong
+            door.
           </FieldDescription>
         </Field>
 
@@ -231,7 +239,10 @@ function BrandPanel({ initial }: { initial: Initial["brand"] }) {
   const [form, setForm] = React.useState(initial);
 
   return (
-    <Panel title="Brand" description="The one-line description under the footer logo.">
+    <Panel
+      title="Brand"
+      description="The one-line description under the footer logo."
+    >
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -313,7 +324,7 @@ function ShippingPanel({ initial }: { initial: Initial["shipping"] }) {
           <Input
             value={form.dispatchCopy}
             onChange={(e) => setForm({ ...form, dispatchCopy: e.target.value })}
-            placeholder="e.g. Dispatched within 48 hours."
+            placeholder="e.g. Orders are dispatched within 3–4 business days."
             maxLength={160}
           />
           <FieldDescription>

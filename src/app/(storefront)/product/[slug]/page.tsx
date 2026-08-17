@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { BadgeCheck, CircleOff, Sparkles, Truck } from "lucide-react";
 
 import { Carousel } from "@/components/storefront/carousel";
 import { FaqAccordion } from "@/components/storefront/faq-accordion";
@@ -14,6 +14,7 @@ import { RecentlyViewed } from "@/components/storefront/recently-viewed";
 import { SpecTable } from "@/components/storefront/spec-table";
 import { WishlistButton } from "@/components/storefront/wishlist-button";
 import { Rating, SectionHeading } from "@/components/ui/primitives";
+import { ORDER_POLICY_SUMMARY, PLATED_ITEMS_COPY } from "@/content/brand";
 import { db } from "@/lib/db";
 import { sanitizeRichText, toPlainText } from "@/lib/cms/sanitize";
 import { publicEnv } from "@/lib/env";
@@ -53,7 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     product.shortDescription ||
     toPlainText(product.description ?? "").slice(0, 155);
 
-  const image = product.ogImage?.secureUrl ?? product.images[0]?.media.secureUrl;
+  const image =
+    product.ogImage?.secureUrl ?? product.images[0]?.media.secureUrl;
 
   return {
     title: product.seoTitle ?? product.name,
@@ -210,6 +212,7 @@ export default async function ProductPage({ params }: Props) {
               categoryName={product.category.name}
               variants={variants}
               freeShippingAbovePaise={shipping.freeAbovePaise}
+              dispatchCopy={shipping.dispatchCopy}
             />
 
             {/* Resolves its own saved state after hydration — reading the
@@ -219,10 +222,18 @@ export default async function ProductPage({ params }: Props) {
             {/* Trust strip ------------------------------------------------- */}
             <ul className="grid grid-cols-2 gap-4 border-y border-line py-5">
               {[
-                { icon: BadgeCheck, label: product.silverPurity ?? "925 Silver" },
-                { icon: Truck, label: shipping.dispatchCopy || "48-hour dispatch" },
-                { icon: RotateCcw, label: "7-day returns" },
-                { icon: ShieldCheck, label: "6-month warranty" },
+                {
+                  icon: BadgeCheck,
+                  label: "Guaranteed genuine 925 sterling silver",
+                },
+                {
+                  icon: Truck,
+                  label:
+                    shipping.dispatchCopy ||
+                    "Orders are dispatched within 3–4 business days.",
+                },
+                { icon: Sparkles, label: "Natural tarnishing can be cleaned" },
+                { icon: CircleOff, label: "No warranty, returns or exchanges" },
               ].map((item) => (
                 <li key={item.label} className="flex items-start gap-2.5">
                   <item.icon
@@ -390,11 +401,12 @@ function ProductDetails({
       : null,
     {
       id: "shipping",
-      question: "Shipping & returns",
+      question: "Shipping & order policy",
       answer: [
         shipping.dispatchCopy,
         shipping.deliveryCopy,
-        "Returns accepted within 7 days of delivery, unworn and in original packaging.",
+        PLATED_ITEMS_COPY,
+        ORDER_POLICY_SUMMARY,
       ]
         .filter(Boolean)
         .join(" "),
@@ -402,10 +414,8 @@ function ProductDetails({
     product.authenticityInfo
       ? {
           id: "authenticity",
-          question: "Authenticity & warranty",
-          answer: [product.authenticityInfo, product.warrantyInfo]
-            .filter(Boolean)
-            .join(" "),
+          question: "Authenticity",
+          answer: product.authenticityInfo,
         }
       : null,
     product.whatsIncluded

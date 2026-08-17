@@ -19,7 +19,7 @@ export async function Footer() {
     getSetting("brand"),
   ]);
 
-  const shopLinks = categories.filter((c) => c.isFeatured).slice(0, 7);
+  const shopLinks = categories.filter((c) => c.isFeatured).slice(0, 8);
 
   return (
     <footer className="mt-24 bg-brand-900 text-sand-200">
@@ -62,7 +62,7 @@ export async function Footer() {
                 {c.name}
               </FooterLink>
             ))}
-            <FooterLink href="/shop">All Jewellery</FooterLink>
+            <FooterLink href="/shop?sort=popular">Best Selling</FooterLink>
           </FooterColumn>
 
           {/* Help ----------------------------------------------------------- */}
@@ -70,7 +70,9 @@ export async function Footer() {
             <FooterLink href="/contact">Contact Us</FooterLink>
             <FooterLink href="/faq">FAQ</FooterLink>
             <FooterLink href="/shipping-policy">Shipping</FooterLink>
-            <FooterLink href="/return-policy">Returns &amp; Exchanges</FooterLink>
+            <FooterLink href="/return-policy">
+              Returns &amp; Exchanges
+            </FooterLink>
             <FooterLink href="/care-guide">Silver Care Guide</FooterLink>
             <FooterLink href="/account/orders">Track My Order</FooterLink>
             <FooterLink href="/about">Our Story</FooterLink>
@@ -89,13 +91,19 @@ export async function Footer() {
             <address className="space-y-2.5 text-sm not-italic text-sand-300">
               {contact.addressLines.length ? (
                 <p className="flex gap-2.5">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-gold-400" aria-hidden="true" />
+                  <MapPin
+                    className="mt-0.5 size-4 shrink-0 text-gold-400"
+                    aria-hidden="true"
+                  />
                   <span>{contact.addressLines.join(", ")}</span>
                 </p>
               ) : null}
               {contact.phone ? (
                 <p className="flex gap-2.5">
-                  <Phone className="mt-0.5 size-4 shrink-0 text-gold-400" aria-hidden="true" />
+                  <Phone
+                    className="mt-0.5 size-4 shrink-0 text-gold-400"
+                    aria-hidden="true"
+                  />
                   <a
                     href={`tel:${contact.phone.replace(/\s/g, "")}`}
                     className="hover:text-sand-50"
@@ -106,8 +114,14 @@ export async function Footer() {
               ) : null}
               {contact.email ? (
                 <p className="flex gap-2.5">
-                  <Mail className="mt-0.5 size-4 shrink-0 text-gold-400" aria-hidden="true" />
-                  <a href={`mailto:${contact.email}`} className="hover:text-sand-50">
+                  <Mail
+                    className="mt-0.5 size-4 shrink-0 text-gold-400"
+                    aria-hidden="true"
+                  />
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="hover:text-sand-50"
+                  >
                     {contact.email}
                   </a>
                 </p>
