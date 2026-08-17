@@ -110,9 +110,15 @@ export const integrations = {
  * `undefined` in the browser.
  */
 export const publicEnv = {
-  siteUrl: (
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-  ).replace(/\/$/, ""),
+  siteUrl: (() => {
+    const raw = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000")
+      .trim()
+      .replace(/\/$/, "");
+    if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
+      return `https://${raw}`;
+    }
+    return raw;
+  })(),
   razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
   cloudinaryCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "",
   supportWhatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "",
