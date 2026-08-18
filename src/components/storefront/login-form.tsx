@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, Input, Label } from "@/components/ui/field";
@@ -12,10 +12,10 @@ import { requestLoginCode, verifyLoginCode } from "@/server/actions/auth";
 import { maskMobile, normaliseMobile } from "@/lib/utils";
 
 /**
- * Passwordless login.
+ * Passwordless login with smart returning user recognition.
  *
- * Two steps: mobile → code. The name field appears alongside the code for
- * first-time customers, so account creation never needs a third screen.
+ * First-time user: requests Name & OTP code.
+ * Returning user: displays a personalized "Welcome back, [Name]!" greeting & asks only for the OTP code.
  */
 export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
@@ -25,6 +25,8 @@ export function LoginForm({ next }: { next?: string }) {
   const [verifiedMobile, setVerifiedMobile] = React.useState("");
   const [code, setCode] = React.useState("");
   const [name, setName] = React.useState("");
+  const [isExistingUser, setIsExistingUser] = React.useState(false);
+  const [userName, setUserName] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   const [cooldown, setCooldown] = React.useState(0);
@@ -49,6 +51,8 @@ export function LoginForm({ next }: { next?: string }) {
       }
       setVerifiedMobile(result.mobile);
       setCooldown(result.cooldownSeconds);
+      setIsExistingUser(result.isExistingUser);
+      setUserName(result.userName);
       setStep("code");
       setCode("");
     });
@@ -62,7 +66,7 @@ export function LoginForm({ next }: { next?: string }) {
       const result = await verifyLoginCode({
         mobile: verifiedMobile,
         code,
-        name: name.trim() || undefined,
+        name: isExistingUser ? undefined : name.trim() || undefined,
         next,
       });
 
@@ -90,7 +94,6 @@ export function LoginForm({ next }: { next?: string }) {
               type="tel"
               inputMode="numeric"
               autoComplete="tel-national"
-              // One-tap SMS autofill on Android/iOS.
               name="phone"
               placeholder="98765 43210"
               value={mobile}
@@ -100,7 +103,7 @@ export function LoginForm({ next }: { next?: string }) {
             />
           </div>
           <FieldDescription>
-            We&rsquo;ll text you a 6-digit code. No password needed.
+            We&rsquo;ll text you a 6-digit verification code. No password needed.
           </FieldDescription>
         </Field>
 
@@ -145,19 +148,31 @@ export function LoginForm({ next }: { next?: string }) {
         Change number
       </button>
 
-      <div>
-        <p className="text-sm text-content-muted">
-          We sent a code to{" "}
-          <span className="text-content">{maskMobile(verifiedMobile)}</span>
-        </p>
-      </div>
+      {isExistingUser ? (
+        <div className="rounded-md border border-gold-500/30 bg-gold-50/50 p-4 text-center">
+          <div className="flex items-center justify-center gap-1.5 font-display text-lg text-brand-900">
+            <Sparkles className="size-4 text-gold-600" />
+            Welcome back, {userName || "Valued Customer"}!
+          </div>
+          <p className="mt-1 text-xs text-content-muted">
+            Enter the 6-digit code sent to{" "}
+            <span className="font-medium text-content">{maskMobile(verifiedMobile)}</span>
+          </p>
+        </div>
+      ) : (
+        <div>
+          <p className="text-sm text-content-muted">
+            We sent a verification code to{" "}
+            <span className="font-medium text-content">{maskMobile(verifiedMobile)}</span>
+          </p>
+        </div>
+      )}
 
       <Field error={error}>
-        <Label required>6-digit code</Label>
+        <Label required>6-digit verification code</Label>
         <Input
           type="text"
           inputMode="numeric"
-          // Lets the browser/OS offer the code straight from the SMS.
           autoComplete="one-time-code"
           pattern="[0-9]*"
           maxLength={6}
@@ -169,29 +184,32 @@ export function LoginForm({ next }: { next?: string }) {
         />
       </Field>
 
-      <Field>
-        <Label>Your name</Label>
-        <Input
-          type="text"
-          autoComplete="name"
-          placeholder="Priya Sharma"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={80}
-        />
-        <FieldDescription>
-          Only needed the first time — it goes on your orders.
-        </FieldDescription>
-      </Field>
+      {!isExistingUser && (
+        <Field>
+          <Label required>Your full name</Label>
+          <Input
+            type="text"
+            autoComplete="name"
+            placeholder="Priya Sharma"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={80}
+            required
+          />
+          <FieldDescription>
+            Enter your name to personalize your orders and certificate of authenticity.
+          </FieldDescription>
+        </Field>
+      )}
 
       <Button
         type="submit"
         size="lg"
         block
         loading={pending}
-        disabled={code.length !== 6}
+        disabled={code.length !== 6 || (!isExistingUser && !name.trim())}
       >
-        Verify &amp; continue
+        {isExistingUser ? "Verify & Sign In" : "Create Account & Continue"}
       </Button>
 
       <div className="text-center text-sm">
@@ -213,8 +231,7 @@ export function LoginForm({ next }: { next?: string }) {
 
       {process.env.NODE_ENV === "development" ? (
         <Alert variant="info">
-          Development mode: the code is printed in the dev server terminal
-          rather than sent by SMS.
+          Development mode: OTP code is logged in the server console.
         </Alert>
       ) : null}
     </form>

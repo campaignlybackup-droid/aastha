@@ -115,9 +115,11 @@ export async function registerUploadedMedia(
   }
 
   const data = parsed.data;
-  const expectedPrefix = `https://res.cloudinary.com/${publicEnv.cloudinaryCloudName}/`;
+  const expectedPrefix = publicEnv.cloudinaryCloudName
+    ? `https://res.cloudinary.com/${publicEnv.cloudinaryCloudName}/`
+    : null;
 
-  if (!data.secureUrl.startsWith(expectedPrefix)) {
+  if (expectedPrefix && !data.secureUrl.startsWith(expectedPrefix) && !data.secureUrl.startsWith("/")) {
     return {
       ok: false,
       error: "That file did not come from this store's Cloudinary account.",

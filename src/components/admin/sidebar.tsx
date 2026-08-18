@@ -8,6 +8,7 @@ import {
   Boxes,
   CalendarClock,
   ExternalLink,
+  HelpCircle,
   Image as ImageIcon,
   LayoutDashboard,
   LayoutTemplate,
@@ -67,6 +68,7 @@ const NAV: Array<{ heading: string; items: NavItem[] }> = [
     items: [
       { href: "/admin/homepage", label: "Homepage", icon: LayoutTemplate, area: "homepage" },
       { href: "/admin/pages", label: "Pages", icon: FileText, area: "seo" },
+      { href: "/admin/faqs", label: "FAQs", icon: HelpCircle, area: "homepage" },
       { href: "/admin/campaigns", label: "Campaigns", icon: CalendarClock, area: "campaigns" },
       { href: "/admin/seo", label: "SEO", icon: Search, area: "seo" },
       { href: "/admin/settings", label: "Settings", icon: Settings, area: "settings" },

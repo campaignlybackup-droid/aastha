@@ -330,3 +330,103 @@ export async function saveStaticPage(
 
   return { ok: true, message: "Page saved." };
 }
+
+/* -----------------------------------------------------------------------------
+ * FAQs Management
+ * -------------------------------------------------------------------------- */
+
+const faqSchema = z.object({
+  question: z.string().trim().min(3).max(300),
+  answer: z.string().trim().min(3).max(2000),
+  category: z.string().trim().max(80).optional(),
+  position: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export async function createFaq(
+  input: z.input<typeof faqSchema>,
+): Promise<CmsResult> {
+  await requireArea("homepage");
+
+  const parsed = faqSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid FAQ data." };
+  }
+
+  const data = parsed.data;
+  const created = await db.faq.create({
+    data: {
+      question: data.question,
+      answer: data.answer,
+      category: data.category || null,
+      position: data.position,
+      isActive: data.isActive,
+    },
+  });
+
+  revalidatePath("/faq");
+  revalidatePath("/");
+  revalidatePath("/admin/faqs");
+
+  return { ok: true, id: created.id, message: "FAQ created successfully." };
+}
+
+export async function updateFaq(
+  id: string,
+  input: z.input<typeof faqSchema>,
+): Promise<CmsResult> {
+  await requireArea("homepage");
+
+  const parsed = faqSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid FAQ data." };
+  }
+
+  const data = parsed.data;
+  await db.faq.update({
+    where: { id },
+    data: {
+      question: data.question,
+      answer: data.answer,
+      category: data.category || null,
+      position: data.position,
+      isActive: data.isActive,
+    },
+  });
+
+  revalidatePath("/faq");
+  revalidatePath("/");
+  revalidatePath("/admin/faqs");
+
+  return { ok: true, message: "FAQ updated successfully." };
+}
+
+export async function deleteFaq(id: string): Promise<CmsResult> {
+  await requireArea("homepage");
+
+  await db.faq.delete({ where: { id } });
+
+  revalidatePath("/faq");
+  revalidatePath("/");
+  revalidatePath("/admin/faqs");
+
+  return { ok: true, message: "FAQ deleted." };
+}
+
+export async function toggleFaqActive(
+  id: string,
+  isActive: boolean,
+): Promise<CmsResult> {
+  await requireArea("homepage");
+
+  await db.faq.update({
+    where: { id },
+    data: { isActive },
+  });
+
+  revalidatePath("/faq");
+  revalidatePath("/");
+  revalidatePath("/admin/faqs");
+
+  return { ok: true, message: isActive ? "FAQ activated." : "FAQ hidden." };
+}

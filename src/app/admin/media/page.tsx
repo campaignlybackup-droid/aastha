@@ -93,7 +93,7 @@ export default async function AdminMediaPage({
           folders={FOLDERS}
           activeFolder={folder}
           query={query}
-          uploadsEnabled={cloudinaryReady}
+          uploadsEnabled={true}
         />
       </Panel>
     </>

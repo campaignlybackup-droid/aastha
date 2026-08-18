@@ -39,7 +39,13 @@ async function requestContext() {
 }
 
 export type RequestCodeResult =
-  | { ok: true; mobile: string; cooldownSeconds: number }
+  | {
+      ok: true;
+      mobile: string;
+      cooldownSeconds: number;
+      isExistingUser: boolean;
+      userName: string | null;
+    }
   | { ok: false; error: string; retryAfterSeconds?: number };
 
 export async function requestLoginCode(
@@ -58,11 +64,10 @@ export async function requestLoginCode(
     };
   }
 
-  // A blocked customer gets the same generic response as anyone else; telling
-  // them they are blocked just invites a new number.
+  // A blocked customer gets the same generic response as anyone else.
   const existing = await db.user.findUnique({
     where: { mobile },
-    select: { status: true },
+    select: { status: true, name: true },
   });
   if (existing?.status === "BLOCKED") {
     return {
@@ -82,7 +87,16 @@ export async function requestLoginCode(
     };
   }
 
-  return { ok: true, mobile, cooldownSeconds: result.cooldownSeconds };
+  const isExistingUser = Boolean(existing && existing.name);
+  const userName = existing?.name ?? null;
+
+  return {
+    ok: true,
+    mobile,
+    cooldownSeconds: result.cooldownSeconds,
+    isExistingUser,
+    userName,
+  };
 }
 
 export type VerifyCodeResult =
