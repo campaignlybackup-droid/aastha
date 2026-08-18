@@ -17,30 +17,30 @@
    ============================================================================= */
 
 @theme {
-  /* --- Brand: deep pine teal ------------------------------------------- */
-  --color-brand-50: #f2f7f6;
-  --color-brand-100: #deeae8;
-  --color-brand-200: #bdd5d1;
-  --color-brand-300: #92b8b2;
-  --color-brand-400: #63958e;
-  --color-brand-500: #427771;
-  --color-brand-600: #2e5f5a;
-  --color-brand-700: #244b47;
-  --color-brand-800: #1c3b38;
-  --color-brand-900: #16302d;
-  --color-brand-950: #0c1d1b;
+  /* --- Brand: deep pine teal (derived directly from brand logo) ------- */
+  --color-brand-50: #f2f7f7;
+  --color-brand-100: #d9e7e7;
+  --color-brand-200: #b0d0d1;
+  --color-brand-300: #7eb3b5;
+  --color-brand-400: #4f9396;
+  --color-brand-500: #31777a;
+  --color-brand-600: #266265;
+  --color-brand-700: #1f5557;
+  --color-brand-800: #184446;
+  --color-brand-900: #143537;
+  --color-brand-950: #0b1e1f;
 
-  /* --- Gold: brushed metallic accent ------------------------------------ */
-  --color-gold-50: #fbf7ee;
-  --color-gold-100: #f5ebd4;
-  --color-gold-200: #ebd6a6;
-  --color-gold-300: #dfbe74;
-  --color-gold-400: #d3a94f;
-  --color-gold-500: #c29438;
-  --color-gold-600: #a67a2c;
-  --color-gold-700: #855d26;
-  --color-gold-800: #6e4c25;
-  --color-gold-900: #5d4022;
+  /* --- Gold: metallic gold accent (derived directly from brand monogram) - */
+  --color-gold-50: #fdfbf3;
+  --color-gold-100: #f8f2db;
+  --color-gold-200: #f0e3b4;
+  --color-gold-300: #e4cd82;
+  --color-gold-400: #d5b656;
+  --color-gold-500: #c6a444;
+  --color-gold-600: #a98433;
+  --color-gold-700: #866329;
+  --color-gold-800: #6e4f24;
+  --color-gold-900: #5a4121;
 
   /* --- Sand: warm neutral ground ---------------------------------------- */
   --color-sand-50: #faf8f5;

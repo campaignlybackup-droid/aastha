@@ -28,7 +28,7 @@ export const viewport: Viewport = {
   maximumScale: 5, // Never below 5 — pinch-zoom is an accessibility requirement.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#faf8f5" },
-    { media: "(prefers-color-scheme: dark)", color: "#16302d" },
+    { media: "(prefers-color-scheme: dark)", color: "#143537" },
   ],
 };
 
@@ -38,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en-IN" className={fontVariables} suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/svg+xml" href="/aastha-logo-monogram.svg" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </head>

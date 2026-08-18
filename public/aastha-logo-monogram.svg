@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" fill="none">
+  <defs>
+    <linearGradient id="gold-primary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F7E5A9" />
+      <stop offset="25%" stop-color="#E5C365" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="75%" stop-color="#C59B27" />
+      <stop offset="100%" stop-color="#996515" />
+    </linearGradient>
+    <linearGradient id="gold-light" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFF5D6" />
+      <stop offset="50%" stop-color="#E5C365" />
+      <stop offset="100%" stop-color="#C59B27" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Pill Container Outline -->
+  <rect x="10" y="10" width="220" height="300" rx="90" ry="90" stroke="url(#gold-primary)" stroke-width="2.5" fill="none" />
+
+  <!-- Monogram Mark: A, S, J interlocked -->
+  <g fill="url(#gold-primary)">
+    <!-- Letter A (Serif left diagonal & crossbar) -->
+    <path d="M78 220 L115 65 L135 65 L172 220 L154 220 L143 172 L107 172 L96 220 Z M111 155 L139 155 L125 92 Z" />
+
+    <!-- Letter J (Right stem with drop curve) -->
+    <path d="M140 75 L180 75 L180 88 L164 88 L164 190 C164 218 145 235 118 235 C98 235 84 222 82 205 L97 205 C99 214 107 221 118 221 C135 221 148 208 148 188 L148 75 Z" />
+
+    <!-- Letter S (Graceful central swooshing S curve intersecting A and J) -->
+    <path d="M152 142 C152 118 132 108 108 108 C86 108 68 120 68 142 C68 165 92 172 114 179 C138 186 156 195 156 222 C156 250 130 262 102 262 C74 262 52 246 50 220 L68 220 C70 234 83 246 102 246 C124 246 138 237 138 222 C138 205 118 198 94 191 C70 184 50 174 50 142 C50 112 76 92 108 92 C136 92 152 110 152 142 Z" opacity="0.95" />
+  </g>
+</svg>

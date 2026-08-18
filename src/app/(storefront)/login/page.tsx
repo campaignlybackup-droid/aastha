@@ -27,7 +27,7 @@ export default async function LoginPage({
     <div className="u-container flex min-h-[70dvh] items-center justify-center py-16">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <Logo size="lg" asLink={false} />
+          <Logo size="lg" variant="stacked" tone="dark" asLink={false} />
           <div className="space-y-1.5">
             <h1 className="font-display text-2xl">Sign in</h1>
             <p className="text-sm text-content-muted">
