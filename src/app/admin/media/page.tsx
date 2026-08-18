@@ -24,7 +24,8 @@ export default async function AdminMediaPage({
   searchParams: Promise<{ folder?: string; q?: string }>;
 }) {
   await requireArea("media");
-  const params = await searchParams;
+  const rawParams = searchParams ? await searchParams : {};
+  const params = rawParams || {};
 
   const folder = FOLDERS.includes(params.folder as MediaFolder)
     ? (params.folder as MediaFolder)
@@ -83,7 +84,10 @@ export default async function AdminMediaPage({
         <MediaLibrary
           media={media.map((item) => ({
             ...item,
-            createdAt: item.createdAt.toISOString(),
+            createdAt:
+              typeof item.createdAt === "string"
+                ? item.createdAt
+                : item.createdAt?.toISOString() ?? new Date().toISOString(),
             usageCount: item._count.productImages,
           }))}
           folders={FOLDERS}
