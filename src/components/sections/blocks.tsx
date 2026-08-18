@@ -603,30 +603,7 @@ export function NewsletterSection({
 }: {
   settings: SectionSettings["NEWSLETTER"];
 }) {
-  return (
-    <SectionShell tone="inverse">
-      <div className="mx-auto max-w-xl space-y-5 text-center">
-        {settings.eyebrow ? (
-          <p className="u-eyebrow text-gold-300">{settings.eyebrow}</p>
-        ) : null}
-        <h2 className="text-display-sm md:text-display-md">{settings.heading}</h2>
-        {settings.subheading ? (
-          <p className="text-sm leading-relaxed text-sand-300 md:text-base">
-            {settings.subheading}
-          </p>
-        ) : null}
-        <NewsletterForm
-          source="homepage"
-          tone="light"
-          buttonLabel={settings.buttonLabel}
-          className="mx-auto max-w-md pt-2 text-left"
-        />
-        {settings.disclaimer ? (
-          <p className="text-xs text-sand-400">{settings.disclaimer}</p>
-        ) : null}
-      </div>
-    </SectionShell>
-  );
+  return null;
 }
 
 export function TrustBadgesSection({

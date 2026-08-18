@@ -8,12 +8,11 @@ import {
 } from "@/components/ui/brand-icons";
 import { Logo } from "@/components/storefront/logo";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
-import { getCategoryTree, getCollections, getSetting } from "@/server/catalog";
+import { getCategoryTree, getSetting } from "@/server/catalog";
 
 export async function Footer() {
-  const [categories, collections, contact, social, brand] = await Promise.all([
+  const [categories, contact, social, brand] = await Promise.all([
     getCategoryTree(),
-    getCollections(true),
     getSetting("contact"),
     getSetting("social"),
     getSetting("brand"),
@@ -132,23 +131,6 @@ export async function Footer() {
             </address>
           </div>
         </div>
-
-        {collections.length ? (
-          <div className="mt-12 border-t border-sand-50/10 pt-8">
-            <h2 className="u-eyebrow mb-3 text-gold-300">Collections</h2>
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {collections.map((c) => (
-                <Link
-                  key={c.slug}
-                  href={`/collections/${c.slug}`}
-                  className="text-sm text-sand-300 transition-colors hover:text-sand-50"
-                >
-                  {c.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        ) : null}
       </div>
 
       {/* Legal bar --------------------------------------------------------- */}
