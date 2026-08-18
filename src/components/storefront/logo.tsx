@@ -5,47 +5,47 @@ import { cn } from "@/lib/utils";
 
 export type LogoProps = {
   className?: string;
-  /** "dark" for light backgrounds, "light" for dark footers, "card" for dark teal card. */
+  /** "dark" for light backgrounds, "light" for dark footers. */
   tone?: "dark" | "light" | "gold";
   size?: "sm" | "md" | "lg" | "xl";
-  /** "horizontal" (nav bar), "stacked" (standard stacked), "mark" (monogram only), or "card" (original dark card). */
+  /** "horizontal" (navbar/header), "stacked" (standard), "mark" (icon only), or "card" (full branded card). */
   variant?: "horizontal" | "stacked" | "mark" | "card";
   align?: "left" | "center";
   asLink?: boolean;
-  showMark?: boolean;
 };
 
 /**
  * Official Brand Logo Component for Aastha Silver & Jewels.
- * Renders the original, unedited logo image assets provided by the brand.
+ * Uses the exact horizontal, stacked, card, and monogram logo variations
+ * directly provided by the brand, rendered crisp at all sizes.
  */
 export function Logo({
   className,
   tone = "dark",
   size = "md",
   variant = "horizontal",
-  align = "left",
   asLink = true,
 }: LogoProps) {
+  // 1. Card Variant (Original dark pine teal background card)
   if (variant === "card") {
-    const heightMap = {
-      sm: "h-20 w-auto",
-      md: "h-28 w-auto",
-      lg: "h-40 w-auto",
-      xl: "h-52 w-auto",
+    const cardHeightMap = {
+      sm: "h-24 md:h-28",
+      md: "h-36 md:h-44",
+      lg: "h-48 md:h-56",
+      xl: "h-64 md:h-72",
     };
 
     const cardElement = (
       <div
         className={cn(
-          "inline-flex overflow-hidden rounded-xl shadow-card transition-transform hover:scale-[1.01]",
+          "inline-flex shrink-0 overflow-hidden rounded-xl shadow-card transition-transform hover:scale-[1.01]",
           className
         )}
       >
         <img
-          src="/brand/logo-dark-card.png"
+          src="/logo-card.png"
           alt="Aastha Silver & Jewels"
-          className={cn("object-contain", heightMap[size])}
+          className={cn("w-auto object-contain", cardHeightMap[size])}
         />
       </div>
     );
@@ -58,19 +58,25 @@ export function Logo({
     );
   }
 
+  // 2. Monogram Mark Only
   if (variant === "mark") {
     const markHeightMap = {
-      sm: "h-7 w-auto",
-      md: "h-10 w-auto",
-      lg: "h-14 w-auto",
-      xl: "h-20 w-auto",
+      sm: "h-8 w-auto",
+      md: "h-11 w-auto",
+      lg: "h-16 w-auto",
+      xl: "h-24 w-auto",
     };
 
     const markElement = (
       <img
-        src="/brand/logo-mark-transparent.png"
+        src="/logo-mark.png"
         alt="Aastha Silver & Jewels Monogram"
-        className={cn("object-contain shrink-0", markHeightMap[size], className)}
+        className={cn(
+          "shrink-0 object-contain transition-transform hover:scale-105",
+          tone === "dark" && "drop-shadow-[0_1px_2px_rgba(20,53,55,0.3)]",
+          markHeightMap[size],
+          className
+        )}
       />
     );
 
@@ -82,19 +88,25 @@ export function Logo({
     );
   }
 
+  // 3. Stacked Variant (Monogram on top, text below)
   if (variant === "stacked") {
     const stackedHeightMap = {
-      sm: "h-16 w-auto",
-      md: "h-24 w-auto",
-      lg: "h-36 w-auto",
-      xl: "h-48 w-auto",
+      sm: "h-16 md:h-20 w-auto",
+      md: "h-24 md:h-28 w-auto",
+      lg: "h-36 md:h-40 w-auto",
+      xl: "h-48 md:h-56 w-auto",
     };
 
     const stackedElement = (
       <img
-        src="/brand/logo-gold-stacked-transparent.png"
+        src="/logo-stacked.png"
         alt="Aastha Silver & Jewels"
-        className={cn("object-contain shrink-0", stackedHeightMap[size], className)}
+        className={cn(
+          "shrink-0 object-contain transition-transform hover:scale-[1.02]",
+          tone === "dark" && "drop-shadow-[0_1px_3px_rgba(20,53,55,0.25)]",
+          stackedHeightMap[size],
+          className
+        )}
       />
     );
 
@@ -106,19 +118,25 @@ export function Logo({
     );
   }
 
-  // Horizontal variant (default for Header / Navbar)
+  // 4. Horizontal Variant (Default for Navbar / Header)
   const horizHeightMap = {
-    sm: "h-8 sm:h-9 w-auto",
-    md: "h-10 lg:h-12 w-auto",
-    lg: "h-14 lg:h-16 w-auto",
-    xl: "h-20 lg:h-24 w-auto",
+    sm: "h-9 sm:h-10 w-auto",
+    md: "h-11 sm:h-12 lg:h-14 w-auto",
+    lg: "h-16 sm:h-18 lg:h-20 w-auto",
+    xl: "h-24 sm:h-28 lg:h-32 w-auto",
   };
 
   const horizElement = (
     <img
-      src="/brand/logo-gold-horizontal-transparent.png"
+      src="/logo-horizontal.png"
       alt="Aastha Silver & Jewels"
-      className={cn("object-contain shrink-0", horizHeightMap[size], className)}
+      className={cn(
+        "shrink-0 object-contain transition-transform hover:scale-[1.01]",
+        // Added shadow on light backgrounds so gold lettering pops with high contrast
+        tone === "dark" && "filter drop-shadow-[0_1px_3px_rgba(20,53,55,0.35)]",
+        horizHeightMap[size],
+        className
+      )}
     />
   );
 
@@ -128,7 +146,7 @@ export function Logo({
     <Link
       href="/"
       aria-label="Aastha Silver & Jewels — Home"
-      className="inline-flex items-center focus-visible:outline-2 focus-visible:outline-offset-4"
+      className="inline-flex shrink-0 items-center focus-visible:outline-2 focus-visible:outline-offset-4"
     >
       {horizElement}
     </Link>
