@@ -1399,6 +1399,19 @@ async function seedHomepage() {
       },
     },
     {
+      type: "PROMO_BANNER",
+      label: "Trusted by 2000+ Customers",
+      settings: {
+        eyebrow: "TRUSTED & LOVED",
+        heading: "Trusted by 2,000+ Customers Across India",
+        subheading:
+          "Join thousands of satisfied jewelry connoisseurs who trust Aastha Silver for hallmarked 925 sterling silver, timeless designs, and unmatched craftsmanship.",
+        style: "solid",
+        theme: "dark",
+        cta: { label: "Explore Best Sellers", href: "/shop?sort=popular" },
+      },
+    },
+    {
       type: "PRODUCT_CAROUSEL",
       label: "Best sellers",
       settings: {

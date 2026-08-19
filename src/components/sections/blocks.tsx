@@ -217,6 +217,75 @@ export function PromoBannerSection({
   settings: SectionSettings["PROMO_BANNER"];
 }) {
   const light = settings.theme === "dark";
+  const isTrustBanner =
+    settings.heading?.toLowerCase().includes("2000+") ||
+    settings.heading?.toLowerCase().includes("2,000+") ||
+    settings.eyebrow?.toLowerCase().includes("trusted");
+
+  if (isTrustBanner) {
+    return (
+      <SectionShell>
+        <div className="relative overflow-hidden rounded-2xl border border-gold-400/25 bg-gradient-to-br from-brand-950 via-brand-900 to-brand-950 px-6 py-16 text-center text-sand-50 shadow-2xl md:px-16 md:py-24">
+          <div className="pointer-events-none absolute -top-24 -left-24 size-96 rounded-full bg-gold-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -right-24 size-96 rounded-full bg-gold-400/10 blur-3xl" />
+
+          <div className="relative mx-auto max-w-4xl space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold-400/30 bg-gold-400/10 px-4 py-1.5 backdrop-blur-md">
+              <div className="flex gap-1 text-gold-400 text-sm">
+                {"★★★★★"}
+              </div>
+              <span className="text-xs font-medium tracking-wide text-sand-200">
+                4.9/5 Rating from 1,500+ Verified Reviews
+              </span>
+            </div>
+
+            {settings.eyebrow ? (
+              <p className="u-eyebrow font-bold tracking-[0.25em] text-gold-300 uppercase">
+                {settings.eyebrow}
+              </p>
+            ) : null}
+
+            <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-sand-50 leading-tight">
+              {settings.heading}
+            </h2>
+
+            {settings.subheading ? (
+              <p className="mx-auto max-w-2xl text-base sm:text-lg leading-relaxed text-sand-200/90 font-light">
+                {settings.subheading}
+              </p>
+            ) : null}
+
+            <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
+              <div className="rounded-xl border border-sand-50/10 bg-sand-50/5 p-4 backdrop-blur-xs">
+                <p className="font-display text-2xl font-bold text-gold-300">2,000+</p>
+                <p className="text-xs text-sand-300 mt-1">Delighted Customers Across India</p>
+              </div>
+              <div className="rounded-xl border border-sand-50/10 bg-sand-50/5 p-4 backdrop-blur-xs">
+                <p className="font-display text-2xl font-bold text-gold-300">925 Pure</p>
+                <p className="text-xs text-sand-300 mt-1">Certified Hallmarked Sterling Silver</p>
+              </div>
+              <div className="rounded-xl border border-sand-50/10 bg-sand-50/5 p-4 backdrop-blur-xs">
+                <p className="font-display text-2xl font-bold text-gold-300">4.9 ★★★★★</p>
+                <p className="text-xs text-sand-300 mt-1">Average Customer Satisfaction Score</p>
+              </div>
+            </div>
+
+            {settings.cta?.href && settings.cta.label ? (
+              <div className="pt-6">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gold-400 text-brand-950 hover:bg-gold-300 font-semibold px-8 py-3 rounded-full shadow-lg transition-all transform hover:-translate-y-0.5"
+                >
+                  <Link href={settings.cta.href}>{settings.cta.label}</Link>
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </SectionShell>
+    );
+  }
 
   return (
     <SectionShell>
