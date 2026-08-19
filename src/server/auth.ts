@@ -97,10 +97,9 @@ export async function requireStaff(next = "/admin"): Promise<CurrentUser> {
       .filter(Boolean);
 
     if (bootstrapMobiles.length > 0 && bootstrapMobiles.includes(user.mobile)) {
-      await db.user.update({
-        where: { id: user.id },
-        data: { role: "SUPER_ADMIN" },
-      });
+      // In Next.js 15, we CANNOT mutate the database (db.user.update) during a Server Component
+      // render (GET request). It throws a hard error. Instead, we elevate their role in-memory
+      // for this request based on the environment variable, which serves as the source of truth.
       user.role = "SUPER_ADMIN";
       return user;
     }

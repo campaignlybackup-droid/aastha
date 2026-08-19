@@ -39,3 +39,5 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
  POST /login?next=%2Fadmin 200 in 836ms (next.js: 54ms, application-code: 782ms)
   └─ ƒ requestLoginCode("9306260247") in 756ms src/server/actions/auth.ts
  GET /api/cart/count 200 in 56ms (next.js: 44ms, application-code: 12ms)
+ GET /api/cart/count 200 in 56ms (next.js: 27ms, application-code: 29ms)
+ GET /api/cart/count 200 in 73ms (next.js: 31ms, application-code: 41ms)
