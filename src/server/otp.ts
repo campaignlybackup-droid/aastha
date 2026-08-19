@@ -124,11 +124,23 @@ export async function sendOtp({
     },
   });
 
-  const result = await smsDriver().sendOtp(destination, code);
+  const isWhatsapp = env().WHATSAPP_DRIVER === "cloud";
+
+  const result = isWhatsapp
+    ? await (async () => {
+        const { whatsappDriver, WHATSAPP_TEMPLATES } = await import(
+          "@/lib/whatsapp/client"
+        );
+        return whatsappDriver().sendTemplate(destination, {
+          name: WHATSAPP_TEMPLATES.otp,
+          variables: [code],
+        });
+      })()
+    : await smsDriver().sendOtp(destination, code);
 
   await db.notification.create({
     data: {
-      channel: "SMS",
+      channel: isWhatsapp ? "WHATSAPP" : "SMS",
       status: result.ok ? "SENT" : "FAILED",
       recipient: destination,
       template: "otp.login",

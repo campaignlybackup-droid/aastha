@@ -113,6 +113,7 @@ export function whatsappDriver(): WhatsAppDriver {
  * place — which is also what the WhatsApp review process asks for.
  */
 export const WHATSAPP_TEMPLATES = {
+  otp: "otp_verification",
   orderPlaced: "order_placed",
   paymentReceived: "payment_received",
   // Registered now, used in V2 when shipping lands.
