@@ -155,8 +155,11 @@ export function MobileNav({
                   { href: "/account/orders", label: "My Orders" },
                   { href: "/account/wishlist", label: "Wishlist" },
                   { href: "/about", label: "Our Story" },
+                  { href: "/faq", label: "FAQ" },
                   { href: "/care-guide", label: "Silver Care Guide" },
-                  { href: "/contact", label: "Contact" },
+                  { href: "/contact", label: "Contact Us" },
+                  { href: "/shipping-policy", label: "Shipping Policy" },
+                  { href: "/return-policy", label: "Returns & Exchanges" },
                 ].map((item) => (
                   <Link
                     key={item.href}
