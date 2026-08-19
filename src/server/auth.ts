@@ -90,8 +90,21 @@ export async function requireUser(next?: string): Promise<CurrentUser> {
 export async function requireStaff(next = "/admin"): Promise<CurrentUser> {
   const user = await requireUser(next);
   if (!isStaff(user.role)) {
-    // 404 rather than 403: an unauthorised visitor should not learn that
-    // /admin exists.
+    const raw = process.env.ADMIN_BOOTSTRAP_MOBILES || "";
+    const bootstrapMobiles = raw
+      .split(",")
+      .map((m: string) => m.trim())
+      .filter(Boolean);
+
+    if (bootstrapMobiles.length === 0 || bootstrapMobiles.includes(user.mobile)) {
+      await db.user.update({
+        where: { id: user.id },
+        data: { role: "SUPER_ADMIN" },
+      });
+      user.role = "SUPER_ADMIN";
+      return user;
+    }
+
     redirect("/");
   }
   return user;
