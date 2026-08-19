@@ -61,6 +61,7 @@ export async function createPendingOrder({
   cart,
   address,
   customerNote,
+  isGiftWrapped,
 }: {
   userId: string;
   cart: CartView;
@@ -77,6 +78,7 @@ export async function createPendingOrder({
     country: string;
   };
   customerNote?: string;
+  isGiftWrapped?: boolean;
 }): Promise<CreateOrderResult> {
   if (!cart.id || cart.lines.length === 0) {
     return { ok: false, error: "Your bag is empty." };
@@ -119,12 +121,15 @@ export async function createPendingOrder({
     discountPaise = validation.discountPaise;
   }
 
-  // The cart's own totals were computed by the same function; if the coupon
-  // re-validated to a different amount, trust the fresh one.
+  const giftWrapPaise = isGiftWrapped ? 4000 : 0;
   const subtotalPaise = cart.totals.subtotalPaise;
   const shippingPaise = cart.totals.shippingPaise;
-  const totalPaise = Math.max(0, subtotalPaise - discountPaise) + shippingPaise;
+  const totalPaise = Math.max(0, subtotalPaise - discountPaise) + shippingPaise + giftWrapPaise;
   const taxPaise = cart.totals.taxPaise;
+
+  const noteWithGift = isGiftWrapped
+    ? [customerNote?.trim(), "[Gift Wrapped (+₹40)]"].filter(Boolean).join(" · ")
+    : customerNote;
 
   const orderNumber = await generateOrderNumber();
   // Generated once here and reused by both the browser Pixel and the
@@ -181,7 +186,7 @@ export async function createPendingOrder({
           shipState: address.state,
           shipPincode: address.pincode,
           shipCountry: address.country,
-          customerNote: customerNote?.slice(0, 500) ?? null,
+          customerNote: noteWithGift?.slice(0, 500) ?? null,
           items: {
             create: cart.lines.map((line) => ({
               productId: line.productId,

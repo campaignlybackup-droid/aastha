@@ -47,6 +47,7 @@ const startSchema = z.object({
   addressId: z.string().min(1).max(40),
   email: z.email().max(180).optional().or(z.literal("")),
   customerNote: z.string().max(500).optional(),
+  isGiftWrapped: z.boolean().optional(),
 });
 
 export async function startCheckout(
@@ -102,6 +103,7 @@ export async function startCheckout(
       country: address.country,
     },
     customerNote: parsed.data.customerNote,
+    isGiftWrapped: parsed.data.isGiftWrapped,
   });
 
   if (!created.ok) return { ok: false, error: created.error };

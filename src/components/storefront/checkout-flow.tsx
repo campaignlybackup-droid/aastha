@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { Lock } from "lucide-react";
+import { Gift, Lock } from "lucide-react";
 
 import {
   AddressBook,
@@ -53,12 +53,16 @@ export function CheckoutFlow({
   );
   const [email, setEmail] = React.useState(customer.email ?? "");
   const [note, setNote] = React.useState("");
+  const [isGiftWrapped, setIsGiftWrapped] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<
     "idle" | "creating" | "paying" | "verifying"
   >("idle");
   const [scriptLoaded, setScriptLoaded] = React.useState(false);
   const [needsScript, setNeedsScript] = React.useState(false);
+
+  const GIFT_WRAP_PAISE = 4000; // ₹40
+  const finalTotalPaise = cart.totals.totalPaise + (isGiftWrapped ? GIFT_WRAP_PAISE : 0);
 
   // begin_checkout, once, when the page is first usable.
   const reportedBeginCheckout = React.useRef(false);
@@ -101,6 +105,7 @@ export function CheckoutFlow({
       addressId: selectedAddressId,
       email,
       customerNote: note,
+      isGiftWrapped,
     });
 
     if (!created.ok) {
@@ -307,6 +312,31 @@ export function CheckoutFlow({
           <div className="space-y-5 border border-line bg-surface-raised p-5">
             <h2 className="font-display text-xl">Order total</h2>
 
+            {/* Gift Wrapping Option Checkbox */}
+            <div className="rounded-md border border-gold-500/40 bg-gold-50/50 p-4 transition-colors hover:border-gold-500">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="gift-wrap-checkbox"
+                  checked={isGiftWrapped}
+                  onChange={(e) => setIsGiftWrapped(e.target.checked)}
+                  className="mt-0.5 size-4 rounded border-line-strong text-brand-800 focus:ring-brand-800"
+                />
+                <div className="text-sm">
+                  <div className="flex items-center justify-between gap-2 font-medium text-brand-900">
+                    <span className="flex items-center gap-1.5">
+                      <Gift className="size-4 text-gold-600 shrink-0" />
+                      Add Gift Wrapping
+                    </span>
+                    <span className="font-semibold text-brand-800">+ ₹40</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-content-muted leading-relaxed">
+                    Includes signature box, ribbon &amp; personalized note card.
+                  </p>
+                </div>
+              </label>
+            </div>
+
             <dl className="space-y-2.5 text-sm">
               <div className="flex justify-between">
                 <dt className="text-content-muted">Subtotal</dt>
@@ -337,10 +367,20 @@ export function CheckoutFlow({
                 </dd>
               </div>
 
+              {isGiftWrapped ? (
+                <div className="flex justify-between">
+                  <dt className="text-content-muted flex items-center gap-1">
+                    <Gift className="size-3.5 text-gold-600" />
+                    Gift wrapping
+                  </dt>
+                  <dd className="font-medium text-brand-900">+ {formatPrice(GIFT_WRAP_PAISE)}</dd>
+                </div>
+              ) : null}
+
               <div className="flex items-baseline justify-between border-t border-line pt-3">
                 <dt className="text-base font-medium">Total</dt>
                 <dd className="text-xl font-medium">
-                  {formatPrice(cart.totals.totalPaise)}
+                  {formatPrice(finalTotalPaise)}
                 </dd>
               </div>
 
@@ -363,7 +403,7 @@ export function CheckoutFlow({
                 ? "Confirming…"
                 : status === "paying"
                   ? "Waiting for payment…"
-                  : `Pay ${formatPrice(cart.totals.totalPaise)}`}
+                  : `Pay ${formatPrice(finalTotalPaise)}`}
             </Button>
 
             <p className="text-center text-xs leading-relaxed text-content-subtle">
