@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExternalLink, GripVertical, Plus, Trash2, X } from "lucide-react";
-
+import { MediaUpload } from "@/components/admin/media-upload";
 import { Panel } from "@/components/admin/ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -1074,7 +1074,9 @@ function ImagePicker({
         </p>
       )}
 
-      <div className="rounded-sm border border-line bg-surface-sunken p-3">
+      <div className="rounded-sm border border-line bg-surface-sunken p-3 space-y-3">
+        <MediaUpload enabled={true} />
+
         <label htmlFor="product-image-search" className="sr-only">
           Filter media
         </label>

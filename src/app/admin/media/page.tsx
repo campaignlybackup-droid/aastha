@@ -24,71 +24,97 @@ export default async function AdminMediaPage({
   searchParams: Promise<{ folder?: string; q?: string }>;
 }) {
   await requireArea("media");
-  const rawParams = searchParams ? await searchParams : {};
-  const params = rawParams || {};
+  
+  let folder: MediaFolder | undefined = undefined;
+  let query = "";
+  let mediaList: Array<{
+    id: string;
+    publicId: string;
+    secureUrl: string;
+    folder: string;
+    alt: string | null;
+    filename: string | null;
+    width: number | null;
+    height: number | null;
+    bytes: number | null;
+    createdAt: Date | string;
+    _count?: { productImages: number };
+  }> = [];
+  let dbError: string | null = null;
 
-  const folder = FOLDERS.includes(params.folder as MediaFolder)
-    ? (params.folder as MediaFolder)
-    : undefined;
-  const query = params.q?.trim() ?? "";
+  try {
+    const rawParams = searchParams ? await searchParams : {};
+    const params = rawParams || {};
 
-  const media = await db.media.findMany({
-    where: {
-      ...(folder ? { folder } : {}),
-      ...(query
-        ? {
-            OR: [
-              { filename: { contains: query, mode: "insensitive" } },
-              { alt: { contains: query, mode: "insensitive" } },
-              { tags: { has: query.toLowerCase() } },
-            ],
-          }
-        : {}),
-    },
-    orderBy: { createdAt: "desc" },
-    take: 120,
-    select: {
-      id: true,
-      publicId: true,
-      secureUrl: true,
-      folder: true,
-      alt: true,
-      filename: true,
-      width: true,
-      height: true,
-      bytes: true,
-      createdAt: true,
-      _count: { select: { productImages: true } },
-    },
-  });
+    folder = FOLDERS.includes(params.folder as MediaFolder)
+      ? (params.folder as MediaFolder)
+      : undefined;
+    query = params.q?.trim() ?? "";
+
+    mediaList = await db.media.findMany({
+      where: {
+        ...(folder ? { folder } : {}),
+        ...(query
+          ? {
+              OR: [
+                { filename: { contains: query, mode: "insensitive" } },
+                { alt: { contains: query, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 120,
+      select: {
+        id: true,
+        publicId: true,
+        secureUrl: true,
+        folder: true,
+        alt: true,
+        filename: true,
+        width: true,
+        height: true,
+        bytes: true,
+        createdAt: true,
+        _count: { select: { productImages: true } },
+      },
+    });
+  } catch (err) {
+    console.error("[admin/media] Error fetching media files:", err);
+    dbError = err instanceof Error ? err.message : "Failed to query database for media files.";
+  }
 
   const cloudinaryReady = Boolean(publicEnv.cloudinaryCloudName);
 
   return (
     <>
       <AdminHeading
-        title="Media"
-        description={`${media.length} file${media.length === 1 ? "" : "s"}`}
+        title="Media Library"
+        description={`${mediaList.length} file${mediaList.length === 1 ? "" : "s"}`}
       />
 
+      {dbError ? (
+        <Alert variant="danger" title="Database Notice" className="mb-6">
+          {dbError}
+        </Alert>
+      ) : null}
+
       {!cloudinaryReady ? (
-        <Alert variant="warning" title="Uploads are not enabled yet" className="mb-6">
-          Set <code>NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME</code>,{" "}
-          <code>CLOUDINARY_API_KEY</code> and <code>CLOUDINARY_API_SECRET</code>{" "}
-          to upload real photography. The files below are the generated
-          placeholders that ship with the seed.
+        <Alert variant="warning" title="Cloudinary Configuration Required" className="mb-6">
+          To upload media files to Cloudinary, add <code>NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME</code>,{" "}
+          <code>CLOUDINARY_API_KEY</code> and <code>CLOUDINARY_API_SECRET</code> to your environment settings.
         </Alert>
       ) : null}
 
       <Panel>
         <MediaLibrary
-          media={media.map((item) => ({
+          media={mediaList.map((item) => ({
             ...item,
             createdAt:
               typeof item.createdAt === "string"
                 ? item.createdAt
                 : item.createdAt?.toISOString() ?? new Date().toISOString(),
-            usageCount: item._count.productImages,
+            usageCount: item._count?.productImages ?? 0,
           }))}
           folders={FOLDERS}
           activeFolder={folder}
