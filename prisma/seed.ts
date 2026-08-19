@@ -1272,9 +1272,16 @@ async function seedFaqs() {
 }
 
 async function seedHomepage() {
-  // Wipe and rewrite the DEFAULT homepage (campaign sections are untouched) so
-  // re-seeding produces a known-good layout rather than accumulating sections.
-  await db.homepageSection.deleteMany({ where: { campaignId: null } });
+  const existingCount = await db.homepageSection.count({
+    where: { campaignId: null },
+  });
+
+  if (existingCount > 0) {
+    console.log(
+      `  ✓ ${existingCount} homepage sections (preserved existing CMS database configuration)`,
+    );
+    return;
+  }
 
   const heroImage = await upsertHeroMedia("wide", 1);
   const heroImageMobile = await upsertHeroMedia("tall", 1);
