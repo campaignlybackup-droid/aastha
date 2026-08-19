@@ -997,8 +997,55 @@ async function seedProducts(
     // Two or three images per product, cycling through the art variants.
     const imageCount = 2 + (index % 2);
     const media = [];
-    for (let i = 0; i < imageCount; i += 1) {
-      media.push(await upsertPlaceholderMedia(spec.art, ((index + i) % 4) + 1));
+
+    if (spec.art === "chain") {
+      const realImg1 = await db.media.upsert({
+        where: { publicId: "product/silver-beaded-snake-chain-1" },
+        update: {
+          url: "/uploads/silver-beaded-snake-chain-1.jpg",
+          secureUrl: "/uploads/silver-beaded-snake-chain-1.jpg",
+        },
+        create: {
+          publicId: "product/silver-beaded-snake-chain-1",
+          url: "/uploads/silver-beaded-snake-chain-1.jpg",
+          secureUrl: "/uploads/silver-beaded-snake-chain-1.jpg",
+          folder: "PRODUCT",
+          format: "jpg",
+          width: 1200,
+          height: 1500,
+          bytes: 246051,
+          alt: "Aastha 925 Sterling Silver Beaded Snake Chain",
+          filename: "silver-beaded-snake-chain-1.jpg",
+          tags: ["product", "chain", "silver", "snake-chain"],
+        },
+      });
+
+      const realImg2 = await db.media.upsert({
+        where: { publicId: "product/silver-beaded-snake-chain-2" },
+        update: {
+          url: "/uploads/silver-beaded-snake-chain-2.jpg",
+          secureUrl: "/uploads/silver-beaded-snake-chain-2.jpg",
+        },
+        create: {
+          publicId: "product/silver-beaded-snake-chain-2",
+          url: "/uploads/silver-beaded-snake-chain-2.jpg",
+          secureUrl: "/uploads/silver-beaded-snake-chain-2.jpg",
+          folder: "PRODUCT",
+          format: "jpg",
+          width: 1200,
+          height: 1500,
+          bytes: 246051,
+          alt: "Aastha 925 Sterling Silver Beaded Snake Chain Detail View",
+          filename: "silver-beaded-snake-chain-2.jpg",
+          tags: ["product", "chain", "silver", "snake-chain"],
+        },
+      });
+
+      media.push(realImg1, realImg2);
+    } else {
+      for (let i = 0; i < imageCount; i += 1) {
+        media.push(await upsertPlaceholderMedia(spec.art, ((index + i) % 4) + 1));
+      }
     }
 
     const product = await db.product.upsert({
