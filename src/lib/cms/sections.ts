@@ -154,8 +154,6 @@ export const sectionSchemas = {
     /** Solid brand panel vs. image background. */
     style: z.enum(["solid", "image", "outline"]).default("solid"),
     theme,
-    fontSize: z.enum(["standard", "large", "display"]).default("display"),
-    showCta: z.boolean().default(true),
   }),
 
   SPLIT_IMAGE_TEXT: z.object({

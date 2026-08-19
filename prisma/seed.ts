@@ -1380,16 +1380,22 @@ async function seedHomepage() {
     },
     {
       type: "PROMO_BANNER",
-      label: "Trusted by customers counter",
+      label: "Free shipping promo",
       settings: {
-        eyebrow: "TRUSTED BY",
-        heading: "2000+",
-        subheading: "Customers",
-        fontSize: "display",
-        showCta: false,
+        eyebrow: "Complimentary shipping",
+        heading: "Free delivery on orders above ₹1,500",
+        subheading:
+          "Every order ships with an anti-tarnish pouch, a polishing cloth and a stamped authenticity certificate.",
         style: "solid",
         theme: "dark",
-        cta: { label: "", href: "" },
+        cta: { label: "Start shopping", href: "/shop" },
+        image: {
+          mediaId: promoImage.id,
+          url: promoImage.secureUrl,
+          alt: "",
+          width: 1200,
+          height: 1500,
+        },
       },
     },
     {

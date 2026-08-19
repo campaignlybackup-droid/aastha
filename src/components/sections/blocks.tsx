@@ -217,18 +217,13 @@ export function PromoBannerSection({
   settings: SectionSettings["PROMO_BANNER"];
 }) {
   const light = settings.theme === "dark";
-  const isDisplay = settings.fontSize === "display" || !settings.fontSize;
-  const isLarge = settings.fontSize === "large";
-  const showCta =
-    settings.showCta !== false &&
-    Boolean(settings.cta?.href?.trim() && settings.cta?.label?.trim());
 
   return (
     <SectionShell>
       <div
         className={cn(
-          "relative overflow-hidden rounded-md px-6 py-14 text-center md:px-16 md:py-20 flex flex-col items-center justify-center",
-          settings.style === "solid" && "bg-brand-900",
+          "relative overflow-hidden rounded-md px-6 py-14 text-center md:px-16 md:py-20",
+          settings.style === "solid" && "bg-brand-800",
           settings.style === "outline" && "border border-line-strong bg-transparent",
           settings.style === "image" && "bg-brand-900",
         )}
@@ -242,16 +237,16 @@ export function PromoBannerSection({
               sizes="100vw"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-sand-950/60" aria-hidden="true" />
+            <div className="absolute inset-0 bg-sand-950/55" aria-hidden="true" />
           </>
         ) : null}
 
-        <div className="relative mx-auto max-w-3xl space-y-3 text-center flex flex-col items-center justify-center">
+        <div className="relative mx-auto max-w-2xl space-y-4">
           {settings.eyebrow ? (
             <p
               className={cn(
-                "u-eyebrow font-bold tracking-[0.2em] text-xs sm:text-sm uppercase mb-1",
-                light || settings.style === "image" || settings.style === "solid"
+                "u-eyebrow",
+                light || settings.style === "image"
                   ? "text-gold-300"
                   : "text-[var(--color-highlight)]",
               )}
@@ -260,36 +255,30 @@ export function PromoBannerSection({
             </p>
           ) : null}
 
-          {settings.heading ? (
-            <h2
-              className={cn(
-                "font-display font-medium leading-none tracking-tight",
-                isDisplay && "text-5xl sm:text-7xl md:text-8xl lg:text-9xl py-1 text-sand-50",
-                isLarge && "text-4xl sm:text-5xl md:text-6xl py-1 text-sand-50",
-                !isDisplay && !isLarge && "text-display-sm md:text-display-md",
-                settings.style === "outline" && "text-content",
-              )}
-            >
-              {settings.heading}
-            </h2>
-          ) : null}
+          <h2
+            className={cn(
+              "text-display-sm md:text-display-md",
+              settings.style === "outline" ? "text-content" : "text-sand-50",
+            )}
+          >
+            {settings.heading}
+          </h2>
 
           {settings.subheading ? (
             <p
               className={cn(
-                "font-sans leading-relaxed tracking-wide font-normal",
-                isDisplay && "text-lg sm:text-xl md:text-2xl text-sand-200",
-                isLarge && "text-base sm:text-lg text-sand-200",
-                !isDisplay && !isLarge && "text-sm md:text-base text-sand-200",
-                settings.style === "outline" && "text-content-muted",
+                "text-sm leading-relaxed md:text-base",
+                settings.style === "outline"
+                  ? "text-content-muted"
+                  : "text-sand-200",
               )}
             >
               {settings.subheading}
             </p>
           ) : null}
 
-          {showCta && settings.cta?.href && settings.cta?.label ? (
-            <div className="pt-4">
+          {settings.cta?.href && settings.cta.label ? (
+            <div className="pt-2">
               <Button
                 asChild
                 size="lg"

@@ -172,21 +172,15 @@ export const SECTION_FORMS: Partial<Record<SectionType, SectionFormSpec>> = {
 
   PROMO_BANNER: {
     fields: [
-      { path: "eyebrow", label: "Small label (e.g. TRUSTED BY)", kind: "text" },
-      { path: "heading", label: "Heading / Value (e.g. 2000+)", kind: "text" },
-      { path: "subheading", label: "Supporting line (e.g. Customers)", kind: "textarea" },
-      { path: "fontSize", label: "Heading Font Size", kind: "select", options: [
-        { value: "display", label: "Display (Extra Large)" },
-        { value: "large", label: "Large" },
-        { value: "standard", label: "Standard" },
-      ] },
+      { path: "eyebrow", label: "Small label", kind: "text" },
+      { path: "heading", label: "Heading", kind: "text" },
+      { path: "subheading", label: "Supporting line", kind: "textarea" },
       { path: "style", label: "Style", kind: "select", options: [
-        { value: "solid", label: "Solid brand panel" },
+        { value: "solid", label: "Solid colour panel" },
         { value: "image", label: "Background image" },
         { value: "outline", label: "Outlined, no fill" },
       ] },
       { path: "image.url", label: "Background image", kind: "image", help: "Used only with the background image style." },
-      { path: "showCta", label: "Show Action Button", kind: "boolean" },
       { path: "cta.label", label: "Button text", kind: "text" },
       { path: "cta.href", label: "Button link", kind: "link" },
       { path: "theme", label: "Text colour", kind: "select", options: THEME_OPTIONS },
