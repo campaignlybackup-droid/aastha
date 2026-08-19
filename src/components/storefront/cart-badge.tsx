@@ -83,7 +83,7 @@ export function CartBadge({ className }: { className?: string }) {
       {count && count > 0 ? (
         <span
           aria-hidden="true"
-          className="absolute -right-0.5 -top-0.5 flex size-4.5 items-center justify-center rounded-full bg-[var(--color-accent)] text-[0.625rem] font-medium text-[var(--color-accent-contrast)]"
+          className="absolute -right-0.5 -top-0.5 flex size-4.5 items-center justify-center rounded-full bg-gold-400 text-[0.625rem] font-bold text-brand-950 shadow-xs"
         >
           {count > 9 ? "9+" : count}
         </span>

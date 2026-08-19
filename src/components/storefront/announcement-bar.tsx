@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 /**
- * Thin bar above the header. A live campaign's announcement wins over the
- * default from site settings — that is the point of a campaign.
+ * Announcement bar above the header.
+ * Styled in a rich warm metallic gold finish to stand out distinctly
+ * from the deep pine emerald green navbar below it.
  */
 export function AnnouncementBar({
   text,
@@ -14,16 +15,16 @@ export function AnnouncementBar({
   if (!text.trim()) return null;
 
   const content = (
-    <span className="block truncate text-center text-xs tracking-[0.06em] text-sand-200">
+    <span className="block truncate text-center text-xs font-semibold tracking-[0.08em] text-brand-950">
       {text}
     </span>
   );
 
   return (
-    <div className="bg-brand-900 py-2.5">
+    <div className="bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 py-2.5 shadow-xs">
       <div className="u-container">
         {href ? (
-          <Link href={href} className="block hover:text-sand-50">
+          <Link href={href} className="block transition-opacity hover:opacity-85">
             {content}
           </Link>
         ) : (

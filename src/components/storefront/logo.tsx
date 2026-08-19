@@ -73,7 +73,6 @@ export function Logo({
         alt="Aastha Silver & Jewels Monogram"
         className={cn(
           "shrink-0 object-contain transition-transform hover:scale-105",
-          tone === "dark" && "drop-shadow-[0_1px_2px_rgba(20,53,55,0.3)]",
           markHeightMap[size],
           className
         )}
@@ -103,7 +102,6 @@ export function Logo({
         alt="Aastha Silver & Jewels"
         className={cn(
           "shrink-0 object-contain transition-transform hover:scale-[1.02]",
-          tone === "dark" && "drop-shadow-[0_1px_3px_rgba(20,53,55,0.25)]",
           stackedHeightMap[size],
           className
         )}
@@ -131,9 +129,6 @@ export function Logo({
       src="/logo-horizontal.png"
       alt="Aastha Silver & Jewels"
       className={cn(
-        "shrink-0 object-contain transition-transform hover:scale-[1.01]",
-        // Added shadow on light backgrounds so gold lettering pops with high contrast
-        tone === "dark" && "filter drop-shadow-[0_1px_3px_rgba(20,53,55,0.35)]",
         horizHeightMap[size],
         className
       )}
