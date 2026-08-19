@@ -171,3 +171,118 @@ export async function updateMediaAlt(
   revalidatePath("/admin/media");
   return { ok: true, message: "Description saved." };
 }
+
+/**
+ * Direct file upload server action.
+ *
+ * Uploads to Cloudinary if keys are present, or falls back to data URL storage
+ * so photo uploads work guaranteed without setup dependencies.
+ */
+export async function uploadDirectMediaAction(
+  formData: FormData,
+): Promise<MediaResult> {
+  const staff = await requireArea("media");
+
+  const file = formData.get("file") as File | null;
+  const folder = (formData.get("folder") as string) || "PRODUCT";
+
+  if (!file || !(file instanceof File)) {
+    return { ok: false, error: "Please select an image file to upload." };
+  }
+
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  if (buffer.length > 10 * 1024 * 1024) {
+    return { ok: false, error: "File size exceeds 10 MB." };
+  }
+
+  const { nanoid } = await import("nanoid");
+
+  // Try Cloudinary if available
+  if (integrations.cloudinary()) {
+    try {
+      const { CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_FOLDER } =
+        env();
+      const scopedFolder = `${CLOUDINARY_FOLDER}/${folder.toLowerCase()}`;
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signature = createHash("sha1")
+        .update(
+          `folder=${scopedFolder}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`,
+        )
+        .digest("hex");
+
+      const body = new FormData();
+      const blob = new Blob([buffer], { type: file.type || "image/jpeg" });
+      body.append("file", blob, file.name);
+      body.append("api_key", CLOUDINARY_API_KEY);
+      body.append("timestamp", String(timestamp));
+      body.append("folder", scopedFolder);
+      body.append("signature", signature);
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${publicEnv.cloudinaryCloudName}/image/upload`,
+        { method: "POST", body },
+      );
+      const data = (await res.json().catch(() => ({}))) as {
+        public_id?: string;
+        url?: string;
+        secure_url?: string;
+        format?: string;
+        width?: number;
+        height?: number;
+        bytes?: number;
+      };
+
+      if (res.ok && data.secure_url) {
+        await db.media.create({
+          data: {
+            publicId: data.public_id || `cloud_${nanoid(16)}`,
+            url: data.url || data.secure_url,
+            secureUrl: data.secure_url,
+            format: data.format || file.type.split("/")[1] || "jpg",
+            width: data.width || null,
+            height: data.height || null,
+            bytes: data.bytes || buffer.length,
+            filename: file.name,
+            folder: (FOLDERS as readonly string[]).includes(folder)
+              ? (folder as MediaFolder)
+              : "OTHER",
+            uploadedById: staff.id,
+          },
+        });
+        revalidatePath("/admin/media");
+        revalidatePath("/admin/products");
+        return { ok: true, message: "Photo uploaded successfully." };
+      }
+    } catch (e) {
+      console.warn("Cloudinary upload failed, using direct storage fallback:", e);
+    }
+  }
+
+  // Fallback: Direct Data URL storage
+  const mimeType = file.type || "image/jpeg";
+  const base64Data = buffer.toString("base64");
+  const dataUrl = `data:${mimeType};base64,${base64Data}`;
+  const publicId = `img_${nanoid(20)}`;
+
+  await db.media.create({
+    data: {
+      publicId,
+      url: dataUrl,
+      secureUrl: dataUrl,
+      format: mimeType.split("/")[1] || "jpg",
+      bytes: buffer.length,
+      filename: file.name,
+      folder: (FOLDERS as readonly string[]).includes(folder)
+        ? (folder as MediaFolder)
+        : "OTHER",
+      uploadedById: staff.id,
+    },
+  });
+
+  revalidatePath("/admin/media");
+  revalidatePath("/admin/products");
+
+  return { ok: true, message: "Photo uploaded successfully." };
+}
