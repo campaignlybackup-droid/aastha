@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { Gift, Lock } from "lucide-react";
+import { CheckCircle2, Gift, Lock, Tag } from "lucide-react";
 
 import {
   AddressBook,
@@ -18,33 +18,29 @@ import {
   verifyCheckoutPayment,
 } from "@/server/actions/checkout";
 import {
+  applyCouponToCart,
+  removeCouponFromCart,
+} from "@/server/actions/cart";
+import {
   trackAddPaymentInfo,
   trackBeginCheckout,
   trackPurchase,
 } from "@/lib/analytics/events";
 import { formatPrice } from "@/lib/money";
 import type { CartView } from "@/server/cart";
-
-/**
- * Checkout.
- *
- * Single page: address, contact, review, pay. A multi-step wizard adds
- * abandonment for no benefit at this basket size.
- *
- * The Razorpay script loads lazily on first payment attempt rather than on
- * page load, so an abandoned checkout costs no third-party JavaScript.
- */
-
+import type { ActiveCoupon } from "@/server/coupons";
 import type { RazorpayHandlerResponse, RazorpayOptions } from "@/lib/payments/razorpay-types";
 
 export function CheckoutFlow({
   cart,
   addresses,
   customer,
+  availableCoupons = [],
 }: {
   cart: CartView;
   addresses: SavedAddress[];
   customer: { name: string | null; email: string | null; mobile: string };
+  availableCoupons?: ActiveCoupon[];
 }) {
   const router = useRouter();
 
@@ -60,6 +56,12 @@ export function CheckoutFlow({
   >("idle");
   const [scriptLoaded, setScriptLoaded] = React.useState(false);
   const [needsScript, setNeedsScript] = React.useState(false);
+
+  // Coupon state
+  const [couponInput, setCouponInput] = React.useState("");
+  const [couponError, setCouponError] = React.useState<string | null>(null);
+  const [couponPending, startCouponTransition] = React.useTransition();
+  const [showCouponsModal, setShowCouponsModal] = React.useState(false);
 
   const GIFT_WRAP_PAISE = 4000; // ₹40
   const finalTotalPaise = cart.totals.totalPaise + (isGiftWrapped ? GIFT_WRAP_PAISE : 0);
@@ -89,6 +91,49 @@ export function CheckoutFlow({
     quantity: line.quantity,
     pricePaise: line.unitPricePaise,
   }));
+
+  function handleApplyCoupon(e: React.FormEvent) {
+    e.preventDefault();
+    if (!couponInput.trim()) return;
+    setCouponError(null);
+
+    startCouponTransition(async () => {
+      const res = await applyCouponToCart(couponInput);
+      if (!res.ok) {
+        setCouponError(res.error);
+        return;
+      }
+      setCouponInput("");
+      setShowCouponsModal(false);
+      router.refresh();
+    });
+  }
+
+  function applySelectedCoupon(code: string) {
+    setCouponError(null);
+    startCouponTransition(async () => {
+      const res = await applyCouponToCart(code);
+      if (!res.ok) {
+        setCouponError(res.error);
+        return;
+      }
+      setCouponInput("");
+      setShowCouponsModal(false);
+      router.refresh();
+    });
+  }
+
+  function handleRemoveCoupon() {
+    setCouponError(null);
+    startCouponTransition(async () => {
+      const res = await removeCouponFromCart();
+      if (!res.ok) {
+        setCouponError(res.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
 
   async function onPay() {
     setError(null);
@@ -150,7 +195,7 @@ export function CheckoutFlow({
         email: email || undefined,
       },
       notes: { orderId: created.orderId, orderNumber: created.orderNumber },
-      theme: { color: "#244b47" },
+      theme: { color: "#1f5557" },
 
       handler: (response) => {
         setStatus("verifying");
@@ -164,13 +209,10 @@ export function CheckoutFlow({
           });
 
           if (!verified.ok) {
-            // The webhook is still the authority — send them to the order page
-            // rather than implying the payment failed.
             router.push(`/order/${created.orderId}?pending=1`);
             return;
           }
 
-          // Same eventId as the server's CAPI call, so Meta counts one sale.
           trackPurchase({
             orderNumber: verified.orderNumber,
             eventId: created.metaEventId,
@@ -231,7 +273,7 @@ export function CheckoutFlow({
           {/* --- Contact ---------------------------------------------------- */}
           <section aria-labelledby="contact-heading">
             <h2 id="contact-heading" className="mb-4 font-display text-2xl">
-              Contact
+              Contact &amp; Instructions
             </h2>
             <Card>
               <CardBody className="space-y-4">
@@ -289,7 +331,7 @@ export function CheckoutFlow({
                   </div>
                   <div className="flex min-w-0 flex-1 justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm">{line.name}</p>
+                      <p className="text-sm font-medium">{line.name}</p>
                       <p className="mt-0.5 text-xs text-content-muted">
                         {Object.entries(line.variantOptions)
                           .map(([k, v]) => `${k}: ${v}`)
@@ -297,7 +339,7 @@ export function CheckoutFlow({
                         {" · "}Qty {line.quantity}
                       </p>
                     </div>
-                    <p className="shrink-0 text-sm">
+                    <p className="shrink-0 text-sm font-medium">
                       {formatPrice(line.lineTotalPaise)}
                     </p>
                   </div>
@@ -309,7 +351,7 @@ export function CheckoutFlow({
 
         {/* --- Summary ------------------------------------------------------ */}
         <aside className="lg:sticky lg:top-[calc(var(--header-height)+1.5rem)] lg:self-start">
-          <div className="space-y-5 border border-line bg-surface-raised p-5">
+          <div className="space-y-5 border border-line bg-surface-raised p-5 shadow-sm rounded-md">
             <h2 className="font-display text-xl">Order total</h2>
 
             {/* Gift Wrapping Option Checkbox */}
@@ -337,7 +379,121 @@ export function CheckoutFlow({
               </label>
             </div>
 
-            <dl className="space-y-2.5 text-sm">
+            {/* Promo / Coupon Code Section */}
+            <div className="border-t border-line pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-content-muted flex items-center gap-1.5">
+                  <Tag className="size-3.5 text-gold-600" />
+                  Coupon Code
+                </span>
+                {availableCoupons && availableCoupons.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponsModal(!showCouponsModal)}
+                    className="text-xs text-[var(--color-accent)] underline hover:text-brand-900 font-medium"
+                  >
+                    {showCouponsModal ? "Hide Offers" : `View Offers (${availableCoupons.length})`}
+                  </button>
+                ) : null}
+              </div>
+
+              {cart.coupon ? (
+                <div className="flex items-center justify-between rounded-md border border-success-700/30 bg-success-50/60 p-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 text-success-700 shrink-0" />
+                    <div>
+                      <p className="font-bold text-success-900">{cart.coupon.code}</p>
+                      <p className="text-[0.65rem] text-success-700">
+                        Saving {formatPrice(cart.totals.discountPaise)}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    disabled={couponPending}
+                    className="text-xs font-medium text-danger-700 underline hover:text-danger-900"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="ENTER COUPON CODE"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    className="h-9 text-xs uppercase tracking-wider"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant="outline"
+                    loading={couponPending}
+                    disabled={!couponInput.trim() || couponPending}
+                    className="h-9 shrink-0 text-xs px-3"
+                  >
+                    Apply
+                  </Button>
+                </form>
+              )}
+
+              {couponError ? (
+                <p className="text-xs text-danger-700">{couponError}</p>
+              ) : null}
+
+              {/* Active Coupons Drawer List */}
+              {showCouponsModal && availableCoupons && availableCoupons.length > 0 && (
+                <div className="rounded-md border border-line bg-surface p-3 space-y-2.5 max-h-60 overflow-y-auto shadow-inner">
+                  <p className="text-xs font-semibold text-content border-b border-line pb-1.5">
+                    Available Coupons ({availableCoupons.length})
+                  </p>
+                  {availableCoupons.map((coupon) => {
+                    const isEligible = cart.totals.subtotalPaise >= coupon.minOrderPaise;
+                    const discountLabel =
+                      coupon.type === "PERCENTAGE"
+                        ? `${coupon.value}% OFF${coupon.maxDiscountPaise ? ` up to ${formatPrice(coupon.maxDiscountPaise)}` : ""}`
+                        : `Flat ${formatPrice(coupon.value)} OFF`;
+
+                    return (
+                      <div
+                        key={coupon.id}
+                        className="rounded-sm border border-line bg-sand-50/60 p-2.5 space-y-1 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono font-bold tracking-wider text-brand-900 bg-gold-50 px-1.5 py-0.5 rounded border border-gold-300">
+                            {coupon.code}
+                          </span>
+                          {isEligible ? (
+                            <button
+                              type="button"
+                              onClick={() => applySelectedCoupon(coupon.code)}
+                              disabled={couponPending}
+                              className="rounded bg-brand-800 px-2 py-1 text-[0.65rem] font-medium text-sand-50 hover:bg-brand-900 transition-colors"
+                            >
+                              Apply
+                            </button>
+                          ) : (
+                            <span className="text-[0.65rem] text-content-subtle italic">
+                              Min order {formatPrice(coupon.minOrderPaise)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-medium text-content">{discountLabel}</p>
+                        {coupon.description ? (
+                          <p className="text-[0.65rem] text-content-muted leading-tight">
+                            {coupon.description}
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <dl className="space-y-2.5 text-sm border-t border-line pt-4">
               <div className="flex justify-between">
                 <dt className="text-content-muted">Subtotal</dt>
                 <dd>{formatPrice(cart.totals.subtotalPaise)}</dd>
@@ -348,7 +504,7 @@ export function CheckoutFlow({
                   <dt className="text-content-muted">
                     Discount{cart.coupon ? ` (${cart.coupon.code})` : ""}
                   </dt>
-                  <dd className="text-success-700">
+                  <dd className="text-success-700 font-medium">
                     − {formatPrice(cart.totals.discountPaise)}
                   </dd>
                 </div>
@@ -358,7 +514,7 @@ export function CheckoutFlow({
                 <dt className="text-content-muted">Shipping</dt>
                 <dd
                   className={
-                    cart.totals.shippingPaise === 0 ? "text-success-700" : ""
+                    cart.totals.shippingPaise === 0 ? "text-success-700 font-medium" : ""
                   }
                 >
                   {cart.totals.shippingPaise === 0
@@ -378,8 +534,8 @@ export function CheckoutFlow({
               ) : null}
 
               <div className="flex items-baseline justify-between border-t border-line pt-3">
-                <dt className="text-base font-medium">Total</dt>
-                <dd className="text-xl font-medium">
+                <dt className="text-base font-semibold">Total</dt>
+                <dd className="text-xl font-bold text-brand-950">
                   {formatPrice(finalTotalPaise)}
                 </dd>
               </div>
@@ -407,7 +563,7 @@ export function CheckoutFlow({
             </Button>
 
             <p className="text-center text-xs leading-relaxed text-content-subtle">
-              Payments are processed by Razorpay. We never see or store your
+              Payments are processed securely by Razorpay. We never see or store your
               card details.
             </p>
 

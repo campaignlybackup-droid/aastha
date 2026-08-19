@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/storefront/page-header";
 import { db } from "@/lib/db";
 import { getCart } from "@/server/cart";
 import { requireUser } from "@/server/auth";
+import { getActiveCoupons } from "@/server/coupons";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -16,7 +17,10 @@ export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {
   const user = await requireUser("/checkout");
-  const cart = await getCart();
+  const [cart, availableCoupons] = await Promise.all([
+    getCart(),
+    getActiveCoupons(),
+  ]);
 
   // Nothing to pay for — send them back rather than showing an empty form.
   if (cart.lines.length === 0) redirect("/cart");
@@ -55,6 +59,7 @@ export default async function CheckoutPage() {
         <CheckoutFlow
           cart={cart}
           addresses={addresses}
+          availableCoupons={availableCoupons}
           customer={{
             name: user.name,
             email: user.email,

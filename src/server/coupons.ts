@@ -119,3 +119,36 @@ export async function validateCoupon({
 
   return { valid: true, couponId: coupon.id, discountPaise };
 }
+
+export type ActiveCoupon = {
+  id: string;
+  code: string;
+  description: string | null;
+  type: "PERCENTAGE" | "FLAT";
+  value: number;
+  minOrderPaise: number;
+  maxDiscountPaise: number | null;
+};
+
+export async function getActiveCoupons(): Promise<ActiveCoupon[]> {
+  const now = new Date();
+  const coupons = await db.coupon.findMany({
+    where: {
+      isActive: true,
+      OR: [{ startsAt: null }, { startsAt: { lte: now } }],
+      AND: [{ OR: [{ endsAt: null }, { endsAt: { gte: now } }] }],
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      code: true,
+      description: true,
+      type: true,
+      value: true,
+      minOrderPaise: true,
+      maxDiscountPaise: true,
+    },
+  });
+
+  return coupons;
+}
