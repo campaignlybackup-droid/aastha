@@ -48,7 +48,7 @@ const schema = z.object({
 
   EMAIL_DRIVER: z.enum(["console", "resend"]).default("console"),
   RESEND_API_KEY: optional,
-  EMAIL_FROM: z.string().trim().default("Aastha Silver & Jewels <orders@example.com>"),
+  EMAIL_FROM: z.string().trim().default("Aastha Silver & Jewels <support@aasthasilverandjewels.in>"),
 
   META_CAPI_ACCESS_TOKEN: optional,
   META_CAPI_TEST_EVENT_CODE: optional,
