@@ -96,7 +96,7 @@ export async function requireStaff(next = "/admin"): Promise<CurrentUser> {
       .map((m: string) => m.trim())
       .filter(Boolean);
 
-    if (bootstrapMobiles.length === 0 || bootstrapMobiles.includes(user.mobile)) {
+    if (bootstrapMobiles.length > 0 && bootstrapMobiles.includes(user.mobile)) {
       await db.user.update({
         where: { id: user.id },
         data: { role: "SUPER_ADMIN" },

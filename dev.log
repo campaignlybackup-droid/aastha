@@ -1,0 +1,41 @@
+
+> aastha-silver-jewels@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.7:3000
+- Environments: .env
+✓ Ready in 348ms
+✓ Running next.config.ts took 85ms
+- Experiments (use with caution):
+  · serverActions
+
+○ Compiling /admin/media ...
+ GET /admin/media 307 in 7.4s (next.js: 7.1s, application-code: 332ms)
+(node:14483) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET / 200 in 4.5s (next.js: 2.2s, application-code: 2.3s)
+ GET /api/cart/count 200 in 138ms (next.js: 133ms, application-code: 5ms)
+ GET /api/cart/count 200 in 139ms (next.js: 105ms, application-code: 33ms)
+ GET /api/cart/count 200 in 24ms (next.js: 9ms, application-code: 15ms)
+ GET /admin 307 in 721ms (next.js: 655ms, application-code: 66ms)
+ GET /login?next=%2Fadmin 200 in 1739ms (next.js: 436ms, application-code: 1303ms)
+ GET /api/cart/count 200 in 5ms (next.js: 2.0ms, application-code: 3ms)
+ GET /api/cart/count 200 in 5ms (next.js: 1.1ms, application-code: 4ms)
+
+┌─ SMS (console driver) ────────────────────────
+│  To:   +919306260247
+│  OTP:  727553
+└───────────────────────────────────────────────
+
+ POST /login?next=%2Fadmin 200 in 836ms (next.js: 54ms, application-code: 782ms)
+  └─ ƒ requestLoginCode("9306260247") in 756ms src/server/actions/auth.ts
+ GET /api/cart/count 200 in 56ms (next.js: 44ms, application-code: 12ms)
