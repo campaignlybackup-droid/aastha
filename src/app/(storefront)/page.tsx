@@ -65,9 +65,31 @@ export default async function HomePage() {
           </p>
         </div>
       ) : (
-        sections.map((section) => (
-          <RenderSection key={section.id} section={section} />
-        ))
+        <>
+          <section className="relative h-[70dvh] min-h-[480px] lg:h-[85vh] w-full overflow-hidden bg-brand-900">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              className="absolute inset-0 size-full object-cover"
+            >
+              <source src="/banner-final.mp4" type="video/mp4" />
+            </video>
+            {/* Optional slight dark overlay to make header legible if it overlaps, but user said "no text", so we keep it very light or 0 */}
+            <div className="absolute inset-0 bg-sand-950/10" aria-hidden="true" />
+          </section>
+
+          {sections.map((section, index) => {
+            // Skip the first CMS banner since we've hardcoded the video banner above
+            if (index === 0 && (section.type === "HERO" || section.type === "VIDEO_HERO" || section.type === "IMAGE_BANNER")) {
+              return null;
+            }
+            return <RenderSection key={section.id} section={section} />;
+          })}
+        </>
       )}
     </>
   );
