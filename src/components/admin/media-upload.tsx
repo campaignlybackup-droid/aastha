@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { NativeSelect } from "@/components/ui/field";
+import { Field, Label, NativeSelect } from "@/components/ui/field";
 import { Alert } from "@/components/ui/primitives";
 import {
   createUploadSignature,
@@ -153,15 +153,13 @@ export function MediaUpload({ enabled }: { enabled: boolean }) {
   return (
     <div className="space-y-3 border-b border-line px-5 py-4 bg-sand-50/40 rounded-md mb-4">
       <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <label
-            htmlFor="upload-folder"
+        <Field>
+          <Label
             className="mb-1 block text-xs font-semibold uppercase tracking-wider text-content-muted"
           >
             Upload to folder
-          </label>
+          </Label>
           <NativeSelect
-            id="upload-folder"
             value={folder}
             onChange={(event) => setFolder(event.target.value)}
             className="h-9 w-44"
@@ -172,7 +170,7 @@ export function MediaUpload({ enabled }: { enabled: boolean }) {
               </option>
             ))}
           </NativeSelect>
-        </div>
+        </Field>
 
         <input
           ref={inputRef}
