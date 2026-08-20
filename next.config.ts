@@ -49,9 +49,9 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
-    // Keeps server action payloads small; product images upload via Cloudinary
-    // directly rather than through the server.
-    serverActions: { bodySizeLimit: "2mb" },
+    // Increased to 50MB to support high-quality product images and video uploads 
+    // directly through Server Actions.
+    serverActions: { bodySizeLimit: "50mb" },
   },
 
   async headers() {
