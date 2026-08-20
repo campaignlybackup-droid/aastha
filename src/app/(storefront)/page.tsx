@@ -67,6 +67,7 @@ export default async function HomePage() {
       ) : (
         <>
           <section className="relative h-[70dvh] min-h-[480px] lg:h-[85vh] w-full overflow-hidden bg-brand-900">
+            {/* Desktop Video (Hidden on mobile) */}
             <video
               autoPlay
               muted
@@ -74,12 +75,24 @@ export default async function HomePage() {
               playsInline
               preload="auto"
               aria-hidden="true"
-              className="absolute inset-0 size-full object-cover"
+              className="hidden md:block absolute inset-0 size-full object-cover"
             >
               <source src="/banner-final.mp4" type="video/mp4" />
             </video>
-            {/* Optional slight dark overlay to make header legible if it overlaps, but user said "no text", so we keep it very light or 0 */}
-            <div className="absolute inset-0 bg-sand-950/10" aria-hidden="true" />
+
+            {/* Mobile Video (Visible only on mobile) */}
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              className="block md:hidden absolute inset-0 size-full object-cover"
+            >
+              <source src="/banner-mobile.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-sand-950/0" aria-hidden="true" />
           </section>
 
           {sections.map((section, index) => {
