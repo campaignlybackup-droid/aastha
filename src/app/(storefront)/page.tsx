@@ -66,7 +66,7 @@ export default async function HomePage() {
         </div>
       ) : (
         <>
-          <section className="relative w-full aspect-video md:aspect-[21/9] lg:aspect-auto lg:h-[85vh] overflow-hidden bg-brand-900">
+          <section className="relative w-full h-[65vh] min-h-[480px] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-brand-950">
             {/* Desktop Video (Hidden on mobile) */}
             <video
               autoPlay
@@ -75,7 +75,7 @@ export default async function HomePage() {
               playsInline
               preload="auto"
               aria-hidden="true"
-              className="hidden md:block absolute inset-0 size-full object-cover"
+              className="hidden md:block absolute inset-0 size-full object-contain"
             >
               <source src="/banner-final.mp4" type="video/mp4" />
             </video>
@@ -88,11 +88,11 @@ export default async function HomePage() {
               playsInline
               preload="auto"
               aria-hidden="true"
-              className="block md:hidden absolute inset-0 size-full object-cover"
+              className="block md:hidden absolute inset-0 size-full object-contain"
             >
               <source src="/banner-mobile.mp4" type="video/mp4" />
             </video>
-            <div className="absolute inset-0 bg-sand-950/0" aria-hidden="true" />
+            <div className="absolute inset-0 bg-sand-950/0 pointer-events-none" aria-hidden="true" />
           </section>
 
           {sections.map((section, index) => {
