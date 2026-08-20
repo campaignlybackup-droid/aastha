@@ -22,8 +22,8 @@ const FOLDERS = [
   "OTHER",
 ] as const;
 
-const MAX_BYTES = 10 * 1024 * 1024;
-const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+const MAX_BYTES = 50 * 1024 * 1024;
+const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/avif", "video/mp4", "video/webm", "video/quicktime"];
 
 type CloudinaryResponse = {
   public_id?: string;
@@ -61,11 +61,11 @@ export function MediaUpload({ enabled }: { enabled: boolean }) {
         setProgress(`Uploading ${index + 1} of ${files.length}…`);
 
         if (!ACCEPTED.includes(file.type)) {
-          failures.push(`${file.name}: not a JPEG, PNG, WebP or AVIF`);
+          failures.push(`${file.name}: unsupported file type`);
           continue;
         }
         if (file.size > MAX_BYTES) {
-          failures.push(`${file.name}: larger than 10 MB`);
+          failures.push(`${file.name}: larger than 50 MB`);
           continue;
         }
 
@@ -94,7 +94,7 @@ export function MediaUpload({ enabled }: { enabled: boolean }) {
           body.append("signature", signed.signature);
 
           const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${signed.cloudName}/image/upload`,
+            `https://api.cloudinary.com/v1_1/${signed.cloudName}/auto/upload`,
             { method: "POST", body },
           );
 
@@ -195,7 +195,7 @@ export function MediaUpload({ enabled }: { enabled: boolean }) {
         </Button>
 
         <p className="text-xs text-content-subtle">
-          JPEG, PNG, WebP or AVIF · up to 10 MB each.
+          Images & Videos · up to 50 MB each.
         </p>
       </div>
 

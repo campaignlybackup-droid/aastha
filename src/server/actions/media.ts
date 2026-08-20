@@ -193,8 +193,8 @@ export async function uploadDirectMediaAction(
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  if (buffer.length > 10 * 1024 * 1024) {
-    return { ok: false, error: "File size exceeds 10 MB." };
+  if (buffer.length > 50 * 1024 * 1024) {
+    return { ok: false, error: "File size exceeds 50 MB." };
   }
 
   const { randomBytes } = await import("node:crypto");
@@ -221,7 +221,7 @@ export async function uploadDirectMediaAction(
       body.append("signature", signature);
 
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${publicEnv.cloudinaryCloudName}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${publicEnv.cloudinaryCloudName}/auto/upload`,
         { method: "POST", body },
       );
       const data = (await res.json().catch(() => ({}))) as {
