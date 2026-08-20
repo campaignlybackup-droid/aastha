@@ -99,7 +99,16 @@ export default async function StaticContentPage({
           {content.body ? (
             <div
               className="space-y-4 text-sm leading-relaxed text-content-muted md:text-base [&_a]:underline [&_a]:underline-offset-4 [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:text-content [&_h3]:mt-6 [&_h3]:font-display [&_h3]:text-xl [&_h3]:text-content [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc"
-              dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.body) }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeRichText(
+                  page === "about" && !content.body.includes("founder.jpg")
+                    ? content.body.replace(
+                        "<h2>Founder Speak</h2>",
+                        '<img src="/founder.jpg" alt="Aditi Agarwal - Founder" class="mb-8 rounded-lg shadow-sm w-full max-w-sm mx-auto object-cover aspect-[4/5]" /><h2>Founder Speak</h2>'
+                      )
+                    : content.body
+                ),
+              }}
             />
           ) : (
             <Alert variant="info" title="This page hasn't been written yet">

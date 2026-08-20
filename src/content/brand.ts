@@ -27,7 +27,7 @@ export const HOMEPAGE_STORY_HTML =
   "<p>Growing up, silver was always around me. It was part of everyday conversations, family discussions and the work my family had been doing for over 40 years.</p><p>At 21, I started Aastha Silver with one simple promise—to keep genuine 925 sterling silver jewellery fairly priced, so it could reach more people without ever compromising on quality.</p>";
 
 export const FOUNDER_SPEAK_HTML =
-  "<p>Hey, I’m Aditi.</p><p>I never imagined I’d become a founder at 21.</p><p>After studying design in Mumbai, I moved back to my hometown, Jaipur, and started Aastha Silver. What began as a small idea quickly became something much bigger.</p><p>Today, I’m single-handedly involved in everything—from designing and creating content to packing orders and connecting with customers.</p><p>Thank you for being a part of this journey.</p><p>— Aditi Agarwal</p>";
+  '<img src="/founder.jpg" alt="Aditi Agarwal - Founder of Aastha Silver" class="mb-6 rounded-lg w-full max-w-sm" /><p>Hey, I’m Aditi.</p><p>I never imagined I’d become a founder at 21.</p><p>After studying design in Mumbai, I moved back to my hometown, Jaipur, and started Aastha Silver. What began as a small idea quickly became something much bigger.</p><p>Today, I’m single-handedly involved in everything—from designing and creating content to packing orders and connecting with customers.</p><p>Thank you for being a part of this journey.</p><p>— Aditi Agarwal</p>';
 
 export const ABOUT_PAGE_BODY = `
   <h2>The Story of Aastha Silver</h2>
