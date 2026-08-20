@@ -760,16 +760,18 @@ function OptionNames({
       <div className="flex flex-wrap items-center gap-2">
         {names.map((name, index) => (
           <span key={index} className="flex items-center gap-1">
-            <Input
-              value={name}
-              onChange={(e) => {
-                const next = [...names];
-                next[index] = e.target.value;
-                onChange(next);
-              }}
-              placeholder="Size"
-              className="h-9 w-36"
-            />
+            <Field>
+              <Input
+                value={name}
+                onChange={(e) => {
+                  const next = [...names];
+                  next[index] = e.target.value;
+                  onChange(next);
+                }}
+                placeholder="Size"
+                className="h-9 w-36"
+              />
+            </Field>
             <button
               type="button"
               onClick={() => onChange(names.filter((_, i) => i !== index))}
@@ -1077,16 +1079,18 @@ function ImagePicker({
       <div className="rounded-sm border border-line bg-surface-sunken p-3 space-y-3">
         <MediaUpload enabled={true} />
 
-        <label htmlFor="product-image-search" className="sr-only">
-          Filter media
-        </label>
-        <input
-          id="product-image-search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Filter media by name"
-          className="mb-3 h-8 w-full rounded-xs border border-line-strong bg-surface-raised px-2 text-sm outline-none focus:border-[var(--color-accent)]"
-        />
+        <Field>
+          <Label htmlFor="product-image-search" className="sr-only">
+            Filter media
+          </Label>
+          <Input
+            id="product-image-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter media by name"
+          />
+        </Field>
 
         <ul className="grid max-h-64 grid-cols-4 gap-2 overflow-y-auto sm:grid-cols-6 lg:grid-cols-8">
           {filtered.map((item) => {
