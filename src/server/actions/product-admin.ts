@@ -562,3 +562,117 @@ export async function saveProductFaqs(
     message: "Questions saved.",
   };
 }
+
+/* -----------------------------------------------------------------------------
+ * Bulk Actions
+ * -------------------------------------------------------------------------- */
+
+export async function duplicateProductsAction(
+  productIds: string[],
+): Promise<{ ok: boolean; message: string; count?: number }> {
+  const staff = await requireArea("products");
+  if (!productIds.length) return { ok: false, message: "No products selected." };
+
+  const { randomBytes } = await import("node:crypto");
+
+  let duplicatedCount = 0;
+
+  for (const id of productIds) {
+    const original = await db.product.findUnique({
+      where: { id },
+      include: {
+        variants: true,
+        images: true,
+        collections: true,
+        faqs: true,
+      },
+    });
+
+    if (!original) continue;
+
+    const shortId = randomBytes(3).toString("hex"); // 6 chars
+    const newSlug = slugify(`${original.name} copy ${shortId}`);
+    const newSku = `${original.sku}-COPY-${shortId.toUpperCase()}`;
+
+    await db.product.create({
+      data: {
+        name: `${original.name} (Copy)`,
+        slug: newSlug,
+        sku: newSku,
+        status: "DRAFT",
+        categoryId: original.categoryId,
+        brand: original.brand,
+        shortDescription: original.shortDescription,
+        description: original.description,
+        tags: original.tags,
+        isFeatured: false,
+        mrpPaise: original.mrpPaise,
+        pricePaise: original.pricePaise,
+        taxPercent: original.taxPercent,
+        silverPurity: original.silverPurity,
+        silverWeightGram: original.silverWeightGram,
+        dimensions: original.dimensions,
+        finish: original.finish,
+        plating: original.plating,
+        stoneType: original.stoneType,
+        stoneColour: original.stoneColour,
+        stoneCount: original.stoneCount,
+        occasion: original.occasion,
+        gender: original.gender,
+        isAdjustable: original.isAdjustable,
+        careInstructions: original.careInstructions,
+        warrantyInfo: original.warrantyInfo,
+        authenticityInfo: original.authenticityInfo,
+        whatsIncluded: original.whatsIncluded,
+        extraSpecs: original.extraSpecs ?? undefined,
+        seoTitle: original.seoTitle,
+        seoDescription: original.seoDescription,
+        canonicalUrl: original.canonicalUrl,
+        ogTitle: original.ogTitle,
+        ogDescription: original.ogDescription,
+        ogImageId: original.ogImageId,
+        variants: {
+          create: original.variants.map((v, i) => ({
+            title: v.title,
+            sku: `${v.sku}-C-${shortId.toUpperCase()}-${i}`,
+            options: v.options ?? {},
+            pricePaise: v.pricePaise,
+            mrpPaise: v.mrpPaise,
+            silverWeightGram: v.silverWeightGram,
+            imageId: v.imageId,
+            stockQuantity: v.stockQuantity,
+            lowStockThreshold: v.lowStockThreshold,
+            reservedQuantity: v.reservedQuantity,
+            trackInventory: v.trackInventory,
+            position: v.position,
+            isActive: v.isActive,
+          })),
+        },
+        images: {
+          create: original.images.map((img) => ({
+            mediaId: img.mediaId,
+            position: img.position,
+            alt: img.alt,
+          })),
+        },
+        collections: {
+          create: original.collections.map((c) => ({
+            collectionId: c.collectionId,
+          })),
+        },
+        faqs: {
+          create: original.faqs.map((f) => ({
+            question: f.question,
+            answer: f.answer,
+            position: f.position,
+          })),
+        },
+      },
+    });
+
+    duplicatedCount++;
+  }
+
+  revalidatePath("/admin/products");
+  return { ok: true, message: `Successfully duplicated ${duplicatedCount} product(s).`, count: duplicatedCount };
+}
