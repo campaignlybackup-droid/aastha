@@ -66,7 +66,7 @@ export default async function HomePage() {
         </div>
       ) : (
         <>
-          <section className="relative w-full aspect-[9/16] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-brand-950">
+          <section className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-brand-950">
             {/* Desktop Video (Hidden on mobile) */}
             <video
               autoPlay
