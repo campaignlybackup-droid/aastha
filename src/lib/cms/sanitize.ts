@@ -23,14 +23,17 @@ const RICH_TEXT_OPTIONS: sanitizeHtml.IOptions = {
     "h2", "h3", "h4",
     "blockquote", "a", "span", "small", "sup", "sub",
     "table", "thead", "tbody", "tr", "th", "td",
+    "img"
   ],
   allowedAttributes: {
     a: ["href", "title", "target", "rel"],
     span: ["class"],
+    img: ["src", "alt", "class", "width", "height"],
     "*": [],
   },
   // Anything not in this list — notably `javascript:` and `data:` — is dropped.
   allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowedSchemesByTag: { img: ["http", "https", "data"] },
   allowedSchemesAppliedToAttributes: ["href"],
   transformTags: {
     // Every external link gets noopener/noreferrer. `target="_blank"` without
