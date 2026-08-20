@@ -134,26 +134,12 @@ export async function Footer() {
       </div>
 
       {/* Legal bar --------------------------------------------------------- */}
-      <div className="border-t border-sand-50/10">
-        <div className="u-container flex flex-col gap-4 py-6 text-xs text-sand-400 md:flex-row md:items-center md:justify-between">
+      <div className="border-t border-sand-50/10 text-center">
+        <div className="u-container py-6 text-xs text-sand-400">
           <p>
             &copy; {new Date().getFullYear()} Aastha Silver &amp; Jewels. All
             rights reserved.
           </p>
-          <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
-            <Link href="/privacy-policy" className="hover:text-sand-50">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-sand-50">
-              Terms of Service
-            </Link>
-            <Link href="/shipping-policy" className="hover:text-sand-50">
-              Shipping Policy
-            </Link>
-            <Link href="/return-policy" className="hover:text-sand-50">
-              Return Policy
-            </Link>
-          </nav>
         </div>
       </div>
     </footer>
