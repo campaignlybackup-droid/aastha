@@ -197,8 +197,8 @@ export async function uploadDirectMediaAction(
     return { ok: false, error: "File size exceeds 10 MB." };
   }
 
-  const { nanoid } = await import("nanoid");
-
+  const { randomBytes } = await import("node:crypto");
+  const uniqueId = randomBytes(8).toString("hex");
   // Try Cloudinary if available
   if (integrations.cloudinary()) {
     try {
@@ -237,7 +237,7 @@ export async function uploadDirectMediaAction(
       if (res.ok && data.secure_url) {
         await db.media.create({
           data: {
-            publicId: data.public_id || `cloud_${nanoid(16)}`,
+            publicId: data.public_id || `cloud_${uniqueId}`,
             url: data.url || data.secure_url,
             secureUrl: data.secure_url,
             format: data.format || file.type.split("/")[1] || "jpg",
@@ -264,7 +264,7 @@ export async function uploadDirectMediaAction(
   const mimeType = file.type || "image/jpeg";
   const base64Data = buffer.toString("base64");
   const dataUrl = `data:${mimeType};base64,${base64Data}`;
-  const publicId = `img_${nanoid(20)}`;
+  const publicId = `img_${uniqueId}`;
 
   await db.media.create({
     data: {
