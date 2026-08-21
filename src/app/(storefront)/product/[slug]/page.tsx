@@ -50,38 +50,42 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const product = await getProductBySlug(slug);
-  if (!product) return { title: "Product not found" };
+  try {
+    const { slug } = await params;
+    const product = await getProductBySlug(slug);
+    if (!product) return { title: "Product not found" };
 
-  const description =
-    product.seoDescription ||
-    product.shortDescription ||
-    toPlainText(product.description ?? "").slice(0, 155);
+    const description =
+      product.seoDescription ||
+      product.shortDescription ||
+      toPlainText(product.description ?? "").slice(0, 155);
 
-  const image =
-    product.ogImage?.secureUrl ?? product.images[0]?.media.secureUrl;
+    const image =
+      product.ogImage?.secureUrl ?? product.images[0]?.media.secureUrl;
 
-  return {
-    title: product.seoTitle ?? product.name,
-    description,
-    alternates: {
-      canonical: product.canonicalUrl ?? `/product/${product.slug}`,
-    },
-    openGraph: {
-      type: "website",
-      title: product.ogTitle ?? product.seoTitle ?? product.name,
-      description: product.ogDescription ?? description,
-      url: `${publicEnv.siteUrl}/product/${product.slug}`,
-      ...(image ? { images: [{ url: image, width: 1200, height: 1500 }] } : {}),
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: product.name,
+    return {
+      title: product.seoTitle ?? product.name,
       description,
-      ...(image ? { images: [image] } : {}),
-    },
-  };
+      alternates: {
+        canonical: product.canonicalUrl ?? `/product/${product.slug}`,
+      },
+      openGraph: {
+        type: "website",
+        title: product.ogTitle ?? product.seoTitle ?? product.name,
+        description: product.ogDescription ?? description,
+        url: `${publicEnv.siteUrl}/product/${product.slug}`,
+        ...(image ? { images: [{ url: image }] } : {}),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: product.ogTitle ?? product.name,
+        description: product.ogDescription ?? description,
+        ...(image ? { images: [image] } : {}),
+      },
+    };
+  } catch (error) {
+    return { title: "Product | Aastha Silver & Jewels" };
+  }
 }
 
 export default async function ProductPage({ params }: Props) {

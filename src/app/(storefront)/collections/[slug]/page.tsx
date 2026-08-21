@@ -28,23 +28,22 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const collection = await getCollectionBySlug(slug);
-  if (!collection) return { title: "Collection not found" };
+  try {
+    const { slug } = await params;
+    const collection = await getCollectionBySlug(slug);
+    if (!collection) return { title: "Collection not found" };
 
-  return {
-    title: collection.seoTitle ?? collection.name,
-    description: collection.seoDescription ?? collection.description ?? undefined,
-    alternates: { canonical: `/collections/${collection.slug}` },
-    openGraph: {
+    return {
       title: collection.seoTitle ?? collection.name,
-      description: collection.description ?? undefined,
-      type: "website",
-      ...(collection.image?.secureUrl
-        ? { images: [{ url: collection.image.secureUrl }] }
-        : {}),
-    },
-  };
+      description:
+        collection.seoDescription ??
+        collection.description ??
+        `Explore ${collection.name.toLowerCase()} jewellery pieces in 925 sterling silver.`,
+      alternates: { canonical: `/collections/${collection.slug}` },
+    };
+  } catch (error) {
+    return { title: "Collection | Aastha Silver & Jewels" };
+  }
 }
 
 export default async function CollectionPage({ params, searchParams }: Props) {

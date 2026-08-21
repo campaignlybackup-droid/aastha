@@ -30,26 +30,30 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
-  if (!category) return { title: "Category not found" };
+  try {
+    const { slug } = await params;
+    const category = await getCategoryBySlug(slug);
+    if (!category) return { title: "Category not found" };
 
-  return {
-    title: category.seoTitle ?? category.name,
-    description:
-      category.seoDescription ??
-      category.description ??
-      `Shop ${category.name.toLowerCase()} in hallmarked 925 sterling silver.`,
-    alternates: { canonical: `/category/${category.slug}` },
-    openGraph: {
+    return {
       title: category.seoTitle ?? category.name,
-      description: category.seoDescription ?? category.description ?? undefined,
-      type: "website",
-      ...(category.image?.secureUrl
-        ? { images: [{ url: category.image.secureUrl }] }
-        : {}),
-    },
-  };
+      description:
+        category.seoDescription ??
+        category.description ??
+        `Shop ${category.name.toLowerCase()} in hallmarked 925 sterling silver.`,
+      alternates: { canonical: `/category/${category.slug}` },
+      openGraph: {
+        title: category.seoTitle ?? category.name,
+        description: category.seoDescription ?? category.description ?? undefined,
+        type: "website",
+        ...(category.image?.secureUrl
+          ? { images: [{ url: category.image.secureUrl }] }
+          : {}),
+      },
+    };
+  } catch (error) {
+    return { title: "Category | Aastha Silver & Jewels" };
+  }
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
