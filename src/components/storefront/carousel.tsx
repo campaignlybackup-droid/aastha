@@ -52,7 +52,7 @@ export function Carousel({
     <div className={cn("relative", className)}>
       <div
         ref={emblaRef}
-        className="overflow-hidden"
+        className="overflow-hidden -mx-5 px-5 md:mx-0 md:px-0"
         role="region"
         aria-label={ariaLabel}
       >

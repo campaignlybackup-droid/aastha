@@ -68,7 +68,7 @@ export async function ProductListing({
           </div>
         </aside>
 
-        <div>
+        <div className="min-w-0">
           {/* Toolbar ------------------------------------------------------- */}
           <div className="mb-8 flex items-center justify-between gap-3 border-b border-line pb-4">
             <p className="text-sm text-content-muted" aria-live="polite">

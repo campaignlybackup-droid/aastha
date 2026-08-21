@@ -141,7 +141,7 @@ export function ProductGrid({
   return (
     <div
       className={cn(
-        "grid gap-x-4 gap-y-10 sm:gap-x-6",
+        "grid gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10",
         // Two columns on phones: jewellery is small, and a single-column feed
         // makes browsing a 24-product category interminable.
         "grid-cols-2",

@@ -187,7 +187,7 @@ function HeroSlide({ slide, priority }: { slide: Slide; priority?: boolean }) {
             {slide.heading ? (
               <h1
                 className={cn(
-                  "text-display-md md:text-display-lg xl:text-display-xl",
+                  "text-display-sm md:text-display-md lg:text-display-lg xl:text-display-xl",
                   light ? "text-sand-50" : "text-sand-900",
                 )}
               >
