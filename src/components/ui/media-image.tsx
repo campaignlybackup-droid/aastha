@@ -1,6 +1,3 @@
-"use client";
-
-import * as React from "react";
 import Image, { type ImageProps } from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -28,12 +25,8 @@ export function MediaImage({
   wrapperClassName,
   fill,
   sizes,
-  onLoad,
-  priority,
   ...props
 }: MediaImageProps) {
-  const [loaded, setLoaded] = React.useState(false);
-
   const safeSrc =
     typeof src === "string" && src.trim().length > 0
       ? src.trim()
@@ -46,43 +39,19 @@ export function MediaImage({
       src={safeSrc}
       alt={alt || "Aastha Silver & Jewels"}
       fill={fill}
-      priority={priority}
       sizes={fill ? (sizes ?? "100vw") : sizes}
       unoptimized={isSvg || isExternal}
-      onLoad={(e) => {
-        setLoaded(true);
-        if (onLoad) onLoad(e);
-      }}
-      className={cn(
-        fill && "object-cover",
-        "transition-opacity duration-500 ease-out",
-        !loaded && !priority && "opacity-0",
-        loaded && "opacity-100",
-        className,
-      )}
+      className={cn(fill && "object-cover", className)}
       {...props}
     />
   );
 
-  if (!ratio) {
-    return (
-      <div
-        className={cn(
-          "relative overflow-hidden bg-sand-100/80",
-          !loaded && !priority && "animate-pulse bg-sand-200/60",
-          wrapperClassName,
-        )}
-      >
-        {image}
-      </div>
-    );
-  }
+  if (!ratio) return image;
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden bg-sand-100/80",
-        !loaded && !priority && "animate-pulse bg-sand-200/60",
+        "relative overflow-hidden bg-sand-100",
         RATIOS[ratio],
         wrapperClassName,
       )}
