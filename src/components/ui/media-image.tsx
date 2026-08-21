@@ -17,6 +17,16 @@ const RATIOS = {
   wide: "aspect-[16/9]",
 } as const;
 
+/** Automatically injects Cloudinary f_auto,q_auto,w_800 CDN transformation if src is a Cloudinary URL */
+export function optimizeMediaUrl(url: string, width = 800): string {
+  if (!url || typeof url !== "string") return url;
+  if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+    if (url.includes("/upload/f_auto") || url.includes("/upload/q_auto")) return url;
+    return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width},c_limit/`);
+  }
+  return url;
+}
+
 export function MediaImage({
   src,
   alt,
@@ -27,10 +37,11 @@ export function MediaImage({
   sizes,
   ...props
 }: MediaImageProps) {
-  const safeSrc =
+  const rawSrc =
     typeof src === "string" && src.trim().length > 0
       ? src.trim()
       : "/brand/logo-mark-transparent.png";
+  const safeSrc = optimizeMediaUrl(rawSrc);
   const isSvg = safeSrc.toLowerCase().endsWith(".svg");
   const isExternal = safeSrc.startsWith("http://") || safeSrc.startsWith("https://");
 
