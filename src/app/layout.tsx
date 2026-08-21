@@ -39,6 +39,7 @@ export default function RootLayout({
     <html lang="en-IN" className={fontVariables} suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/svg+xml" href="/aastha-logo-monogram.svg" />
+        <link rel="preload" as="image" href="/banner-poster.jpg" fetchPriority="high" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </head>

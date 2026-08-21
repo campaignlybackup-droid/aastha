@@ -21,7 +21,7 @@ export function AnalyticsScripts() {
     <>
       {/* --- Google Tag Manager ---------------------------------------- */}
       {gtmContainerId ? (
-        <Script id="gtm" strategy="afterInteractive">
+        <Script id="gtm" strategy="lazyOnload">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -37,9 +37,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${ga4MeasurementId}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
-          <Script id="ga4" strategy="afterInteractive">
+          <Script id="ga4" strategy="lazyOnload">
             {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
@@ -50,7 +50,7 @@ gtag('config', '${ga4MeasurementId}', { send_page_view: true });`}
 
       {/* --- Meta Pixel -------------------------------------------------- */}
       {metaPixelId ? (
-        <Script id="meta-pixel" strategy="afterInteractive">
+        <Script id="meta-pixel" strategy="lazyOnload">
           {`!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};

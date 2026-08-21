@@ -67,30 +67,18 @@ export default async function HomePage() {
       ) : (
         <>
           <section className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-brand-950">
-            {/* Desktop Video (Hidden on mobile) */}
             <video
               autoPlay
               muted
               loop
               playsInline
               preload="auto"
+              poster="/banner-poster.jpg"
               aria-hidden="true"
-              className="hidden md:block absolute inset-0 size-full object-cover"
+              className="absolute inset-0 size-full object-cover"
             >
-              <source src="/banner-final.mp4" type="video/mp4" />
-            </video>
-
-            {/* Mobile Video (Visible only on mobile) */}
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              aria-hidden="true"
-              className="block md:hidden absolute inset-0 size-full object-cover"
-            >
-              <source src="/banner-mobile.mp4" type="video/mp4" />
+              <source src="/banner-final.mp4" type="video/mp4" media="(min-width: 768px)" />
+              <source src="/banner-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
             </video>
             <div className="absolute inset-0 bg-sand-950/0 pointer-events-none" aria-hidden="true" />
           </section>
