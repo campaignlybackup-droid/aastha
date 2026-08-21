@@ -1,16 +1,3 @@
-// =============================================================================
-// AASTHA SILVER & JEWELS — Data model
-// =============================================================================
-// Conventions used throughout:
-//
-//   • MONEY is stored as an integer number of PAISE (see src/lib/money.ts).
-//     Field names carry the `Paise` suffix so the unit is never ambiguous.
-//   • Enum values that belong to a later release are declared now but unused,
-//     so that adding shipping/returns in V2 needs no destructive migration.
-//   • Orders SNAPSHOT the product data they were placed with. Editing a product
-//     must never retroactively change a historical order.
-// =============================================================================
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -20,53 +7,32 @@ datasource db {
   provider = "postgresql"
 }
 
-// =============================================================================
-// IDENTITY & ACCESS
-// =============================================================================
-
-enum Role {
-  CUSTOMER
-  CONTENT_MANAGER
-  MARKETING_MANAGER
-  ORDER_MANAGER
-  PRODUCT_MANAGER
-  ADMIN
-  SUPER_ADMIN
-}
-
-enum UserStatus {
-  ACTIVE
-  BLOCKED
-}
-
 /// A single identity table serves both shoppers and staff. Role governs access;
 /// a separate `Customer` table would duplicate every column for no benefit.
 model User {
-  id     String     @id @default(cuid())
-  mobile String     @unique /// E.164 digits, no "+". e.g. "919876543210"
-  email  String?    @unique
-  name   String?
-  role   Role       @default(CUSTOMER)
-  status UserStatus @default(ACTIVE)
-
+  id               String         @id @default(cuid())
+  /// E.164 digits, no "+". e.g. "919876543210"
+  mobile           String         @unique
+  email            String?        @unique
+  name             String?
+  role             Role           @default(CUSTOMER)
+  status           UserStatus     @default(ACTIVE)
   emailVerifiedAt  DateTime?
   mobileVerifiedAt DateTime?
-  marketingOptIn   Boolean   @default(false)
+  marketingOptIn   Boolean        @default(false)
   lastLoginAt      DateTime?
-
-  notes String? /// Internal staff notes, never shown to the customer.
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  addresses    Address[]
-  sessions     Session[]
-  carts        Cart[]
-  orders       Order[]
-  reviews      Review[]
-  wishlist     WishlistItem[]
-  couponUsages CouponUsage[]
-  auditLogs    AuditLog[]
+  /// Internal staff notes, never shown to the customer.
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  addresses        Address[]
+  auditLogs        AuditLog[]
+  carts            Cart[]
+  couponUsages     CouponUsage[]
+  orders           Order[]
+  reviews          Review[]
+  sessions         Session[]
+  wishlist         WishlistItem[]
 
   @@index([role])
   @@index([createdAt])
@@ -76,24 +42,18 @@ model User {
 /// Server-side session records make logout and forced revocation possible.
 /// The session cookie carries a signed JWT whose `jti` is this row's id.
 model Session {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   expiresAt DateTime
   revokedAt DateTime?
   userAgent String?
   ip        String?
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
   @@map("sessions")
-}
-
-enum OtpChannel {
-  SMS
-  EMAIL
 }
 
 /// One-time passcodes. The code itself is NEVER stored — only an HMAC of it,
@@ -101,7 +61,8 @@ enum OtpChannel {
 /// constant time.
 model OtpRequest {
   id          String     @id @default(cuid())
-  destination String /// E.164 mobile or lowercased email
+  /// E.164 mobile or lowercased email
+  destination String
   channel     OtpChannel @default(SMS)
   codeHash    String
   expiresAt   DateTime
@@ -120,7 +81,8 @@ model OtpRequest {
 /// the deployment for what is a low-volume concern at this store's scale.
 model RateLimit {
   id          String   @id @default(cuid())
-  bucket      String /// e.g. "otp:send:919876543210" or "api:checkout:1.2.3.4"
+  /// e.g. "otp:send:919876543210" or "api:checkout:1.2.3.4"
+  bucket      String
   count       Int      @default(0)
   windowStart DateTime
   expiresAt   DateTime
@@ -131,10 +93,10 @@ model RateLimit {
 }
 
 model Address {
-  id     String @id @default(cuid())
-  userId String
-
-  label     String? /// "Home", "Office"
+  id        String    @id @default(cuid())
+  userId    String
+  /// "Home", "Office"
+  label     String?
   name      String
   mobile    String
   line1     String
@@ -143,49 +105,40 @@ model Address {
   city      String
   state     String
   pincode   String
-  country   String  @default("India")
-  isDefault Boolean @default(false)
-
+  country   String    @default("India")
+  isDefault Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  deletedAt DateTime? /// Soft delete: historical orders reference addresses.
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Soft delete: historical orders reference addresses.
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("addresses")
 }
 
-// =============================================================================
-// CATALOGUE
-// =============================================================================
-
 model Category {
-  id       String  @id @default(cuid())
-  name     String
-  slug     String  @unique
-  parentId String?
-
-  description String?
-  imageId     String?
-  iconName    String? /// Optional lucide icon for compact category strips.
-
-  position  Int     @default(0)
-  isActive  Boolean @default(true)
-  isFeatured Boolean @default(false)
-
+  id             String     @id @default(cuid())
+  name           String
+  slug           String     @unique
+  parentId       String?
+  description    String?
+  imageId        String?
+  /// Optional lucide icon for compact category strips.
+  iconName       String?
+  position       Int        @default(0)
+  isActive       Boolean    @default(true)
+  isFeatured     Boolean    @default(false)
   seoTitle       String?
   seoDescription String?
   ogImageId      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children Category[] @relation("CategoryTree")
-  image    Media?     @relation("CategoryImage", fields: [imageId], references: [id], onDelete: SetNull)
-  ogImage  Media?     @relation("CategoryOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
-  products Product[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  image          Media?     @relation("CategoryImage", fields: [imageId], references: [id])
+  ogImage        Media?     @relation("CategoryOgImage", fields: [ogImageId], references: [id])
+  parent         Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children       Category[] @relation("CategoryTree")
+  products       Product[]
 
   @@index([parentId])
   @@index([isActive, position])
@@ -195,24 +148,20 @@ model Category {
 /// Curated merchandising groups ("Bridal Edit", "Under ₹2,000"). A product can
 /// belong to many collections; categories are the single taxonomic home.
 model Collection {
-  id          String  @id @default(cuid())
-  name        String
-  slug        String  @unique
-  description String?
-  imageId     String?
-
-  position   Int     @default(0)
-  isActive   Boolean @default(true)
-  isFeatured Boolean @default(false)
-
+  id             String                @id @default(cuid())
+  name           String
+  slug           String                @unique
+  description    String?
+  imageId        String?
+  position       Int                   @default(0)
+  isActive       Boolean               @default(true)
+  isFeatured     Boolean               @default(false)
   seoTitle       String?
   seoDescription String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  image    Media?               @relation("CollectionImage", fields: [imageId], references: [id], onDelete: SetNull)
-  products ProductOnCollection[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  image          Media?                @relation("CollectionImage", fields: [imageId], references: [id])
+  products       ProductOnCollection[]
 
   @@index([isActive, position])
   @@map("collections")
@@ -221,103 +170,77 @@ model Collection {
 model ProductOnCollection {
   productId    String
   collectionId String
-  position     Int    @default(0)
-
-  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
-  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  position     Int        @default(0)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@id([productId, collectionId])
   @@index([collectionId, position])
   @@map("product_collections")
 }
 
-enum ProductStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
-}
-
-enum Gender {
-  WOMEN
-  MEN
-  UNISEX
-  KIDS
-}
-
 model Product {
-  id          String @id @default(cuid())
-  name        String
-  slug        String @unique
-  sku         String @unique
-  brand       String @default("Aastha Silver & Jewels")
-
-  categoryId String
-
+  id               String                @id @default(cuid())
+  name             String
+  slug             String                @unique
+  sku              String                @unique
+  brand            String                @default("Aastha Silver & Jewels")
+  categoryId       String
   shortDescription String?
-  description      String? /// Rich text (sanitised HTML).
-  tags             String[] @default([])
-
-  status     ProductStatus @default(DRAFT)
-  isFeatured Boolean       @default(false)
-  publishedAt DateTime?
-
-  // --- Pricing -------------------------------------------------------------
-  // Denormalised from the default variant so that listing pages can sort and
-  // filter on price without joining every variant. Kept in sync on write.
-  mrpPaise   Int
-  pricePaise Int
-  taxPercent Float @default(3) /// GST on silver jewellery is 3% in India.
-
-  // --- Jewellery attributes ------------------------------------------------
-  // All optional: a chain has no stone, a ring has no length.
-  silverPurity     String? /// "925 Sterling Silver", "999 Fine Silver"
+  /// Rich text (sanitised HTML).
+  description      String?
+  tags             String[]              @default([])
+  status           ProductStatus         @default(DRAFT)
+  isFeatured       Boolean               @default(false)
+  publishedAt      DateTime?
+  mrpPaise         Int
+  pricePaise       Int
+  /// GST on silver jewellery is 3% in India.
+  taxPercent       Float                 @default(3)
+  /// "925 Sterling Silver", "999 Fine Silver"
+  silverPurity     String?
   silverWeightGram Float?
-  dimensions       String? /// Free text, e.g. "18mm x 12mm"
-  finish           String? /// "Rhodium Polished", "Oxidised", "Matte"
+  /// Free text, e.g. "18mm x 12mm"
+  dimensions       String?
+  /// "Rhodium Polished", "Oxidised", "Matte"
+  finish           String?
   plating          String?
   stoneType        String?
   stoneColour      String?
   stoneCount       Int?
-  occasion         String[] @default([])
+  occasion         String[]              @default([])
   gender           Gender?
-  isAdjustable     Boolean  @default(false)
-
+  isAdjustable     Boolean               @default(false)
   careInstructions String?
   warrantyInfo     String?
   authenticityInfo String?
   whatsIncluded    String?
-
   /// Escape hatch for attributes that do not deserve a column.
   /// Shape: { "label": "value" } — rendered verbatim in the spec table.
-  extraSpecs Json?
-
-  // --- Merchandising signals ----------------------------------------------
-  ratingAverage Float @default(0)
-  ratingCount   Int   @default(0)
-  salesCount    Int   @default(0) /// Units sold; drives "Best Sellers".
-  viewCount     Int   @default(0)
-
-  // --- SEO -----------------------------------------------------------------
-  seoTitle       String?
-  seoDescription String?
-  canonicalUrl   String?
-  ogTitle        String?
-  ogDescription  String?
-  ogImageId      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  category    Category              @relation(fields: [categoryId], references: [id])
-  ogImage     Media?                @relation("ProductOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
-  images      ProductImage[]
-  variants    ProductVariant[]
-  collections ProductOnCollection[]
-  reviews     Review[]
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  wishlisted  WishlistItem[]
-  faqs        ProductFaq[]
+  extraSpecs       Json?
+  ratingAverage    Float                 @default(0)
+  ratingCount      Int                   @default(0)
+  /// Units sold; drives "Best Sellers".
+  salesCount       Int                   @default(0)
+  viewCount        Int                   @default(0)
+  seoTitle         String?
+  seoDescription   String?
+  canonicalUrl     String?
+  ogTitle          String?
+  ogDescription    String?
+  ogImageId        String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+  collections      ProductOnCollection[]
+  faqs             ProductFaq[]
+  images           ProductImage[]
+  variants         ProductVariant[]
+  category         Category              @relation(fields: [categoryId], references: [id])
+  ogImage          Media?                @relation("ProductOgImage", fields: [ogImageId], references: [id])
+  reviews          Review[]
+  wishlisted       WishlistItem[]
 
   @@index([status, publishedAt])
   @@index([categoryId, status])
@@ -333,41 +256,33 @@ model Product {
 /// Every product has at least one variant, created implicitly for products
 /// sold in a single configuration. Inventory lives here and only here.
 model ProductVariant {
-  id        String  @id @default(cuid())
-  productId String
-  sku       String  @unique
-
+  id                String          @id @default(cuid())
+  productId         String
+  sku               String          @unique
   /// Human label shown in the selector, e.g. "Size 14" or "Rose Gold / 18in".
-  title String
-
+  title             String
   /// Structured options so the PDP can render one selector per dimension.
   /// Shape: { "Size": "14", "Finish": "Oxidised" }
-  options Json @default("{}")
-
-  mrpPaise   Int
-  pricePaise Int
-
-  silverWeightGram Float?
-  imageId          String?
-
-  // --- Inventory -----------------------------------------------------------
-  trackInventory    Boolean @default(true)
-  stockQuantity     Int     @default(0)
-  lowStockThreshold Int     @default(3)
+  options           Json            @default("{}")
+  mrpPaise          Int
+  pricePaise        Int
+  silverWeightGram  Float?
+  imageId           String?
+  trackInventory    Boolean         @default(true)
+  stockQuantity     Int             @default(0)
+  lowStockThreshold Int             @default(3)
   /// Reserved by in-flight (created but unpaid) orders. Available stock is
   /// `stockQuantity - reservedQuantity`.
-  reservedQuantity  Int     @default(0)
-
-  position  Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  image          Media?          @relation("VariantImage", fields: [imageId], references: [id], onDelete: SetNull)
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  stockMovements StockMovement[]
+  reservedQuantity  Int             @default(0)
+  position          Int             @default(0)
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  image             Media?          @relation("VariantImage", fields: [imageId], references: [id])
+  product           Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stockMovements    StockMovement[]
 
   @@index([productId, position])
   @@map("product_variants")
@@ -376,20 +291,20 @@ model ProductVariant {
 /// Append-only ledger of every stock change. Makes "why is this out of stock?"
 /// answerable, and is the audit trail behind oversell investigations.
 model StockMovement {
-  id        String @id @default(cuid())
+  id        String         @id @default(cuid())
   variantId String
-
   /// Negative for a sale, positive for a restock or cancellation release.
   delta     Int
   /// Stock level after this movement was applied.
   balance   Int
-  reason    String /// "order.paid", "order.cancelled", "admin.adjustment", "seed"
+  /// "order.paid", "order.cancelled", "admin.adjustment", "seed"
+  reason    String
   orderId   String?
-  actorId   String? /// Staff user id for manual adjustments.
+  /// Staff user id for manual adjustments.
+  actorId   String?
   note      String?
-  createdAt DateTime @default(now())
-
-  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@index([variantId, createdAt])
   @@index([orderId])
@@ -400,12 +315,12 @@ model ProductImage {
   id        String  @id @default(cuid())
   productId String
   mediaId   String
-  alt       String? /// Falls back to the product name when absent.
+  /// Falls back to the product name when absent.
+  alt       String?
   position  Int     @default(0)
   isPrimary Boolean @default(false)
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  media   Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, mediaId])
   @@index([productId, position])
@@ -414,38 +329,31 @@ model ProductImage {
 
 /// Product-specific FAQs. Feeds both the PDP accordion and FAQPage schema.
 model ProductFaq {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   productId String
   question  String
   answer    String
-  position  Int    @default(0)
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  position  Int     @default(0)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId, position])
   @@map("product_faqs")
 }
 
-// =============================================================================
-// CART
-// =============================================================================
-
 /// Carts are keyed either by user (logged in) or by an anonymous token cookie.
 /// On login the anonymous cart is merged into the user's cart.
 model Cart {
-  id     String  @id @default(cuid())
-  userId String?
-  token  String  @unique /// Opaque cookie value for guest carts.
-
-  couponId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String     @id @default(cuid())
+  userId    String?
+  /// Opaque cookie value for guest carts.
+  token     String     @unique
+  couponId  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   expiresAt DateTime
-
-  user   User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coupon Coupon?    @relation(fields: [couponId], references: [id], onDelete: SetNull)
-  items  CartItem[]
+  items     CartItem[]
+  coupon    Coupon?    @relation(fields: [couponId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -453,21 +361,17 @@ model Cart {
 }
 
 model CartItem {
-  id        String @id @default(cuid())
+  id        String         @id @default(cuid())
   cartId    String
   productId String
   variantId String
-  quantity  Int    @default(1)
+  quantity  Int            @default(1)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  /// Prices are never stored on the cart — they are recomputed server-side on
-  /// every read so a stale cart can never lock in an old price.
   @@unique([cartId, variantId])
   @@index([cartId])
   @@map("cart_items")
@@ -478,24 +382,440 @@ model WishlistItem {
   userId    String
   productId String
   createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@index([userId])
   @@map("wishlist_items")
 }
 
-// =============================================================================
-// ORDERS & PAYMENTS
-// =============================================================================
+model Order {
+  id              String        @id @default(cuid())
+  /// Human-facing, e.g. "ASJ-2A7F3K".
+  orderNumber     String        @unique
+  userId          String
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  subtotalPaise   Int
+  discountPaise   Int           @default(0)
+  taxPaise        Int           @default(0)
+  shippingPaise   Int           @default(0)
+  totalPaise      Int
+  couponId        String?
+  /// Snapshot — the coupon may later be deleted.
+  couponCode      String?
+  shipName        String
+  shipMobile      String
+  shipEmail       String?
+  shipLine1       String
+  shipLine2       String?
+  shipLandmark    String?
+  shipCity        String
+  shipState       String
+  shipPincode     String
+  shipCountry     String        @default("India")
+  customerNote    String?
+  internalNote    String?
+  /// Shared id for Meta Pixel + Conversions API deduplication. Generated once
+  /// at order creation and reused by both the browser and server events.
+  metaEventId     String?       @unique
+  /// Set once the server-side Purchase event has been accepted by Meta, so a
+  /// webhook retry cannot double-report revenue.
+  metaCapiSentAt  DateTime?
+  /// Guards the same for GA4's client-side purchase event.
+  analyticsSentAt DateTime?
+  placedAt        DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  items           OrderItem[]
+  coupon          Coupon?       @relation(fields: [couponId], references: [id])
+  user            User          @relation(fields: [userId], references: [id])
+  payments        Payment[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+/// A full snapshot of what was bought. Deliberately denormalised: a product
+/// rename, price change or deletion must not alter a past order.
+model OrderItem {
+  id               String          @id @default(cuid())
+  orderId          String
+  productId        String?
+  variantId        String?
+  productName      String
+  variantTitle     String
+  sku              String
+  slug             String
+  imageUrl         String?
+  silverPurity     String?
+  silverWeightGram Float?
+  quantity         Int
+  unitMrpPaise     Int
+  unitPricePaise   Int
+  lineTotalPaise   Int
+  taxPercent       Float           @default(3)
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product?        @relation(fields: [productId], references: [id])
+  variant          ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model Payment {
+  id                 String          @id @default(cuid())
+  orderId            String
+  provider           PaymentProvider @default(RAZORPAY)
+  status             PaymentStatus   @default(PENDING)
+  amountPaise        Int
+  currency           String          @default("INR")
+  refundedPaise      Int             @default(0)
+  /// razorpay_order_id
+  providerOrderId    String?         @unique
+  /// razorpay_payment_id
+  providerPaymentId  String?         @unique
+  providerSignature  String?
+  /// "upi", "card", "netbanking"
+  method             String?
+  failureCode        String?
+  failureDescription String?
+  /// Raw provider payload, retained for reconciliation and dispute handling.
+  rawPayload         Json?
+  capturedAt         DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  order              Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+  @@map("payments")
+}
+
+/// Idempotency ledger for inbound provider webhooks. A duplicate delivery finds
+/// its event id already present and is acknowledged without reprocessing.
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  /// "razorpay"
+  provider    String
+  /// Provider's own event identifier.
+  eventId     String
+  eventType   String
+  payload     Json
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([provider, eventId])
+  @@index([createdAt])
+  @@map("webhook_events")
+}
+
+model Coupon {
+  id               String        @id @default(cuid())
+  /// Stored uppercase; matched case-insensitively.
+  code             String        @unique
+  description      String?
+  type             CouponType    @default(PERCENTAGE)
+  /// Percent (0–100) when type is PERCENTAGE, paise when type is FLAT.
+  value            Int
+  minOrderPaise    Int           @default(0)
+  maxDiscountPaise Int?
+  startsAt         DateTime?
+  endsAt           DateTime?
+  /// Total redemptions allowed across all customers.
+  usageLimit       Int?
+  perCustomerLimit Int           @default(1)
+  usageCount       Int           @default(0)
+  /// Empty array means "applies to everything".
+  categoryIds      String[]      @default([])
+  productIds       String[]      @default([])
+  isActive         Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  carts            Cart[]
+  usages           CouponUsage[]
+  orders           Order[]
+
+  @@index([isActive, startsAt, endsAt])
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id            String   @id @default(cuid())
+  couponId      String
+  userId        String
+  orderId       String
+  discountPaise Int
+  createdAt     DateTime @default(now())
+  coupon        Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, orderId])
+  @@index([couponId, userId])
+  @@map("coupon_usages")
+}
+
+model Review {
+  id            String       @id @default(cuid())
+  productId     String
+  userId        String
+  /// 1–5, enforced in the application layer and by a check below.
+  rating        Int
+  title         String?
+  body          String?
+  /// Cloudinary URLs of customer-uploaded photos.
+  imageUrls     String[]     @default([])
+  /// Moderation is mandatory.
+  status        ReviewStatus @default(PENDING)
+  isFeatured    Boolean      @default(false)
+  /// True when the user purchased it.
+  isVerified    Boolean      @default(false)
+  adminResponse String?
+  moderatedAt   DateTime?
+  moderatedById String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+  @@index([productId, status])
+  @@index([status, createdAt])
+  @@map("reviews")
+}
+
+/// A campaign is a scheduled override of the storefront: its own homepage
+/// sections, announcement bar and theme accent. When the window closes the
+/// storefront reverts to the default configuration with no manual step.
+model Campaign {
+  id                  String            @id @default(cuid())
+  name                String
+  slug                String            @unique
+  description         String?
+  status              CampaignStatus    @default(DRAFT)
+  startsAt            DateTime
+  endsAt              DateTime
+  /// Higher priority wins when two campaigns overlap.
+  priority            Int               @default(0)
+  announcementText    String?
+  announcementLink    String?
+  /// Theme overrides applied as CSS custom properties on <html>.
+  /// Shape: { "accent": "#8C6B3F", "accentContrast": "#FFFFFF" }
+  theme               Json?
+  couponId            String?
+  featuredCategoryIds String[]          @default([])
+  featuredProductIds  String[]          @default([])
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  sections            HomepageSection[]
+
+  @@index([status, startsAt, endsAt])
+  @@map("campaigns")
+}
+
+/// One row per homepage block. Rows with `campaignId = null` form the default
+/// homepage; rows attached to a campaign replace it while that campaign is
+/// live. Per-section scheduling works independently of campaigns.
+model HomepageSection {
+  id         String      @id @default(cuid())
+  campaignId String?
+  type       SectionType
+  /// Internal label shown in the admin list, e.g. "Diwali hero".
+  label      String
+  position   Int         @default(0)
+  isActive   Boolean     @default(true)
+  startsAt   DateTime?
+  endsAt     DateTime?
+  /// Type-specific configuration, validated against a per-type Zod schema in
+  /// src/lib/cms/sections.ts before it is written.
+  settings   Json        @default("{}")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  campaign   Campaign?   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, position])
+  @@index([isActive, position])
+  @@map("homepage_sections")
+}
+
+model Media {
+  id               String           @id @default(cuid())
+  folder           MediaFolder      @default(OTHER)
+  /// Cloudinary public id — the handle used to build transformation URLs.
+  publicId         String           @unique
+  url              String
+  /// Cloudinary needs the secure delivery URL for OG tags and the Meta feed.
+  secureUrl        String
+  format           String?
+  width            Int?
+  height           Int?
+  bytes            Int?
+  /// Tiny base64 placeholder for blurred image loading.
+  blurDataUrl      String?
+  alt              String?
+  filename         String?
+  tags             String[]         @default([])
+  uploadedById     String?
+  createdAt        DateTime         @default(now())
+  categoryImages   Category[]       @relation("CategoryImage")
+  categoryOgImages Category[]       @relation("CategoryOgImage")
+  collectionImages Collection[]     @relation("CollectionImage")
+  productImages    ProductImage[]
+  variantImages    ProductVariant[] @relation("VariantImage")
+  productOgImages  Product[]        @relation("ProductOgImage")
+
+  @@index([folder, createdAt])
+  @@map("media")
+}
+
+/// Site-wide FAQs (as distinct from ProductFaq). Rendered on /faq and available
+/// to the FAQ homepage section.
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  /// "Shipping", "Returns", "Care"
+  category  String?
+  position  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, position])
+  @@map("faqs")
+}
+
+/// SEO overrides for routes that are not backed by a catalogue record
+/// (/about, /contact, /faq, policy pages).
+model SeoMeta {
+  id            String   @id @default(cuid())
+  /// "/about"
+  path          String   @unique
+  title         String?
+  description   String?
+  canonical     String?
+  ogTitle       String?
+  ogDescription String?
+  ogImageUrl    String?
+  noindex       Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+
+  @@map("seo_meta")
+}
+
+/// Typed key/value store for editable site settings (contact details, shipping
+/// thresholds, social links). Avoids a column-per-setting migration treadmill.
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model NewsletterSubscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  /// "footer", "popup", "checkout"
+  source         String?
+  isActive       Boolean   @default(true)
+  unsubscribedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@map("newsletter_subscribers")
+}
+
+/// Outbound message log. Every WhatsApp/email/SMS send is recorded so failures
+/// are visible in the admin and retryable rather than silently lost.
+model Notification {
+  id                String              @id @default(cuid())
+  channel           NotificationChannel
+  status            NotificationStatus  @default(QUEUED)
+  recipient         String
+  /// "order.placed", "payment.received", "otp.login"
+  template          String
+  payload           Json?
+  providerMessageId String?
+  error             String?
+  attempts          Int                 @default(0)
+  orderId           String?
+  userId            String?
+  sentAt            DateTime?
+  createdAt         DateTime            @default(now())
+
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@map("notifications")
+}
+
+/// Who changed what, when. Written by every mutating admin action.
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  /// "product.update", "order.cancel"
+  action     String
+  /// "Product"
+  entityType String
+  entityId   String?
+  /// Field-level before/after for the changed keys only.
+  changes    Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum Role {
+  CUSTOMER
+  CONTENT_MANAGER
+  MARKETING_MANAGER
+  ORDER_MANAGER
+  PRODUCT_MANAGER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum OtpChannel {
+  SMS
+  EMAIL
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum Gender {
+  WOMEN
+  MEN
+  UNISEX
+  KIDS
+}
 
 enum OrderStatus {
-  PENDING /// Created, awaiting payment confirmation.
-  CONFIRMED /// Payment verified server-side.
+  /// Created, awaiting payment confirmation.
+  PENDING
+  /// Payment verified server-side.
+  CONFIRMED
   CANCELLED
-  // --- Reserved for V2; no code path sets these yet. ---
   PACKED
   SHIPPED
   DELIVERED
@@ -515,214 +835,16 @@ enum PaymentStatus {
 
 enum PaymentProvider {
   RAZORPAY
-  STRIPE /// Reserved.
-  COD /// Reserved.
+  /// Reserved.
+  STRIPE
+  /// Reserved.
+  COD
 }
-
-model Order {
-  id          String @id @default(cuid())
-  orderNumber String @unique /// Human-facing, e.g. "ASJ-2A7F3K".
-  userId      String
-
-  status        OrderStatus   @default(PENDING)
-  paymentStatus PaymentStatus @default(PENDING)
-
-  // --- Amounts (all paise) -------------------------------------------------
-  subtotalPaise Int
-  discountPaise Int @default(0)
-  taxPaise      Int @default(0)
-  shippingPaise Int @default(0)
-  totalPaise    Int
-
-  couponId   String?
-  couponCode String? /// Snapshot — the coupon may later be deleted.
-
-  // --- Shipping address snapshot -------------------------------------------
-  // Copied at placement so editing the saved address never rewrites history.
-  shipName     String
-  shipMobile   String
-  shipEmail    String?
-  shipLine1    String
-  shipLine2    String?
-  shipLandmark String?
-  shipCity     String
-  shipState    String
-  shipPincode  String
-  shipCountry  String  @default("India")
-
-  customerNote String?
-  internalNote String?
-
-  /// Shared id for Meta Pixel + Conversions API deduplication. Generated once
-  /// at order creation and reused by both the browser and server events.
-  metaEventId String? @unique
-  /// Set once the server-side Purchase event has been accepted by Meta, so a
-  /// webhook retry cannot double-report revenue.
-  metaCapiSentAt DateTime?
-  /// Guards the same for GA4's client-side purchase event.
-  analyticsSentAt DateTime?
-
-  placedAt    DateTime?
-  cancelledAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  user     User        @relation(fields: [userId], references: [id])
-  coupon   Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
-  items    OrderItem[]
-  payments Payment[]
-
-  @@index([userId, createdAt])
-  @@index([status])
-  @@index([paymentStatus])
-  @@index([createdAt])
-  @@map("orders")
-}
-
-/// A full snapshot of what was bought. Deliberately denormalised: a product
-/// rename, price change or deletion must not alter a past order.
-model OrderItem {
-  id      String @id @default(cuid())
-  orderId String
-
-  productId String?
-  variantId String?
-
-  productName  String
-  variantTitle String
-  sku          String
-  slug         String
-  imageUrl     String?
-
-  silverPurity     String?
-  silverWeightGram Float?
-
-  quantity        Int
-  unitMrpPaise    Int
-  unitPricePaise  Int
-  lineTotalPaise  Int
-  taxPercent      Float @default(3)
-
-  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
-  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
-
-  @@index([orderId])
-  @@index([productId])
-  @@map("order_items")
-}
-
-model Payment {
-  id       String          @id @default(cuid())
-  orderId  String
-  provider PaymentProvider @default(RAZORPAY)
-  status   PaymentStatus   @default(PENDING)
-
-  amountPaise   Int
-  currency      String @default("INR")
-  refundedPaise Int    @default(0)
-
-  providerOrderId   String? @unique /// razorpay_order_id
-  providerPaymentId String? @unique /// razorpay_payment_id
-  providerSignature String?
-  method            String? /// "upi", "card", "netbanking"
-
-  failureCode        String?
-  failureDescription String?
-
-  /// Raw provider payload, retained for reconciliation and dispute handling.
-  rawPayload Json?
-
-  capturedAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId])
-  @@index([status])
-  @@map("payments")
-}
-
-/// Idempotency ledger for inbound provider webhooks. A duplicate delivery finds
-/// its event id already present and is acknowledged without reprocessing.
-model WebhookEvent {
-  id         String   @id @default(cuid())
-  provider   String /// "razorpay"
-  eventId    String /// Provider's own event identifier.
-  eventType  String
-  payload    Json
-  processedAt DateTime?
-  error      String?
-  createdAt  DateTime @default(now())
-
-  @@unique([provider, eventId])
-  @@index([createdAt])
-  @@map("webhook_events")
-}
-
-// =============================================================================
-// PROMOTIONS
-// =============================================================================
 
 enum CouponType {
   PERCENTAGE
   FLAT
 }
-
-model Coupon {
-  id          String     @id @default(cuid())
-  code        String     @unique /// Stored uppercase; matched case-insensitively.
-  description String?
-  type        CouponType @default(PERCENTAGE)
-
-  /// Percent (0–100) when type is PERCENTAGE, paise when type is FLAT.
-  value              Int
-  minOrderPaise      Int  @default(0)
-  maxDiscountPaise   Int?
-
-  startsAt DateTime?
-  endsAt   DateTime?
-
-  usageLimit         Int? /// Total redemptions allowed across all customers.
-  perCustomerLimit   Int  @default(1)
-  usageCount         Int  @default(0)
-
-  /// Empty array means "applies to everything".
-  categoryIds String[] @default([])
-  productIds  String[] @default([])
-
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  usages CouponUsage[]
-  carts  Cart[]
-  orders Order[]
-
-  @@index([isActive, startsAt, endsAt])
-  @@map("coupons")
-}
-
-model CouponUsage {
-  id            String   @id @default(cuid())
-  couponId      String
-  userId        String
-  orderId       String
-  discountPaise Int
-  createdAt     DateTime @default(now())
-
-  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([couponId, orderId])
-  @@index([couponId, userId])
-  @@map("coupon_usages")
-}
-
-// =============================================================================
-// REVIEWS
-// =============================================================================
 
 enum ReviewStatus {
   PENDING
@@ -730,85 +852,12 @@ enum ReviewStatus {
   REJECTED
 }
 
-model Review {
-  id        String @id @default(cuid())
-  productId String
-  userId    String
-
-  rating Int /// 1–5, enforced in the application layer and by a check below.
-  title  String?
-  body   String?
-
-  /// Cloudinary URLs of customer-uploaded photos.
-  imageUrls String[] @default([])
-
-  status     ReviewStatus @default(PENDING) /// Moderation is mandatory.
-  isFeatured Boolean      @default(false)
-  isVerified Boolean      @default(false) /// True when the user purchased it.
-
-  adminResponse String?
-  moderatedAt   DateTime?
-  moderatedById String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, userId]) /// One review per customer per product.
-  @@index([productId, status])
-  @@index([status, createdAt])
-  @@map("reviews")
-}
-
-// =============================================================================
-// CONTENT MANAGEMENT
-// =============================================================================
-
 enum CampaignStatus {
   DRAFT
   SCHEDULED
   ACTIVE
   EXPIRED
   ARCHIVED
-}
-
-/// A campaign is a scheduled override of the storefront: its own homepage
-/// sections, announcement bar and theme accent. When the window closes the
-/// storefront reverts to the default configuration with no manual step.
-model Campaign {
-  id          String  @id @default(cuid())
-  name        String
-  slug        String  @unique
-  description String?
-
-  status   CampaignStatus @default(DRAFT)
-  startsAt DateTime
-  endsAt   DateTime
-
-  /// Higher priority wins when two campaigns overlap.
-  priority Int @default(0)
-
-  announcementText String?
-  announcementLink String?
-
-  /// Theme overrides applied as CSS custom properties on <html>.
-  /// Shape: { "accent": "#8C6B3F", "accentContrast": "#FFFFFF" }
-  theme Json?
-
-  couponId String?
-
-  featuredCategoryIds String[] @default([])
-  featuredProductIds  String[] @default([])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  sections HomepageSection[]
-
-  @@index([status, startsAt, endsAt])
-  @@map("campaigns")
 }
 
 enum SectionType {
@@ -831,36 +880,6 @@ enum SectionType {
   CUSTOM_HTML
 }
 
-/// One row per homepage block. Rows with `campaignId = null` form the default
-/// homepage; rows attached to a campaign replace it while that campaign is
-/// live. Per-section scheduling works independently of campaigns.
-model HomepageSection {
-  id         String      @id @default(cuid())
-  campaignId String?
-  type       SectionType
-
-  /// Internal label shown in the admin list, e.g. "Diwali hero".
-  label    String
-  position Int     @default(0)
-  isActive Boolean @default(true)
-
-  startsAt DateTime?
-  endsAt   DateTime?
-
-  /// Type-specific configuration, validated against a per-type Zod schema in
-  /// src/lib/cms/sections.ts before it is written.
-  settings Json @default("{}")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-
-  @@index([campaignId, position])
-  @@index([isActive, position])
-  @@map("homepage_sections")
-}
-
 enum MediaFolder {
   PRODUCT
   HERO
@@ -870,101 +889,6 @@ enum MediaFolder {
   REVIEW
   OTHER
 }
-
-model Media {
-  id     String      @id @default(cuid())
-  folder MediaFolder @default(OTHER)
-
-  /// Cloudinary public id — the handle used to build transformation URLs.
-  publicId String @unique
-  url      String
-  /// Cloudinary needs the secure delivery URL for OG tags and the Meta feed.
-  secureUrl String
-
-  format   String?
-  width    Int?
-  height   Int?
-  bytes    Int?
-  /// Tiny base64 placeholder for blurred image loading.
-  blurDataUrl String?
-
-  alt      String?
-  filename String?
-  tags     String[] @default([])
-
-  uploadedById String?
-  createdAt    DateTime @default(now())
-
-  productImages     ProductImage[]
-  categoryImages    Category[]     @relation("CategoryImage")
-  categoryOgImages  Category[]     @relation("CategoryOgImage")
-  collectionImages  Collection[]   @relation("CollectionImage")
-  productOgImages   Product[]      @relation("ProductOgImage")
-  variantImages     ProductVariant[] @relation("VariantImage")
-
-  @@index([folder, createdAt])
-  @@map("media")
-}
-
-/// Site-wide FAQs (as distinct from ProductFaq). Rendered on /faq and available
-/// to the FAQ homepage section.
-model Faq {
-  id       String  @id @default(cuid())
-  question String
-  answer   String
-  category String? /// "Shipping", "Returns", "Care"
-  position Int     @default(0)
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([isActive, position])
-  @@map("faqs")
-}
-
-/// SEO overrides for routes that are not backed by a catalogue record
-/// (/about, /contact, /faq, policy pages).
-model SeoMeta {
-  id       String  @id @default(cuid())
-  path     String  @unique /// "/about"
-  title    String?
-  description String?
-  canonical   String?
-  ogTitle     String?
-  ogDescription String?
-  ogImageUrl    String?
-  noindex     Boolean @default(false)
-
-  updatedAt DateTime @updatedAt
-
-  @@map("seo_meta")
-}
-
-/// Typed key/value store for editable site settings (contact details, shipping
-/// thresholds, social links). Avoids a column-per-setting migration treadmill.
-model Setting {
-  key       String   @id
-  value     Json
-  updatedAt DateTime @updatedAt
-
-  @@map("settings")
-}
-
-model NewsletterSubscriber {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  source       String? /// "footer", "popup", "checkout"
-  isActive     Boolean   @default(true)
-  unsubscribedAt DateTime?
-  createdAt    DateTime  @default(now())
-
-  @@map("newsletter_subscribers")
-}
-
-// =============================================================================
-// OPERATIONS
-// =============================================================================
 
 enum NotificationChannel {
   WHATSAPP
@@ -976,53 +900,4 @@ enum NotificationStatus {
   QUEUED
   SENT
   FAILED
-}
-
-/// Outbound message log. Every WhatsApp/email/SMS send is recorded so failures
-/// are visible in the admin and retryable rather than silently lost.
-model Notification {
-  id        String              @id @default(cuid())
-  channel   NotificationChannel
-  status    NotificationStatus  @default(QUEUED)
-
-  recipient String
-  template  String /// "order.placed", "payment.received", "otp.login"
-  payload   Json?
-
-  providerMessageId String?
-  error             String?
-  attempts          Int      @default(0)
-
-  orderId String?
-  userId  String?
-
-  sentAt    DateTime?
-  createdAt DateTime  @default(now())
-
-  @@index([status, createdAt])
-  @@index([orderId])
-  @@map("notifications")
-}
-
-/// Who changed what, when. Written by every mutating admin action.
-model AuditLog {
-  id     String  @id @default(cuid())
-  userId String?
-
-  action     String /// "product.update", "order.cancel"
-  entityType String /// "Product"
-  entityId   String?
-  /// Field-level before/after for the changed keys only.
-  changes    Json?
-
-  ip        String?
-  userAgent String?
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([entityType, entityId])
-  @@index([userId, createdAt])
-  @@index([createdAt])
-  @@map("audit_logs")
 }
