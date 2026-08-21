@@ -35,13 +35,18 @@ type Props = { params: Promise<{ slug: string }> };
 
 /** Pre-render the best sellers; the long tail renders on demand and is cached. */
 export async function generateStaticParams() {
-  const products = await db.product.findMany({
-    where: { status: "ACTIVE" },
-    orderBy: { salesCount: "desc" },
-    take: 50,
-    select: { slug: true },
-  });
-  return products.map((p) => ({ slug: p.slug }));
+  try {
+    const products = await db.product.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { salesCount: "desc" },
+      take: 25,
+      select: { slug: true },
+    });
+    return products.map((p) => ({ slug: p.slug }));
+  } catch (error) {
+    console.warn("[build] generateStaticParams failed for products, deferring to dynamic rendering:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -17,11 +17,16 @@ type Props = {
 
 /** Pre-render every category at build time; they change rarely. */
 export async function generateStaticParams() {
-  const categories = await db.category.findMany({
-    where: { isActive: true },
-    select: { slug: true },
-  });
-  return categories.map((c) => ({ slug: c.slug }));
+  try {
+    const categories = await db.category.findMany({
+      where: { isActive: true },
+      select: { slug: true },
+    });
+    return categories.map((c) => ({ slug: c.slug }));
+  } catch (error) {
+    console.warn("[build] generateStaticParams failed for categories, deferring to dynamic rendering:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

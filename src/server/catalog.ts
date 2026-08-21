@@ -695,14 +695,18 @@ const SETTING_DEFAULTS: SettingMap = {
  */
 export const getSetting = cache(
   async <K extends keyof SettingMap>(key: K): Promise<SettingMap[K]> => {
-    const row = await db.setting.findUnique({ where: { key } });
-    if (!row || typeof row.value !== "object" || row.value === null) {
+    try {
+      const row = await db.setting.findUnique({ where: { key } });
+      if (!row || typeof row.value !== "object" || row.value === null) {
+        return SETTING_DEFAULTS[key];
+      }
+      return {
+        ...SETTING_DEFAULTS[key],
+        ...(row.value as object),
+      } as SettingMap[K];
+    } catch (error) {
       return SETTING_DEFAULTS[key];
     }
-    return {
-      ...SETTING_DEFAULTS[key],
-      ...(row.value as object),
-    } as SettingMap[K];
   },
 );
 

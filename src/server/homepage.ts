@@ -78,74 +78,79 @@ export async function getHomepage({
   preview?: boolean;
   campaignId?: string;
 } = {}): Promise<ResolvedHomepage> {
-  let campaign = null as Awaited<ReturnType<typeof getActiveCampaign>>;
+  try {
+    let campaign = null as Awaited<ReturnType<typeof getActiveCampaign>>;
 
-  if (campaignId) {
-    campaign = await db.campaign.findUnique({
-      where: { id: campaignId },
+    if (campaignId) {
+      campaign = await db.campaign.findUnique({
+        where: { id: campaignId },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          theme: true,
+          announcementText: true,
+          announcementLink: true,
+        },
+      });
+    } else {
+      campaign = await getActiveCampaign(now);
+    }
+
+    const rows = await db.homepageSection.findMany({
+      where: { campaignId: campaign?.id ?? null },
+      orderBy: { position: "asc" },
       select: {
         id: true,
-        name: true,
-        slug: true,
-        theme: true,
-        announcementText: true,
-        announcementLink: true,
+        type: true,
+        label: true,
+        settings: true,
+        isActive: true,
+        startsAt: true,
+        endsAt: true,
       },
     });
-  } else {
-    campaign = await getActiveCampaign(now);
+
+    // A campaign with no sections of its own would render an empty homepage,
+    // which is worse than showing the default. Fall back rather than break.
+    const source =
+      campaign && rows.length === 0
+        ? await db.homepageSection.findMany({
+            where: { campaignId: null },
+            orderBy: { position: "asc" },
+            select: {
+              id: true,
+              type: true,
+              label: true,
+              settings: true,
+              isActive: true,
+              startsAt: true,
+              endsAt: true,
+            },
+          })
+        : rows;
+
+    const sections = source
+      .filter((s) => preview || isVisible(s, now))
+      .map(parseSectionForRender)
+      .filter((s): s is ParsedSection => s !== null);
+
+    return {
+      sections,
+      campaign: campaign
+        ? {
+            ...campaign,
+            theme:
+              campaign.theme && typeof campaign.theme === "object"
+                ? (campaign.theme as Record<string, string>)
+                : null,
+          }
+        : null,
+    };
+  } catch (error) {
+    console.warn("[getHomepage] Database read failed, returning default fallback layout:", error);
+    return { sections: [], campaign: null };
   }
-
-  const rows = await db.homepageSection.findMany({
-    where: { campaignId: campaign?.id ?? null },
-    orderBy: { position: "asc" },
-    select: {
-      id: true,
-      type: true,
-      label: true,
-      settings: true,
-      isActive: true,
-      startsAt: true,
-      endsAt: true,
-    },
-  });
-
-  // A campaign with no sections of its own would render an empty homepage,
-  // which is worse than showing the default. Fall back rather than break.
-  const source =
-    campaign && rows.length === 0
-      ? await db.homepageSection.findMany({
-          where: { campaignId: null },
-          orderBy: { position: "asc" },
-          select: {
-            id: true,
-            type: true,
-            label: true,
-            settings: true,
-            isActive: true,
-            startsAt: true,
-            endsAt: true,
-          },
-        })
-      : rows;
-
-  const sections = source
-    .filter((s) => preview || isVisible(s, now))
-    .map(parseSectionForRender)
-    .filter((s): s is ParsedSection => s !== null);
-
-  return {
-    sections,
-    campaign: campaign
-      ? {
-          ...campaign,
-          theme:
-            campaign.theme && typeof campaign.theme === "object"
-              ? (campaign.theme as Record<string, string>)
-              : null,
-        }
-      : null,
-  };
 }
 
 /**

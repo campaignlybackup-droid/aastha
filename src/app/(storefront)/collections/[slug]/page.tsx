@@ -15,11 +15,16 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  const collections = await db.collection.findMany({
-    where: { isActive: true },
-    select: { slug: true },
-  });
-  return collections.map((c) => ({ slug: c.slug }));
+  try {
+    const collections = await db.collection.findMany({
+      where: { isActive: true },
+      select: { slug: true },
+    });
+    return collections.map((c) => ({ slug: c.slug }));
+  } catch (error) {
+    console.warn("[build] generateStaticParams failed for collections, deferring to dynamic rendering:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
