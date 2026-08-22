@@ -413,13 +413,15 @@ export function CheckoutFlow({
                 </div>
               ) : (
                 <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                  <Input
-                    type="text"
-                    placeholder="ENTER COUPON CODE"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    className="h-9 text-xs uppercase tracking-wider"
-                  />
+                  <Field className="flex-1 space-y-0">
+                    <Input
+                      type="text"
+                      placeholder="ENTER COUPON CODE"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      className="h-9 text-xs uppercase tracking-wider"
+                    />
+                  </Field>
                   <Button
                     type="submit"
                     size="sm"

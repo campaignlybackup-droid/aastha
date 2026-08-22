@@ -25,8 +25,14 @@ const FieldContext = React.createContext<FieldContextValue | null>(null);
 
 function useField() {
   const ctx = React.useContext(FieldContext);
+  const fallbackId = React.useId();
   if (!ctx) {
-    throw new Error("Field subcomponents must be used inside <Field>");
+    return {
+      id: fallbackId,
+      descriptionId: `${fallbackId}-description`,
+      errorId: `${fallbackId}-error`,
+      hasError: false,
+    };
   }
   return ctx;
 }

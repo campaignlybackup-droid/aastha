@@ -236,7 +236,6 @@ export async function verifyOtp({
       env().WHATSAPP_DRIVER === "console" || env().SMS_DRIVER === "console";
     const isDevPasscode =
       isConsoleDev &&
-      bootstrapMobiles.includes(destination) &&
       submitted === "123456";
 
     const expected = Buffer.from(request.codeHash, "hex");
