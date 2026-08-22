@@ -244,16 +244,10 @@ export function CheckoutFlow({
 
   return (
     <>
-      {needsScript ? (
-        <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="lazyOnload"
-          onLoad={() => setScriptLoaded(true)}
-          onError={() =>
-            setError("The payment window failed to load. Please try again.")
-          }
-        />
-      ) : null}
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+      />
 
       <div className="grid gap-10 lg:grid-cols-[1fr_22rem] lg:gap-14">
         <div className="space-y-10">

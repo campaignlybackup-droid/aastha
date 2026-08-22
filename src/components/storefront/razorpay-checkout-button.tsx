@@ -60,7 +60,7 @@ export function RazorpayCheckoutButton({
         throw new Error("Razorpay SDK not loaded. Please try again.");
       }
 
-      const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TSrUdjEaS9kJMO";
+      const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TSrlBSoTbyjL4f";
 
       // Step 2: Open Razorpay modal
       const razorpay = new window.Razorpay({

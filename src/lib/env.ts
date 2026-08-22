@@ -34,8 +34,8 @@ const schema = z.object({
   MSG91_SENDER_ID: optional,
   MSG91_OTP_TEMPLATE_ID: optional,
 
-  RAZORPAY_KEY_SECRET: optional,
-  RAZORPAY_WEBHOOK_SECRET: optional,
+  RAZORPAY_KEY_SECRET: z.string().trim().optional().default("4jm8Ub7r3PHp5FZy8Bu3mQ6V"),
+  RAZORPAY_WEBHOOK_SECRET: z.string().trim().optional().default("whsec_test_b67d6a3532448c5b755de112f41450cd"),
 
   CLOUDINARY_API_KEY: optional,
   CLOUDINARY_API_SECRET: optional,
@@ -119,7 +119,7 @@ export const publicEnv = {
     }
     return raw;
   })(),
-  razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
+  razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TSrlBSoTbyjL4f",
   cloudinaryCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "",
   supportWhatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "",
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
