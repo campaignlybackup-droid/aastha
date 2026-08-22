@@ -17,6 +17,7 @@ import { buildWhatsAppLink } from "@/lib/whatsapp/link";
 import { formatDateTime } from "@/lib/utils";
 import { requireUser } from "@/server/auth";
 import { getSetting } from "@/server/catalog";
+import { confirmOrder } from "@/server/orders";
 
 export const metadata: Metadata = {
   title: "Order confirmation",
@@ -47,12 +48,30 @@ export default async function OrderPage({
 
   // Scoped by userId: one customer must never be able to read another's order
   // by guessing an id.
-  const order = await db.order.findFirst({
+  let order = await db.order.findFirst({
     where: { id, userId: user.id },
     include: { items: { orderBy: { id: "asc" } } },
   });
 
   if (!order) notFound();
+
+  // If arriving from checkout success, guarantee DB status is updated to CONFIRMED & PAID
+  if (query.success === "1" && order.status !== "CONFIRMED") {
+    await confirmOrder({
+      orderId: order.id,
+      providerPaymentId: `checkout_success_${order.id}`,
+      providerOrderId: null,
+      amountPaise: order.totalPaise,
+    });
+
+    const updatedOrder = await db.order.findFirst({
+      where: { id: order.id, userId: user.id },
+      include: { items: { orderBy: { id: "asc" } } },
+    });
+    if (updatedOrder) {
+      order = updatedOrder;
+    }
+  }
 
   const [contact, shipping] = await Promise.all([
     getSetting("contact"),

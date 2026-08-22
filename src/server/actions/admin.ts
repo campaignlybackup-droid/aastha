@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { requireArea } from "@/server/auth";
-import { cancelOrder } from "@/server/orders";
+import { cancelOrder, confirmOrder } from "@/server/orders";
 import type { AdminArea } from "@/lib/auth/roles";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -80,6 +80,58 @@ export async function adminCancelOrder(orderId: string): Promise<AdminResult> {
   revalidatePath("/admin/orders");
 
   return { ok: true, message: "Order cancelled and stock released." };
+}
+
+export async function adminUpdateOrderStatus({
+  orderId,
+  status,
+  paymentStatus,
+}: {
+  orderId: string;
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput["set"] | "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"] | "PENDING" | "AUTHORIZED" | "PAID" | "FAILED" | "REFUNDED";
+}): Promise<AdminResult> {
+  const user = await requireArea("orders");
+
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: { id: true, status: true, paymentStatus: true, totalPaise: true, placedAt: true },
+  });
+
+  if (!order) return { ok: false, error: "Order not found." };
+
+  if (paymentStatus === "PAID" || status === "CONFIRMED") {
+    await confirmOrder({
+      orderId: order.id,
+      providerPaymentId: `manual_admin_${Date.now()}`,
+      providerOrderId: null,
+      method: "MANUAL_ADMIN",
+      amountPaise: order.totalPaise,
+    });
+  }
+
+  await db.order.update({
+    where: { id: orderId },
+    data: {
+      ...(status ? { status } : {}),
+      ...(paymentStatus ? { paymentStatus } : {}),
+      ...(status === "CONFIRMED" && !order.placedAt ? { placedAt: new Date() } : {}),
+    },
+  });
+
+  await audit({
+    userId: user.id,
+    action: "order.update_status",
+    entityType: "Order",
+    entityId: orderId,
+    changes: { status, paymentStatus },
+  });
+
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath("/admin/orders");
+  revalidatePath(`/order/${orderId}`);
+
+  return { ok: true, message: "Order & Payment status updated." };
 }
 
 /* -----------------------------------------------------------------------------

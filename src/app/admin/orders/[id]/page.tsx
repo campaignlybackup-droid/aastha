@@ -14,6 +14,8 @@ import { db } from "@/lib/db";
 import { formatDateTime, formatMobile } from "@/lib/utils";
 import { requireArea } from "@/server/auth";
 
+import { OrderStatusEditor } from "@/components/admin/order-status-editor";
+
 export const metadata = { title: "Order" };
 
 export default async function AdminOrderDetailPage({
@@ -68,16 +70,24 @@ export default async function AdminOrderDetailPage({
         }
       />
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <OrderStatusBadge status={order.status} />
-        <Badge variant={order.paymentStatus === "PAID" ? "success" : "neutral"} size="md">
-          {paymentStatusLabel(order.paymentStatus)}
-        </Badge>
-        {order.metaCapiSentAt ? (
-          <Badge variant="outline" size="md">
-            Meta Purchase reported
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <OrderStatusBadge status={order.status} />
+          <Badge variant={order.paymentStatus === "PAID" ? "success" : "neutral"} size="md">
+            {paymentStatusLabel(order.paymentStatus)}
           </Badge>
-        ) : null}
+          {order.metaCapiSentAt ? (
+            <Badge variant="outline" size="md">
+              Meta Purchase reported
+            </Badge>
+          ) : null}
+        </div>
+
+        <OrderStatusEditor
+          orderId={order.id}
+          currentStatus={order.status}
+          currentPaymentStatus={order.paymentStatus}
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
