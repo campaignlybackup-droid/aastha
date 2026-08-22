@@ -66,14 +66,23 @@ export default async function HomePage() {
         </div>
       ) : (
         <>
-          <section className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-brand-950">
+          <section className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-sand-900">
+            <picture className="absolute inset-0 size-full object-cover pointer-events-none">
+              <source srcSet="/banner-poster-mobile.jpg" media="(max-width: 767px)" />
+              <source srcSet="/banner-poster.jpg" media="(min-width: 768px)" />
+              <img
+                src="/banner-poster-mobile.jpg"
+                alt=""
+                aria-hidden="true"
+                className="size-full object-cover"
+              />
+            </picture>
             <video
               autoPlay
               muted
               loop
               playsInline
               preload="auto"
-              poster="/banner-poster.jpg"
               aria-hidden="true"
               className="absolute inset-0 size-full object-cover"
             >
