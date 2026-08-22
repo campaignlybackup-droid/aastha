@@ -223,7 +223,7 @@ export function CheckoutFlow({
             items: analyticsItems,
           });
 
-          router.push(`/order/${verified.orderId}`);
+          router.push(`/order/${verified.orderId}?success=1`);
         })();
       },
 
@@ -231,7 +231,7 @@ export function CheckoutFlow({
         ondismiss: () => {
           setStatus("idle");
           setError(
-            "Payment was cancelled. Your bag is still here whenever you're ready.",
+            "Payment failed or was cancelled. Your money was not debited — you can try again below.",
           );
         },
       },

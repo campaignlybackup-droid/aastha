@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Clock, MessageCircle, Package } from "lucide-react";
 
+import { OrderSuccessTimer } from "@/components/storefront/order-success-timer";
 import {
   OrderStatusBadge,
   OrderSummary,
@@ -36,7 +37,7 @@ export default async function OrderPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ pending?: string }>;
+  searchParams: Promise<{ pending?: string; success?: string }>;
 }) {
   const [{ id }, query, user] = await Promise.all([
     params,
@@ -60,11 +61,20 @@ export default async function OrderPage({
   const whatsapp = contact.whatsapp || publicEnv.supportWhatsapp;
 
   const confirmed = order.status === "CONFIRMED";
+  const isJustPaid = query.success === "1";
   // The browser callback could not verify, but the webhook may still land.
   const awaitingConfirmation = !confirmed && query.pending === "1";
 
   return (
     <div className="u-container max-w-3xl py-12 md:py-16">
+      {isJustPaid ? (
+        <OrderSuccessTimer
+          orderId={order.id}
+          orderNumber={order.orderNumber}
+          customerName={order.shipName.split(" ")[0]}
+        />
+      ) : null}
+
       {/* --- Headline ---------------------------------------------------- */}
       <div className="mb-10 text-center">
         {confirmed ? (
