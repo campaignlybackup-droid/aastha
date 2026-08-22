@@ -385,6 +385,33 @@ export async function adminSaveSetting(
   return { ok: true, message: "Settings saved." };
 }
 
+export async function adminDeleteMediaItems(ids: string[]): Promise<AdminResult> {
+  const user = await requireArea("media");
+
+  if (!ids || ids.length === 0) {
+    return { ok: false, error: "No media items selected." };
+  }
+
+  const result = await db.media.deleteMany({
+    where: { id: { in: ids } },
+  });
+
+  await audit({
+    userId: user.id,
+    action: "media.delete",
+    entityType: "Media",
+    changes: { count: result.count, ids },
+  });
+
+  revalidatePath("/admin/media");
+  revalidatePath("/admin/products");
+
+  return {
+    ok: true,
+    message: `Successfully deleted ${result.count} media ${result.count === 1 ? "item" : "items"} from database.`,
+  };
+}
+
 /** Shared guard for admin pages that need a specific area. */
 export async function assertArea(area: AdminArea) {
   return requireArea(area);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { RenderSection } from "@/components/sections/render";
+import { TrustedCustomersBanner } from "@/components/storefront/trusted-customers-banner";
 import { getHomepage } from "@/server/homepage";
 import { getSetting } from "@/server/catalog";
 import { publicEnv } from "@/lib/env";
@@ -91,6 +92,8 @@ export default async function HomePage() {
             </video>
             <div className="absolute inset-0 bg-sand-950/0 pointer-events-none" aria-hidden="true" />
           </section>
+
+          <TrustedCustomersBanner />
 
           {sections.map((section, index) => {
             // Skip the first CMS banner since we've hardcoded the video banner above
