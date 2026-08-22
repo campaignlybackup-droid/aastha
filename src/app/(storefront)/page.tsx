@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     : "Aastha Silver & Jewels — Handcrafted 925 Sterling Silver Jewellery";
 
   const description =
-    "Hallmarked 925 sterling silver jewellery. Rings, jhumkas, necklaces, bangles and anklets, with a certificate of authenticity on every order.";
+    "Hallmarked 925 sterling silver jewellery. Rings, earrings, necklaces, anklets and chains, with a certificate of authenticity on every order.";
 
   return {
     // `absolute` opts out of the root layout's "%s | Aastha Silver & Jewels"

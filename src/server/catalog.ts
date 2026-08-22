@@ -194,7 +194,7 @@ export async function buildProductWhere(
   const and: Prisma.ProductWhereInput[] = [];
 
   if (filters.categorySlugs?.length) {
-    // Include descendants so selecting "Earrings" also returns "Jhumkas".
+    // Include descendants so selecting category also returns child items.
     const roots = await db.category.findMany({
       where: { slug: { in: filters.categorySlugs } },
       select: { id: true },

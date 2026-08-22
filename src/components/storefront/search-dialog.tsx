@@ -163,7 +163,7 @@ function SearchDialogContent({ onNavigate }: { onNavigate: () => void }) {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search rings, jhumkas, chains…"
+              placeholder="Search rings, earrings, chains…"
               aria-label="Search products"
               className="h-11 flex-1 bg-transparent text-base outline-none placeholder:text-content-subtle"
             />

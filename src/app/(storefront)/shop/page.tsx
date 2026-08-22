@@ -19,7 +19,7 @@ export async function generateMetadata({
     title: isBestSelling ? "Best Selling Jewellery" : "All Jewellery",
     description: isBestSelling
       ? "Shop Aastha Silver's best-selling 925 sterling silver jewellery."
-      : "Browse the full Aastha Silver & Jewels catalogue — hallmarked 925 sterling silver rings, earrings, necklaces, bangles, anklets and chains.",
+      : "Browse the full Aastha Silver & Jewels catalogue — hallmarked 925 sterling silver rings, earrings, necklaces, anklets and chains.",
     alternates: {
       canonical: isBestSelling ? "/shop?sort=popular" : "/shop",
     },
