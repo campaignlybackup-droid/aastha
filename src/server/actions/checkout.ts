@@ -48,6 +48,7 @@ const startSchema = z.object({
   email: z.email().max(180).optional().or(z.literal("")),
   customerNote: z.string().max(500).optional(),
   isGiftWrapped: z.boolean().optional(),
+  paymentMethod: z.enum(["ONLINE", "PARTIAL_COD"]).optional().default("ONLINE"),
 });
 
 export async function startCheckout(
@@ -104,9 +105,13 @@ export async function startCheckout(
     },
     customerNote: parsed.data.customerNote,
     isGiftWrapped: parsed.data.isGiftWrapped,
+    paymentMethod: parsed.data.paymentMethod,
   });
 
   if (!created.ok) return { ok: false, error: created.error };
+
+  // Amount charged now online (100% for ONLINE, 60% advance for PARTIAL_COD)
+  const amountToChargePaise = created.payableNowPaise;
 
   // Razorpay not configured yet: the order still exists, so the store owner
   // can see the demand and the customer gets a clear explanation instead of a
@@ -116,7 +121,7 @@ export async function startCheckout(
       ok: true,
       orderId: created.orderId,
       orderNumber: created.orderNumber,
-      amountPaise: created.totalPaise,
+      amountPaise: amountToChargePaise,
       metaEventId: created.metaEventId,
       razorpay: null,
       paymentUnavailable: true,
@@ -125,12 +130,13 @@ export async function startCheckout(
 
   try {
     const rzpOrder = await createRazorpayOrder({
-      amountPaise: created.totalPaise,
+      amountPaise: amountToChargePaise,
       receipt: created.orderNumber,
       // The webhook reads `orderId` back out of these notes.
       notes: {
         orderId: created.orderId,
         orderNumber: created.orderNumber,
+        paymentMethod: parsed.data.paymentMethod,
       },
     });
 
@@ -139,7 +145,7 @@ export async function startCheckout(
         orderId: created.orderId,
         provider: "RAZORPAY",
         status: "PENDING",
-        amountPaise: created.totalPaise,
+        amountPaise: amountToChargePaise,
         providerOrderId: rzpOrder.id,
       },
     });
@@ -148,7 +154,7 @@ export async function startCheckout(
       ok: true,
       orderId: created.orderId,
       orderNumber: created.orderNumber,
-      amountPaise: created.totalPaise,
+      amountPaise: amountToChargePaise,
       metaEventId: created.metaEventId,
       razorpay: { keyId: publicEnv.razorpayKeyId, orderId: rzpOrder.id },
       paymentUnavailable: false,

@@ -129,8 +129,7 @@ export function PurchasePanel({
           size="lg"
         />
         <p className="text-xs text-content-subtle">
-          Inclusive of all taxes · Free shipping above ₹
-          {(freeShippingAbovePaise / 100).toLocaleString("en-IN")}
+          Inclusive of all taxes · Free Shipping on all orders
         </p>
       </div>
 

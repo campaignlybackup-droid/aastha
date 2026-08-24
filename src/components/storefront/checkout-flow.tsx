@@ -11,7 +11,7 @@ import {
 } from "@/components/storefront/address-book";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, Input, Label, Textarea } from "@/components/ui/field";
-import { Alert, Card, CardBody } from "@/components/ui/primitives";
+import { Alert, Badge, Card, CardBody } from "@/components/ui/primitives";
 import { MediaImage } from "@/components/ui/media-image";
 import {
   startCheckout,
@@ -56,6 +56,7 @@ export function CheckoutFlow({
   >("idle");
   const [scriptLoaded, setScriptLoaded] = React.useState(false);
   const [needsScript, setNeedsScript] = React.useState(false);
+  const [paymentMethod, setPaymentMethod] = React.useState<"ONLINE" | "PARTIAL_COD">("ONLINE");
 
   // Coupon state
   const [couponInput, setCouponInput] = React.useState("");
@@ -64,7 +65,12 @@ export function CheckoutFlow({
   const [showCouponsModal, setShowCouponsModal] = React.useState(false);
 
   const GIFT_WRAP_PAISE = 4000; // ₹40
-  const finalTotalPaise = cart.totals.totalPaise + (isGiftWrapped ? GIFT_WRAP_PAISE : 0);
+  const COD_FEE_PAISE = 20000; // ₹200
+  const baseOrderTotalPaise = cart.totals.totalPaise + (isGiftWrapped ? GIFT_WRAP_PAISE : 0);
+  const codFeePaise = paymentMethod === "PARTIAL_COD" ? COD_FEE_PAISE : 0;
+  const finalTotalPaise = baseOrderTotalPaise + codFeePaise;
+  const advancePaise = paymentMethod === "PARTIAL_COD" ? Math.round(finalTotalPaise * 0.60) : finalTotalPaise;
+  const balanceOnDeliveryPaise = paymentMethod === "PARTIAL_COD" ? finalTotalPaise - advancePaise : 0;
 
   // begin_checkout, once, when the page is first usable.
   const reportedBeginCheckout = React.useRef(false);
@@ -151,6 +157,7 @@ export function CheckoutFlow({
       email,
       customerNote: note,
       isGiftWrapped,
+      paymentMethod,
     });
 
     if (!created.ok) {
@@ -302,6 +309,90 @@ export function CheckoutFlow({
                 </Field>
               </CardBody>
             </Card>
+          </section>
+
+          {/* --- Payment Method ---------------------------------------------- */}
+          <section aria-labelledby="payment-heading">
+            <h2 id="payment-heading" className="mb-4 font-display text-2xl">
+              Payment options
+            </h2>
+            <div className="space-y-3">
+              {/* Pay Online (100%) */}
+              <div
+                onClick={() => setPaymentMethod("ONLINE")}
+                className={`cursor-pointer rounded-md border p-4 transition-all ${
+                  paymentMethod === "ONLINE"
+                    ? "border-brand-800 bg-brand-50/40 shadow-sm"
+                    : "border-line bg-surface hover:border-line-strong"
+                }`}
+              >
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="ONLINE"
+                    checked={paymentMethod === "ONLINE"}
+                    onChange={() => setPaymentMethod("ONLINE")}
+                    className="mt-1 size-4 text-brand-800 focus:ring-brand-800"
+                  />
+                  <div className="flex-1 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-brand-950">Pay Full Online (100%)</span>
+                      <Badge variant="success" size="sm">Recommended</Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-content-muted">
+                      Pay 100% online via UPI, Credit/Debit Cards, or Netbanking. Zero extra charges.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Partial COD */}
+              <div
+                onClick={() => setPaymentMethod("PARTIAL_COD")}
+                className={`cursor-pointer rounded-md border p-4 transition-all ${
+                  paymentMethod === "PARTIAL_COD"
+                    ? "border-brand-800 bg-brand-50/40 shadow-sm"
+                    : "border-line bg-surface hover:border-line-strong"
+                }`}
+              >
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="PARTIAL_COD"
+                    checked={paymentMethod === "PARTIAL_COD"}
+                    onChange={() => setPaymentMethod("PARTIAL_COD")}
+                    className="mt-1 size-4 text-brand-800 focus:ring-brand-800"
+                  />
+                  <div className="flex-1 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-brand-950">Partial Cash on Delivery (Partial COD)</span>
+                      <span className="text-xs font-semibold text-brand-800">+ ₹200 COD fee</span>
+                    </div>
+                    <p className="mt-1 text-xs text-content-muted leading-relaxed">
+                      Pay <strong>60% advance online now</strong> to confirm order, and pay the remaining <strong>40% balance on delivery</strong> via cash or UPI.
+                    </p>
+                    {paymentMethod === "PARTIAL_COD" && (
+                      <div className="mt-3 rounded-md bg-sand-100/90 p-3 text-xs space-y-1.5 border border-line">
+                        <div className="flex justify-between text-content">
+                          <span>Order Total (incl. ₹200 COD fee):</span>
+                          <span className="font-semibold">{formatPrice(finalTotalPaise)}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-brand-900 border-t border-line/60 pt-1.5">
+                          <span>Pay 60% Advance Online Now:</span>
+                          <span className="text-sm text-brand-950">{formatPrice(advancePaise)}</span>
+                        </div>
+                        <div className="flex justify-between text-content-muted">
+                          <span>Pay 40% Balance at Delivery:</span>
+                          <span className="font-medium text-content">{formatPrice(balanceOnDeliveryPaise)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </label>
+              </div>
+            </div>
           </section>
 
           {/* --- Review ----------------------------------------------------- */}
@@ -529,12 +620,32 @@ export function CheckoutFlow({
                 </div>
               ) : null}
 
+              {paymentMethod === "PARTIAL_COD" ? (
+                <div className="flex justify-between">
+                  <dt className="text-content-muted">Partial COD Service Fee</dt>
+                  <dd className="font-medium text-brand-900">+ {formatPrice(COD_FEE_PAISE)}</dd>
+                </div>
+              ) : null}
+
               <div className="flex items-baseline justify-between border-t border-line pt-3">
-                <dt className="text-base font-semibold">Total</dt>
+                <dt className="text-base font-semibold">Total Order Value</dt>
                 <dd className="text-xl font-bold text-brand-950">
                   {formatPrice(finalTotalPaise)}
                 </dd>
               </div>
+
+              {paymentMethod === "PARTIAL_COD" ? (
+                <div className="rounded-md bg-gold-50/60 p-3 border border-gold-300/60 space-y-1 text-xs">
+                  <div className="flex justify-between font-bold text-brand-900">
+                    <span>Pay Now (60% Advance):</span>
+                    <span>{formatPrice(advancePaise)}</span>
+                  </div>
+                  <div className="flex justify-between text-content-muted">
+                    <span>Pay at Delivery (40% Balance):</span>
+                    <span>{formatPrice(balanceOnDeliveryPaise)}</span>
+                  </div>
+                </div>
+              ) : null}
 
               <p className="text-xs text-content-subtle">
                 Includes {formatPrice(cart.totals.taxPaise)} GST
@@ -555,7 +666,9 @@ export function CheckoutFlow({
                 ? "Confirming…"
                 : status === "paying"
                   ? "Waiting for payment…"
-                  : `Pay ${formatPrice(finalTotalPaise)}`}
+                  : paymentMethod === "PARTIAL_COD"
+                    ? `Pay 60% Advance (${formatPrice(advancePaise)})`
+                    : `Pay ${formatPrice(finalTotalPaise)}`}
             </Button>
 
             <p className="text-center text-xs leading-relaxed text-content-subtle">

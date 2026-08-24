@@ -45,6 +45,8 @@ export type CreateOrderResult =
       orderId: string;
       orderNumber: string;
       totalPaise: number;
+      payableNowPaise: number;
+      isPartialCod: boolean;
       metaEventId: string;
     }
   | { ok: false; error: string };
@@ -62,6 +64,7 @@ export async function createPendingOrder({
   address,
   customerNote,
   isGiftWrapped,
+  paymentMethod = "ONLINE",
 }: {
   userId: string;
   cart: CartView;
@@ -79,6 +82,7 @@ export async function createPendingOrder({
   };
   customerNote?: string;
   isGiftWrapped?: boolean;
+  paymentMethod?: "ONLINE" | "PARTIAL_COD";
 }): Promise<CreateOrderResult> {
   if (!cart.id || cart.lines.length === 0) {
     return { ok: false, error: "Your bag is empty." };
@@ -124,12 +128,23 @@ export async function createPendingOrder({
   const giftWrapPaise = isGiftWrapped ? 4000 : 0;
   const subtotalPaise = cart.totals.subtotalPaise;
   const shippingPaise = cart.totals.shippingPaise;
-  const totalPaise = Math.max(0, subtotalPaise - discountPaise) + shippingPaise + giftWrapPaise;
+  const baseTotalPaise = Math.max(0, subtotalPaise - discountPaise) + shippingPaise + giftWrapPaise;
+
+  const isPartialCod = paymentMethod === "PARTIAL_COD";
+  const codFeePaise = isPartialCod ? 20000 : 0; // ₹200 fee
+  const totalPaise = baseTotalPaise + codFeePaise;
+  const payableNowPaise = isPartialCod ? Math.round(totalPaise * 0.60) : totalPaise;
+  const dueOnDeliveryPaise = isPartialCod ? totalPaise - payableNowPaise : 0;
   const taxPaise = cart.totals.taxPaise;
 
-  const noteWithGift = isGiftWrapped
-    ? [customerNote?.trim(), "[Gift Wrapped (+₹40)]"].filter(Boolean).join(" · ")
-    : customerNote;
+  const partialCodNote = isPartialCod
+    ? `[PARTIAL_COD] COD Fee: ₹200 | Total Order Value: ₹${(totalPaise / 100).toLocaleString("en-IN")} | Advance Paid Online (60%): ₹${(payableNowPaise / 100).toLocaleString("en-IN")} | Due on Delivery (40%): ₹${(dueOnDeliveryPaise / 100).toLocaleString("en-IN")}`
+    : null;
+
+  const noteWithGift = [
+    customerNote?.trim(),
+    isGiftWrapped ? "[Gift Wrapped (+₹40)]" : null,
+  ].filter(Boolean).join(" · ");
 
   const orderNumber = await generateOrderNumber();
   // Generated once here and reused by both the browser Pixel and the
@@ -187,6 +202,7 @@ export async function createPendingOrder({
           shipPincode: address.pincode,
           shipCountry: address.country,
           customerNote: noteWithGift?.slice(0, 500) ?? null,
+          internalNote: partialCodNote,
           items: {
             create: cart.lines.map((line) => ({
               productId: line.productId,
@@ -215,6 +231,8 @@ export async function createPendingOrder({
       orderId: order.id,
       orderNumber: order.orderNumber,
       totalPaise: order.totalPaise,
+      payableNowPaise,
+      isPartialCod,
       metaEventId,
     };
   } catch (error) {
@@ -299,13 +317,16 @@ export async function confirmOrder({
 
       // Amount mismatch means the client tampered with the Razorpay handler or
       // the provider sent something unexpected. Record, do not confirm.
-      if (amountPaise !== order.totalPaise) {
+      const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+      const expectedAdvance = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
+
+      if (amountPaise !== expectedAdvance && amountPaise !== order.totalPaise) {
         await tx.order.update({
           where: { id: orderId },
           data: {
             internalNote: [
               order.internalNote,
-              `Amount mismatch: charged ${amountPaise}, expected ${order.totalPaise}.`,
+              `Amount mismatch: charged ${amountPaise}, expected ${expectedAdvance}.`,
             ]
               .filter(Boolean)
               .join("\n"),
@@ -401,7 +422,7 @@ export async function confirmOrder({
         where: { id: orderId },
         data: {
           status: "CONFIRMED",
-          paymentStatus: "PAID",
+          paymentStatus: isPartialCod ? "AUTHORIZED" : "PAID",
           placedAt: new Date(),
         },
       });

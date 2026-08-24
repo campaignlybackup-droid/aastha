@@ -672,11 +672,8 @@ const SETTING_DEFAULTS: SettingMap = {
     hours: "",
   },
   shipping: {
-    freeAbovePaise: 150000,
-    flatRatePaise: 7900,
-    // Blank rather than a guessed promise. Every surface that shows dispatch
-    // or delivery timing hides itself when these are empty, so an unfilled
-    // setting shows nothing instead of a commitment the store cannot keep.
+    freeAbovePaise: 0,
+    flatRatePaise: 0,
     dispatchCopy: "",
     deliveryCopy: "",
   },

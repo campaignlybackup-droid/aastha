@@ -15,6 +15,7 @@ import { db } from "@/lib/db";
 import { publicEnv } from "@/lib/env";
 import { buildWhatsAppLink } from "@/lib/whatsapp/link";
 import { formatDateTime } from "@/lib/utils";
+import { formatPrice } from "@/lib/money";
 import { requireUser } from "@/server/auth";
 import { getSetting } from "@/server/catalog";
 import { confirmOrder } from "@/server/orders";
@@ -55,13 +56,15 @@ export default async function OrderPage({
 
   if (!order) notFound();
 
-  // If arriving from checkout success, guarantee DB status is updated to CONFIRMED & PAID
+  // If arriving from checkout success, guarantee DB status is updated to CONFIRMED
   if (query.success === "1" && order.status !== "CONFIRMED") {
+    const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+    const expectedAdvance = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
     await confirmOrder({
       orderId: order.id,
       providerPaymentId: `checkout_success_${order.id}`,
       providerOrderId: null,
-      amountPaise: order.totalPaise,
+      amountPaise: expectedAdvance,
     });
 
     const updatedOrder = await db.order.findFirst({
@@ -83,6 +86,10 @@ export default async function OrderPage({
   const isJustPaid = query.success === "1";
   // The browser callback could not verify, but the webhook may still land.
   const awaitingConfirmation = !confirmed && query.pending === "1";
+
+  const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+  const advancePaise = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
+  const balanceOnDeliveryPaise = isPartialCod ? order.totalPaise - advancePaise : 0;
 
   return (
     <div className="u-container max-w-3xl py-12 md:py-16">
@@ -154,6 +161,12 @@ export default async function OrderPage({
           </Button>
         ) : null}
       </div>
+
+      {confirmed && isPartialCod ? (
+        <Alert variant="info" className="mb-8">
+          <strong>Partial COD Order Confirmed:</strong> You have paid the 60% advance of {formatPrice(advancePaise)}. Please pay the remaining balance of <strong>{formatPrice(balanceOnDeliveryPaise)}</strong> (40%) in cash or UPI to the courier upon delivery.
+        </Alert>
+      ) : null}
 
       {awaitingConfirmation ? (
         <Alert variant="info" className="mb-8">

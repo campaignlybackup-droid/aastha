@@ -63,6 +63,7 @@ export type OrderDetail = {
   shipCity: string;
   shipState: string;
   shipPincode: string;
+  internalNote?: string | null;
   items: Array<{
     id: string;
     productName: string;
@@ -77,6 +78,10 @@ export type OrderDetail = {
 
 /** Line items + totals + delivery address. Shared by the order page and admin. */
 export function OrderSummary({ order }: { order: OrderDetail }) {
+  const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+  const advancePaise = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
+  const balanceOnDeliveryPaise = isPartialCod ? order.totalPaise - advancePaise : 0;
+
   return (
     <div className="space-y-8">
       <ul className="divide-y divide-line border-y border-line">
@@ -173,12 +178,37 @@ export function OrderSummary({ order }: { order: OrderDetail }) {
             </dd>
           </div>
 
-          <div className="flex items-baseline justify-between border-t border-line pt-3">
-            <dt className="font-medium">Total paid</dt>
-            <dd className="text-lg font-medium">
-              {formatPrice(order.totalPaise)}
-            </dd>
-          </div>
+          {isPartialCod ? (
+            <>
+              <div className="flex justify-between text-xs text-content-muted">
+                <dt>Partial COD Fee</dt>
+                <dd className="font-medium text-brand-900">+ ₹200</dd>
+              </div>
+              <div className="flex items-baseline justify-between border-t border-line pt-3">
+                <dt className="font-semibold text-content">Total Order Value</dt>
+                <dd className="text-base font-semibold">
+                  {formatPrice(order.totalPaise)}
+                </dd>
+              </div>
+              <div className="rounded-md bg-gold-50/70 p-3 border border-gold-300/60 space-y-1.5 text-xs">
+                <div className="flex justify-between font-bold text-brand-950">
+                  <span>Advance Paid Online (60%):</span>
+                  <span>{formatPrice(advancePaise)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-amber-900">
+                  <span>Balance Due on Delivery (40%):</span>
+                  <span>{formatPrice(balanceOnDeliveryPaise)}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-baseline justify-between border-t border-line pt-3">
+              <dt className="font-medium">Total paid</dt>
+              <dd className="text-lg font-medium">
+                {formatPrice(order.totalPaise)}
+              </dd>
+            </div>
+          )}
 
           <p className="text-xs text-content-subtle">
             Includes {formatPrice(order.taxPaise)} GST

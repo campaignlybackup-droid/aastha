@@ -272,10 +272,8 @@ export async function priceCart(cart: CartWithRelations): Promise<CartView> {
   const afterDiscount = Math.max(0, subtotalPaise - discountPaise);
 
   // --- Shipping ------------------------------------------------------------
-  const shippingPaise =
-    lines.length === 0 || afterDiscount >= shipping.freeAbovePaise
-      ? 0
-      : shipping.flatRatePaise;
+  // Free shipping on all orders
+  const shippingPaise = 0;
 
   const totalPaise = afterDiscount + shippingPaise;
 
@@ -297,10 +295,7 @@ export async function priceCart(cart: CartWithRelations): Promise<CartView> {
       shippingPaise,
       taxPaise,
       totalPaise,
-      freeShippingRemainingPaise:
-        shippingPaise > 0
-          ? Math.max(0, shipping.freeAbovePaise - afterDiscount)
-          : 0,
+      freeShippingRemainingPaise: 0,
     },
     itemCount: lines.reduce((sum, l) => sum + l.quantity, 0),
     coupon,
