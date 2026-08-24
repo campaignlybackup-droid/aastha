@@ -663,9 +663,9 @@ type SettingMap = {
 // that the defaults omit, so callers could not read `announcement.href`.
 const SETTING_DEFAULTS: SettingMap = {
   contact: {
-    email: "",
-    phone: "",
-    whatsapp: "",
+    email: "aasthasilverandjewels@gmail.com",
+    phone: "+91 9116662871",
+    whatsapp: "919116662871",
     addressLines: [],
     city: "",
     state: "",

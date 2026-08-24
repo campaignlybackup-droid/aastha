@@ -831,9 +831,9 @@ async function seedSettings() {
       // must not invent them — the owner fills these in under Settings and
       // every surface hides the field until they do.
       {
-        email: "",
-        phone: "",
-        whatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "",
+        email: "aasthasilverandjewels@gmail.com",
+        phone: "+91 9116662871",
+        whatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "919116662871",
         addressLines: [],
         city: "",
         state: "",

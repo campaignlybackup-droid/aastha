@@ -48,7 +48,7 @@ const schema = z.object({
 
   EMAIL_DRIVER: z.enum(["console", "resend"]).default("console"),
   RESEND_API_KEY: optional,
-  EMAIL_FROM: z.string().trim().default("Aastha Silver & Jewels <support@aasthasilverandjewels.in>"),
+  EMAIL_FROM: z.string().trim().default("Aastha Silver & Jewels <aasthasilverandjewels@gmail.com>"),
 
   META_CAPI_ACCESS_TOKEN: optional,
   META_CAPI_TEST_EVENT_CODE: optional,
@@ -121,7 +121,7 @@ export const publicEnv = {
   })(),
   razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TSrlBSoTbyjL4f",
   cloudinaryCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "",
-  supportWhatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "",
+  supportWhatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "919116662871",
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
   ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || "",
   gtmContainerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID || "",
