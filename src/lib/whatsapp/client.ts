@@ -23,6 +23,8 @@ export type WhatsAppTemplate = {
   languageCode?: string;
   /** Positional {{1}}, {{2}} … body variables. */
   variables: string[];
+  /** Single text variable for URL buttons (e.g. Copy Code button). */
+  buttonUrlVariable?: string;
 };
 
 export interface WhatsAppDriver {
@@ -47,6 +49,30 @@ const cloudDriver: WhatsAppDriver = {
     const { WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID } = env();
 
     try {
+      const components: Array<Record<string, unknown>> = [];
+      if (template.variables.length) {
+        components.push({
+          type: "body",
+          parameters: template.variables.map((text) => ({
+            type: "text",
+            text,
+          })),
+        });
+      }
+      if (template.buttonUrlVariable) {
+        components.push({
+          type: "button",
+          sub_type: "url",
+          index: "0",
+          parameters: [
+            {
+              type: "text",
+              text: template.buttonUrlVariable,
+            },
+          ],
+        });
+      }
+
       const response = await fetch(
         `https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
         {
@@ -62,17 +88,7 @@ const cloudDriver: WhatsAppDriver = {
             template: {
               name: template.name,
               language: { code: template.languageCode ?? "en" },
-              components: template.variables.length
-                ? [
-                    {
-                      type: "body",
-                      parameters: template.variables.map((text) => ({
-                        type: "text",
-                        text,
-                      })),
-                    },
-                  ]
-                : [],
+              components,
             },
           }),
           signal: AbortSignal.timeout(10_000),
@@ -113,7 +129,7 @@ export function whatsappDriver(): WhatsAppDriver {
  * place — which is also what the WhatsApp review process asks for.
  */
 export const WHATSAPP_TEMPLATES = {
-  otp: "otp_verification",
+  otp: "otp_temp1",
   orderPlaced: "order_placed",
   paymentReceived: "payment_received",
   // Registered now, used in V2 when shipping lands.

@@ -134,6 +134,7 @@ export async function sendOtp({
         return whatsappDriver().sendTemplate(destination, {
           name: WHATSAPP_TEMPLATES.otp,
           variables: [code],
+          buttonUrlVariable: code,
         });
       })()
     : await smsDriver().sendOtp(destination, code);
