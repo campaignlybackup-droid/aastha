@@ -26,6 +26,7 @@ import {
 import { SECTION_LABELS, type SectionType } from "@/lib/cms/sections";
 
 type MediaOption = { id: string; url: string; label: string };
+type ProductOption = { id: string; name: string; sku: string; pricePaise: number };
 
 /**
  * Section settings editor.
@@ -40,11 +41,13 @@ export function SectionEditor({
   type,
   initialSettings,
   media,
+  products = [],
 }: {
   sectionId: string;
   type: SectionType;
   initialSettings: Record<string, unknown>;
   media: MediaOption[];
+  products?: ProductOption[];
 }) {
   const router = useRouter();
   const [settings, setSettings] = React.useState(initialSettings);
@@ -60,7 +63,7 @@ export function SectionEditor({
     setMessage(null);
   };
 
-  function save() {
+  const handleSave = () => {
     setMessage(null);
     startTransition(async () => {
       const result = await updateSectionSettings({ id: sectionId, settings });
@@ -71,7 +74,7 @@ export function SectionEditor({
       );
       if (result.ok) router.refresh();
     });
-  }
+  };
 
   // No spec for this type — fall back to raw JSON so it is still editable
   // rather than being a dead end.
@@ -80,7 +83,7 @@ export function SectionEditor({
       <RawJsonEditor
         settings={settings}
         onChange={setSettings}
-        onSave={save}
+        onSave={handleSave}
         pending={pending}
         message={message}
       />
@@ -88,19 +91,20 @@ export function SectionEditor({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-5 py-4">
       <p className="text-xs text-content-subtle">
         Editing a {SECTION_LABELS[type].toLowerCase()} section.
       </p>
 
       {spec.fields.length ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-6">
           {spec.fields.map((field) => (
-            <FieldRenderer
+            <FieldControl
               key={field.path}
               field={field}
               value={getAtPath(settings, field.path)}
               media={media}
+              products={products}
               onChange={(value) => update(field.path, value)}
             />
           ))}
@@ -123,8 +127,8 @@ export function SectionEditor({
         </Alert>
       ) : null}
 
-      <div className="flex gap-2">
-        <Button onClick={save} loading={pending}>
+      <div className="pt-4 border-t border-line">
+        <Button size="sm" onClick={handleSave} loading={pending}>
           Save section
         </Button>
       </div>
@@ -134,27 +138,21 @@ export function SectionEditor({
 
 /* -------------------------------------------------------------------------- */
 
-function FieldRenderer({
+function FieldControl({
   field,
   value,
   media,
+  products = [],
   onChange,
-  compact = false,
 }: {
   field: FieldSpec;
   value: unknown;
   media: MediaOption[];
+  products?: ProductOption[];
   onChange: (value: unknown) => void;
-  compact?: boolean;
 }) {
-  const wide =
-    field.kind === "textarea" ||
-    field.kind === "richtext" ||
-    field.kind === "productSource" ||
-    field.kind === "image";
-
   return (
-    <div className={!compact && wide ? "sm:col-span-2" : undefined}>
+    <div>
       <Field>
         <Label>{field.label}</Label>
 
@@ -231,6 +229,7 @@ function FieldRenderer({
         {field.kind === "productSource" ? (
           <ProductSourcePicker
             value={(value as Record<string, unknown>) ?? {}}
+            products={products}
             onChange={onChange}
           />
         ) : null}
@@ -251,20 +250,18 @@ function ImagePicker({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <NativeSelect
-          value={media.some((m) => m.url === value) ? value : ""}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="">Choose from media…</option>
-          {media.map((option) => (
-            <option key={option.id} value={option.url}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
-      </div>
+    <div className="space-y-3">
+      <NativeSelect
+        value={media.some((m) => m.url === value) ? value : ""}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">Choose from media…</option>
+        {media.map((option) => (
+          <option key={option.id} value={option.url}>
+            {option.label}
+          </option>
+        ))}
+      </NativeSelect>
 
       <Input
         value={value}
@@ -284,69 +281,165 @@ function ImagePicker({
 
 function ProductSourcePicker({
   value,
+  products = [],
   onChange,
 }: {
   value: Record<string, unknown>;
+  products?: ProductOption[];
   onChange: (value: Record<string, unknown>) => void;
 }) {
   const mode = typeof value.mode === "string" ? value.mode : "new";
   const limit = typeof value.limit === "number" ? value.limit : 8;
+  const currentProductIds = Array.isArray(value.productIds)
+    ? (value.productIds as string[])
+    : [];
+
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   const set = (patch: Record<string, unknown>) =>
-    onChange({ productIds: [], ...value, ...patch });
+    onChange({ productIds: currentProductIds, ...value, ...patch });
+
+  const filteredProducts = searchTerm.trim()
+    ? products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.sku.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : products;
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <div>
-        <label className="sr-only" htmlFor="source-mode">
-          Product source
-        </label>
-        <NativeSelect
-          id="source-mode"
-          value={mode}
-          onChange={(e) => set({ mode: e.target.value })}
-        >
-          <option value="new">Newest arrivals</option>
-          <option value="bestsellers">Best sellers</option>
-          <option value="featured">Featured products</option>
-          <option value="category">A category</option>
-          <option value="collection">A collection</option>
-        </NativeSelect>
-      </div>
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="block text-xs font-semibold text-content-subtle mb-1" htmlFor="source-mode">
+            Product Source Mode
+          </label>
+          <NativeSelect
+            id="source-mode"
+            value={mode}
+            onChange={(e) => set({ mode: e.target.value })}
+          >
+            <option value="new">Newest arrivals</option>
+            <option value="bestsellers">Best sellers (Automatic / Pinned)</option>
+            <option value="manual">Pick products manually (Hand-picked)</option>
+            <option value="featured">Featured products</option>
+            <option value="category">A category</option>
+            <option value="collection">A collection</option>
+          </NativeSelect>
+        </div>
 
-      <div>
-        <label className="sr-only" htmlFor="source-limit">
-          How many
-        </label>
-        <Input
-          id="source-limit"
-          inputMode="numeric"
-          value={String(limit)}
-          onChange={(e) => {
-            const parsed = Number.parseInt(e.target.value.replace(/\D/g, ""), 10);
-            set({ limit: Number.isFinite(parsed) ? parsed : 8 });
-          }}
-          placeholder="How many"
-        />
-      </div>
-
-      {mode === "category" ? (
-        <div className="sm:col-span-2">
+        <div>
+          <label className="block text-xs font-semibold text-content-subtle mb-1" htmlFor="source-limit">
+            Display Limit (Count)
+          </label>
           <Input
-            value={typeof value.categorySlug === "string" ? value.categorySlug : ""}
-            onChange={(e) => set({ categorySlug: e.target.value })}
-            placeholder="Category slug, e.g. earrings"
+            id="source-limit"
+            inputMode="numeric"
+            value={String(limit)}
+            onChange={(e) => {
+              const parsed = Number.parseInt(e.target.value.replace(/\D/g, ""), 10);
+              set({ limit: Number.isFinite(parsed) ? parsed : 8 });
+            }}
+            placeholder="How many"
           />
         </div>
-      ) : null}
 
-      {mode === "collection" ? (
-        <div className="sm:col-span-2">
+        {mode === "category" ? (
+          <div className="sm:col-span-2">
+            <Input
+              value={typeof value.categorySlug === "string" ? value.categorySlug : ""}
+              onChange={(e) => set({ categorySlug: e.target.value })}
+              placeholder="Category slug, e.g. earrings"
+            />
+          </div>
+        ) : null}
+
+        {mode === "collection" ? (
+          <div className="sm:col-span-2">
+            <Input
+              value={typeof value.collectionSlug === "string" ? value.collectionSlug : ""}
+              onChange={(e) => set({ collectionSlug: e.target.value })}
+              placeholder="Collection slug, e.g. bridal-edit"
+            />
+          </div>
+        ) : null}
+      </div>
+
+      {/* Manual & Best Sellers Product Selector */}
+      {mode === "manual" || mode === "bestsellers" ? (
+        <div className="space-y-3 rounded-md border border-line p-3.5 bg-surface-sunken/40">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-brand-950">
+              {mode === "manual"
+                ? "Hand-picked Products List"
+                : "Hand-picked / Pinned Best Sellers (Optional)"}
+            </span>
+            <span className="text-[11px] text-content-subtle">
+              {currentProductIds.length} product(s) selected
+            </span>
+          </div>
+
           <Input
-            value={typeof value.collectionSlug === "string" ? value.collectionSlug : ""}
-            onChange={(e) => set({ collectionSlug: e.target.value })}
-            placeholder="Collection slug, e.g. bridal-edit"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search catalogue products by name or SKU..."
+            className="text-xs"
           />
+
+          {products.length > 0 ? (
+            <div className="max-h-52 overflow-y-auto space-y-1 rounded border border-line p-2 text-xs bg-surface divide-y divide-line/40">
+              {filteredProducts.map((prod) => {
+                const isChecked = currentProductIds.includes(prod.id);
+                return (
+                  <label
+                    key={prod.id}
+                    className="flex items-center justify-between gap-2 cursor-pointer hover:bg-sand-100 p-1.5 rounded transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...currentProductIds, prod.id]
+                            : currentProductIds.filter((id) => id !== prod.id);
+                          set({ productIds: next });
+                        }}
+                        className="size-4 accent-brand-900 shrink-0"
+                      />
+                      <span className="truncate font-medium text-content">{prod.name}</span>
+                      <span className="text-[10px] text-content-subtle uppercase shrink-0">
+                        {prod.sku}
+                      </span>
+                    </div>
+
+                    {isChecked ? (
+                      <span className="text-[10px] font-bold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded border border-gold-300">
+                        Selected
+                      </span>
+                    ) : null}
+                  </label>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-content-subtle">No active products found.</p>
+          )}
+
+          {currentProductIds.length > 0 ? (
+            <div className="pt-2 border-t border-line/60 flex items-center justify-between">
+              <span className="text-[11px] text-content-muted">
+                Selected IDs: {currentProductIds.join(", ")}
+              </span>
+              <button
+                type="button"
+                onClick={() => set({ productIds: [] })}
+                className="text-[11px] text-danger-600 underline hover:text-danger-800"
+              >
+                Clear all selections
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -423,12 +516,12 @@ function Repeater({
               {expanded ? (
                 <div className="grid gap-4 border-t border-line bg-surface-sunken px-4 py-4 sm:grid-cols-2">
                   {spec.fields.map((field) => (
-                    <FieldRenderer
+                    <FieldControl
                       key={field.path}
                       field={field}
                       value={getAtPath(item, field.path)}
                       media={media}
-                      onChange={(value) => updateItem(index, field.path, value)}
+                      onChange={(value: unknown) => updateItem(index, field.path, value)}
                     />
                   ))}
                 </div>

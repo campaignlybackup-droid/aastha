@@ -362,6 +362,25 @@ export async function getNewArrivals(limit = 8) {
 }
 
 export async function getBestSellers(limit = 8) {
+  const pinnedSetting = await getSetting("bestsellers").catch(() => null);
+  const pinnedIds: string[] =
+    pinnedSetting && Array.isArray((pinnedSetting as any).productIds)
+      ? (pinnedSetting as any).productIds
+      : [];
+
+  if (pinnedIds.length > 0) {
+    const pinned = await getProductsByIds(pinnedIds.slice(0, limit));
+    if (pinned.length >= limit) return pinned;
+    const pinnedSet = new Set(pinned.map((p) => p.id));
+    const automaticRows = await db.product.findMany({
+      where: { status: "ACTIVE", id: { notIn: Array.from(pinnedSet) } },
+      select: productCardSelect,
+      orderBy: [{ salesCount: "desc" }, { ratingCount: "desc" }],
+      take: limit - pinned.length,
+    });
+    return [...pinned, ...automaticRows.map(toProductCard)];
+  }
+
   const rows = await db.product.findMany({
     where: { status: "ACTIVE" },
     select: productCardSelect,
@@ -650,12 +669,17 @@ export type BrandSettings = {
   state: string;
 };
 
+export type BestSellersSettings = {
+  productIds: string[];
+};
+
 type SettingMap = {
   contact: ContactSettings;
   shipping: ShippingSettings;
   announcement: AnnouncementSettings;
   social: SocialSettings;
   brand: BrandSettings;
+  bestsellers: BestSellersSettings;
 };
 
 // Annotated with SettingMap rather than `satisfies` on each entry: `satisfies`
@@ -684,6 +708,7 @@ const SETTING_DEFAULTS: SettingMap = {
     city: "",
     state: "",
   },
+  bestsellers: { productIds: [] },
 };
 
 /**

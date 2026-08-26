@@ -35,12 +35,19 @@ export default async function EditSectionPage({
 
   // Offer the media library as a picker rather than making the owner paste
   // URLs. Heroes and banners are the images most often swapped.
-  const media = await db.media.findMany({
-    where: { folder: { in: ["HERO", "BANNER", "CAMPAIGN", "PRODUCT", "CATEGORY"] } },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    select: { id: true, secureUrl: true, filename: true, folder: true },
-  });
+  const [media, products] = await Promise.all([
+    db.media.findMany({
+      where: { folder: { in: ["HERO", "BANNER", "CAMPAIGN", "PRODUCT", "CATEGORY"] } },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      select: { id: true, secureUrl: true, filename: true, folder: true },
+    }),
+    db.product.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, sku: true, pricePaise: true },
+    }),
+  ]);
 
   return (
     <>

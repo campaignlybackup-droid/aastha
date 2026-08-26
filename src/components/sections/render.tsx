@@ -48,6 +48,13 @@ async function resolveProducts(
 ): Promise<ProductCardData[]> {
   switch (source.mode) {
     case "bestsellers":
+      if (source.productIds && source.productIds.length > 0) {
+        const manual = await getProductsByIds(source.productIds.slice(0, source.limit));
+        if (manual.length >= source.limit) return manual;
+        const auto = await getBestSellers(source.limit);
+        const manualSet = new Set(manual.map((m) => m.id));
+        return [...manual, ...auto.filter((a) => !manualSet.has(a.id))].slice(0, source.limit);
+      }
       return getBestSellers(source.limit);
     case "featured":
       return getFeaturedProducts(source.limit);
