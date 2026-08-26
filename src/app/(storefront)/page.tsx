@@ -2,21 +2,14 @@ import type { Metadata } from "next";
 
 import { RenderSection } from "@/components/sections/render";
 import { TrustedCustomersBanner } from "@/components/storefront/trusted-customers-banner";
+import { HomepageCombosSection } from "@/components/storefront/homepage-combos-section";
 import { getHomepage } from "@/server/homepage";
 import { getSetting } from "@/server/catalog";
+import { getComboOffers } from "@/server/combos";
 import { publicEnv } from "@/lib/env";
 import { organizationJsonLd, websiteJsonLd, JsonLd } from "@/lib/seo/json-ld";
 
-/**
- * The homepage is entirely CMS-driven — there is no hard-coded section order
- * here. What renders is whatever the admin has configured, or whatever the
- * currently-live campaign overrides it with.
- *
- * Revalidated rather than fully dynamic: the content changes when an admin
- * saves, not per-request. Admin mutations call `revalidatePath("/")` so an
- * edit is visible immediately instead of waiting out the window.
- */
-export const revalidate = 300;
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { campaign } = await getHomepage();
@@ -29,8 +22,6 @@ export async function generateMetadata(): Promise<Metadata> {
     "Hallmarked 925 sterling silver jewellery. Rings, earrings, necklaces, anklets and chains, with a certificate of authenticity on every order.";
 
   return {
-    // `absolute` opts out of the root layout's "%s | Aastha Silver & Jewels"
-    // template — the homepage title already carries the brand name.
     title: { absolute: title },
     description,
     alternates: { canonical: "/" },
@@ -47,9 +38,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [{ sections }, contact] = await Promise.all([
+  const [{ sections }, contact, combos] = await Promise.all([
     getHomepage(),
     getSetting("contact"),
+    getComboOffers(true),
   ]);
 
   return (
@@ -94,6 +86,8 @@ export default async function HomePage() {
           </section>
 
           <TrustedCustomersBanner />
+
+          <HomepageCombosSection combos={combos} />
 
           {sections.map((section, index) => {
             // Skip the first CMS banner since we've hardcoded the video banner above
