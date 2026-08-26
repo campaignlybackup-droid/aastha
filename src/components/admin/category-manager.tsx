@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ImageIcon, Pencil, Plus, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Label, NativeSelect, Textarea } from "@/components/ui/field";
 import { Alert, Badge } from "@/components/ui/primitives";
+import { MediaImage } from "@/components/ui/media-image";
 import {
   deleteCategory,
   reorderCategories,
@@ -14,12 +15,16 @@ import {
 } from "@/server/actions/catalogue-admin";
 import { cn } from "@/lib/utils";
 
+type MediaOption = { id: string; url: string; label: string };
+
 type Category = {
   id: string;
   name: string;
   slug: string;
   parentId: string | null;
   description: string | null;
+  imageId: string | null;
+  image?: { id: string; url: string; secureUrl: string } | null;
   isActive: boolean;
   isFeatured: boolean;
   seoTitle: string | null;
@@ -33,6 +38,7 @@ type FormState = {
   slug: string;
   parentId: string;
   description: string;
+  imageId: string | null;
   isActive: boolean;
   isFeatured: boolean;
   seoTitle: string;
@@ -44,13 +50,20 @@ const EMPTY: FormState = {
   slug: "",
   parentId: "",
   description: "",
+  imageId: null,
   isActive: true,
   isFeatured: false,
   seoTitle: "",
   seoDescription: "",
 };
 
-export function CategoryManager({ categories }: { categories: Category[] }) {
+export function CategoryManager({
+  categories,
+  media = [],
+}: {
+  categories: Category[];
+  media?: MediaOption[];
+}) {
   const router = useRouter();
   const [editing, setEditing] = React.useState<string | "new" | null>(null);
   const [form, setForm] = React.useState<FormState>(EMPTY);
@@ -59,8 +72,6 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
     { tone: "success" | "danger"; text: string } | null
   >(null);
 
-  // Roots first, each followed by its children — the shape the storefront nav
-  // renders, so the admin list matches what the customer sees.
   const roots = categories.filter((c) => !c.parentId);
   const ordered = roots.flatMap((root) => [
     root,
@@ -88,6 +99,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       slug: category.slug,
       parentId: category.parentId ?? "",
       description: category.description ?? "",
+      imageId: category.imageId ?? null,
       isActive: category.isActive,
       isFeatured: category.isFeatured,
       seoTitle: category.seoTitle ?? "",
@@ -120,6 +132,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
         {ordered.map((category) => {
           const isChild = Boolean(category.parentId);
           const rootIndex = roots.findIndex((r) => r.id === category.id);
+          const imageUrl = category.image?.secureUrl || category.image?.url;
 
           return (
             <li key={category.id} className={cn("px-5 py-3.5", isChild && "pl-12")}>
@@ -128,6 +141,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                   form={form}
                   setForm={setForm}
                   categories={categories}
+                  media={media}
                   pending={pending}
                   submitLabel="Save changes"
                   onSubmit={() => run(() => saveCategory(form))}
@@ -158,9 +172,23 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                     </div>
                   ) : null}
 
+                  <div className="relative size-10 shrink-0 overflow-hidden rounded-xs border border-line bg-sand-100 flex items-center justify-center">
+                    {imageUrl ? (
+                      <MediaImage
+                        src={imageUrl}
+                        alt={category.name}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <ImageIcon className="size-4 text-content-subtle opacity-50" />
+                    )}
+                  </div>
+
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={cn("text-sm", !category.isActive && "text-content-subtle")}>
+                      <span className={cn("text-sm font-medium", !category.isActive && "text-content-subtle")}>
                         {category.name}
                       </span>
                       {category.isFeatured ? (
@@ -206,6 +234,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
             form={form}
             setForm={setForm}
             categories={categories}
+            media={media}
             pending={pending}
             submitLabel="Create category"
             onSubmit={() => run(() => saveCategory(form))}
@@ -221,7 +250,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
               setMessage(null);
             }}
           >
-            <Plus aria-hidden="true" />
+            <Plus className="size-3.5" aria-hidden="true" />
             Add category
           </Button>
         )}
@@ -241,6 +270,19 @@ function DeleteCategoryButton({
 }) {
   const [confirming, setConfirming] = React.useState(false);
   const blocked = category._count.products > 0 || category._count.children > 0;
+
+  if (blocked) {
+    return (
+      <button
+        type="button"
+        disabled
+        title="Remove products and subcategories first"
+        className="inline-flex size-8 items-center justify-center rounded-xs border border-line text-content-subtle opacity-30"
+      >
+        <Trash2 className="size-3.5" aria-hidden="true" />
+      </button>
+    );
+  }
 
   if (confirming) {
     return (
@@ -271,11 +313,6 @@ function DeleteCategoryButton({
       onClick={() => setConfirming(true)}
       disabled={disabled}
       aria-label={`Delete ${category.name}`}
-      title={
-        blocked
-          ? "This category still has products or subcategories"
-          : `Delete ${category.name}`
-      }
       className="inline-flex size-8 items-center justify-center rounded-xs border border-line-strong text-content-muted hover:border-danger-500 hover:text-danger-700 disabled:opacity-40"
     >
       <Trash2 className="size-3.5" aria-hidden="true" />
@@ -287,6 +324,7 @@ function CategoryForm({
   form,
   setForm,
   categories,
+  media = [],
   pending,
   submitLabel,
   onSubmit,
@@ -295,6 +333,7 @@ function CategoryForm({
   form: FormState;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
   categories: Category[];
+  media?: MediaOption[];
   pending: boolean;
   submitLabel: string;
   onSubmit: () => void;
@@ -303,11 +342,11 @@ function CategoryForm({
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  // Only top-level categories can be parents — one level of nesting is what
-  // the storefront navigation renders.
   const parentOptions = categories.filter(
     (c) => !c.parentId && c.id !== form.id,
   );
+
+  const selectedMedia = media.find((m) => m.id === form.imageId);
 
   return (
     <form
@@ -343,6 +382,51 @@ function CategoryForm({
           </NativeSelect>
         </Field>
       </div>
+
+      <Field>
+        <Label>Category Image</Label>
+        <div className="flex flex-wrap items-center gap-4 rounded-md border border-line p-3 bg-surface-sunken/40">
+          <div className="relative size-16 shrink-0 overflow-hidden rounded-md border border-line bg-sand-100 flex items-center justify-center">
+            {selectedMedia ? (
+              <MediaImage
+                src={selectedMedia.url}
+                alt=""
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            ) : (
+              <ImageIcon className="size-6 text-content-subtle opacity-40" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1 space-y-2">
+            <NativeSelect
+              value={form.imageId ?? ""}
+              onChange={(e) => set("imageId", e.target.value || null)}
+            >
+              <option value="">No image selected (Default fallback)</option>
+              {media.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </NativeSelect>
+            {form.imageId ? (
+              <button
+                type="button"
+                onClick={() => set("imageId", null)}
+                className="text-xs text-danger-600 underline hover:text-danger-800"
+              >
+                Remove category image
+              </button>
+            ) : (
+              <p className="text-xs text-content-subtle">
+                Select an uploaded image from your media library for this category.
+              </p>
+            )}
+          </div>
+        </div>
+      </Field>
 
       {form.id ? (
         <Field>

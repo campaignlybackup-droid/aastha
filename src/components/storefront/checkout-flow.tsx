@@ -458,7 +458,7 @@ export function CheckoutFlow({
                     <span className="font-semibold text-brand-800">+ ₹40</span>
                   </div>
                   <p className="mt-0.5 text-xs text-content-muted leading-relaxed">
-                    Includes signature box, ribbon &amp; personalized note card.
+                    Includes signature box and carry bag.
                   </p>
                 </div>
               </label>

@@ -8,21 +8,35 @@ export const metadata = { title: "Categories" };
 export default async function AdminCategoriesPage() {
   await requireArea("products");
 
-  const categories = await db.category.findMany({
-    orderBy: [{ position: "asc" }, { name: "asc" }],
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      parentId: true,
-      description: true,
-      isActive: true,
-      isFeatured: true,
-      seoTitle: true,
-      seoDescription: true,
-      _count: { select: { products: true, children: true } },
-    },
-  });
+  const [categories, media] = await Promise.all([
+    db.category.findMany({
+      orderBy: [{ position: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        parentId: true,
+        description: true,
+        imageId: true,
+        image: { select: { id: true, url: true, secureUrl: true } },
+        isActive: true,
+        isFeatured: true,
+        seoTitle: true,
+        seoDescription: true,
+        _count: { select: { products: true, children: true } },
+      },
+    }),
+    db.media.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { id: true, url: true, filename: true, alt: true },
+    }),
+  ]);
+
+  const mediaOptions = media.map((m) => ({
+    id: m.id,
+    url: m.url,
+    label: m.alt || m.filename || m.id,
+  }));
 
   return (
     <>
@@ -32,7 +46,7 @@ export default async function AdminCategoriesPage() {
       />
 
       <Panel>
-        <CategoryManager categories={categories} />
+        <CategoryManager categories={categories} media={mediaOptions} />
       </Panel>
     </>
   );
