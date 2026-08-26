@@ -2,6 +2,7 @@
 
 import { cache } from "react";
 import { db } from "@/lib/db";
+import { getSetting } from "@/server/catalog";
 
 export type ComboOfferDetail = {
   id: string;
@@ -34,6 +35,11 @@ export type ComboOfferDetail = {
 };
 
 export const getComboOffers = cache(async (onlyActive = true): Promise<ComboOfferDetail[]> => {
+  if (onlyActive) {
+    const setting = await getSetting("combos").catch(() => ({ enabled: true }));
+    if (!setting.enabled) return [];
+  }
+
   const now = new Date();
 
   const rawCombos = await db.comboOffer.findMany({

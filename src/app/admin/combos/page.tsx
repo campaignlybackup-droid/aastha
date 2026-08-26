@@ -3,13 +3,14 @@ import { ComboManager } from "@/components/admin/combo-manager";
 import { db } from "@/lib/db";
 import { requireArea } from "@/server/auth";
 import { getComboOffers } from "@/server/combos";
+import { getSetting } from "@/server/catalog";
 
 export const metadata = { title: "Combo Offers | Admin" };
 
 export default async function AdminCombosPage() {
   await requireArea("products");
 
-  const [combos, products, media] = await Promise.all([
+  const [combos, products, media, comboSetting] = await Promise.all([
     getComboOffers(false),
     db.product.findMany({
       where: { status: "ACTIVE" },
@@ -28,6 +29,7 @@ export default async function AdminCombosPage() {
       orderBy: { createdAt: "desc" },
       select: { id: true, url: true, filename: true, alt: true },
     }),
+    getSetting("combos"),
   ]);
 
   const mediaOptions = media.map((m) => ({
@@ -44,7 +46,12 @@ export default async function AdminCombosPage() {
       />
 
       <Panel>
-        <ComboManager combos={combos} products={products} media={mediaOptions} />
+        <ComboManager
+          combos={combos}
+          products={products}
+          media={mediaOptions}
+          combosEnabled={comboSetting.enabled}
+        />
       </Panel>
     </>
   );

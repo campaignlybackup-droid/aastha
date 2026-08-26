@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
@@ -144,4 +145,24 @@ export async function toggleComboOfferStatus(
   });
 
   return { ok: true, message: isActive ? "Combo activated." : "Combo hidden." };
+}
+
+export async function toggleGlobalCombos(enabled: boolean): Promise<ComboResult> {
+  await requireArea("products");
+
+  await db.setting.upsert({
+    where: { key: "combos" },
+    update: { value: { enabled } },
+    create: { key: "combos", value: { enabled } },
+  });
+
+  revalidatePath("/", "layout");
+  revalidatePath("/combos");
+
+  return {
+    ok: true,
+    message: enabled
+      ? "Combo Offers enabled globally."
+      : "Combo Offers disabled globally. Page and navbar link are hidden.",
+  };
 }

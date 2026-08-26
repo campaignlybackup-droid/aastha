@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Sparkles, Package, ShieldCheck, Truck } from "lucide-react";
 
 import { PageHeader } from "@/components/storefront/page-header";
@@ -18,6 +19,9 @@ export const revalidate = 60; // Refresh dynamic timers every minute
 
 export default async function CombosPage() {
   const combos = await getComboOffers(true);
+  if (!combos || combos.length === 0) {
+    notFound();
+  }
 
   return (
     <div className="py-8 md:py-12">

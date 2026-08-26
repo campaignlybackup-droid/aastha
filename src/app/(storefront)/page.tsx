@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 
 import { RenderSection } from "@/components/sections/render";
 import { TrustedCustomersBanner } from "@/components/storefront/trusted-customers-banner";
-import { HomepageCombosSection } from "@/components/storefront/homepage-combos-section";
 import { getHomepage } from "@/server/homepage";
 import { getSetting } from "@/server/catalog";
-import { getComboOffers } from "@/server/combos";
 import { publicEnv } from "@/lib/env";
 import { organizationJsonLd, websiteJsonLd, JsonLd } from "@/lib/seo/json-ld";
 
@@ -38,10 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [{ sections }, contact, combos] = await Promise.all([
+  const [{ sections }, contact] = await Promise.all([
     getHomepage(),
     getSetting("contact"),
-    getComboOffers(true),
   ]);
 
   return (
@@ -86,8 +83,6 @@ export default async function HomePage() {
           </section>
 
           <TrustedCustomersBanner />
-
-          <HomepageCombosSection combos={combos} />
 
           {sections.map((section, index) => {
             // Skip the first CMS banner since we've hardcoded the video banner above

@@ -13,6 +13,7 @@ import {
   deleteComboOffer,
   saveComboOffer,
   toggleComboOfferStatus,
+  toggleGlobalCombos,
 } from "@/server/actions/combo-admin";
 import type { ComboOfferDetail } from "@/server/combos";
 
@@ -64,10 +65,12 @@ export function ComboManager({
   combos,
   products,
   media,
+  combosEnabled = true,
 }: {
   combos: ComboOfferDetail[];
   products: ProductOption[];
   media: MediaOption[];
+  combosEnabled?: boolean;
 }) {
   const router = useRouter();
   const [editing, setEditing] = React.useState<string | "new" | null>(null);
@@ -118,6 +121,34 @@ export function ComboManager({
 
   return (
     <div>
+      {/* Global Feature Switch Header */}
+      <div className="border-b border-line px-5 py-4 bg-sand-50/70 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm text-brand-950">
+              Global Combo Offers Feature:
+            </span>
+            <Badge variant={combosEnabled ? "accent" : "neutral"}>
+              {combosEnabled ? "ENABLED" : "DISABLED"}
+            </Badge>
+          </div>
+          <p className="text-xs text-content-muted mt-0.5">
+            {combosEnabled
+              ? "Combo offers are active. Navbar link will show whenever live combos exist."
+              : "Feature is turned off. The page and navbar links are hidden from store visitors."}
+          </p>
+        </div>
+
+        <Button
+          size="sm"
+          variant={combosEnabled ? "outline" : "primary"}
+          disabled={pending}
+          onClick={() => run(() => toggleGlobalCombos(!combosEnabled))}
+          className={combosEnabled ? "border-danger-600 text-danger-700 hover:bg-danger-50" : ""}
+        >
+          {combosEnabled ? "Turn OFF Combo Offers" : "Turn ON Combo Offers"}
+        </Button>
+      </div>
       {message ? (
         <div className="px-5 pt-4">
           <Alert variant={message.tone === "success" ? "success" : "danger"}>

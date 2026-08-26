@@ -4,6 +4,7 @@ import { Header } from "@/components/storefront/header";
 import { WhatsAppFloat } from "@/components/storefront/whatsapp-float";
 import { publicEnv } from "@/lib/env";
 import { getSetting } from "@/server/catalog";
+import { getComboOffers } from "@/server/combos";
 import { campaignThemeStyle, getActiveCampaign } from "@/server/homepage";
 
 /**
@@ -19,11 +20,14 @@ export default async function StorefrontLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [campaign, announcement, contact] = await Promise.all([
+  const [campaign, announcement, contact, activeCombos] = await Promise.all([
     getActiveCampaign(),
     getSetting("announcement"),
     getSetting("contact"),
+    getComboOffers(true),
   ]);
+
+  const hasActiveCombos = activeCombos.length > 0;
 
   const announcementText = campaign?.announcementText || announcement.text;
   const announcementHref = campaign?.announcementLink || announcement.href;
@@ -47,9 +51,11 @@ export default async function StorefrontLayout({
         Skip to content
       </a>
 
-      <AnnouncementBar text={announcementText} href={announcementHref} />
+      {showAnnouncement ? (
+        <AnnouncementBar text={announcementText} href={announcementHref} />
+      ) : null}
 
-      <Header />
+      <Header hasActiveCombos={hasActiveCombos} />
 
       <main id="main" className="flex-1">
         {children}

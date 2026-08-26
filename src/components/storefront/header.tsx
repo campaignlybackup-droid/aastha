@@ -14,7 +14,11 @@ import { cn } from "@/lib/utils";
  * Styled with the brand's signature Pine Emerald Teal Green background (bg-brand-900)
  * so the official logo and navigation items pop cleanly with high contrast.
  */
-export async function Header() {
+export async function Header({
+  hasActiveCombos = false,
+}: {
+  hasActiveCombos?: boolean;
+}) {
   const [categories, collections] = await Promise.all([
     getCategoryTree(),
     getCollections(true),
@@ -43,12 +47,14 @@ export async function Header() {
             aria-label="Primary"
             className="hidden min-w-0 flex-1 items-center gap-4 lg:flex xl:gap-5"
           >
-            <Link
-              href="/combos"
-              className="u-eyebrow whitespace-nowrap text-gold-300 font-semibold transition-colors hover:text-white"
-            >
-              Combo Offers
-            </Link>
+            {hasActiveCombos ? (
+              <Link
+                href="/combos"
+                className="u-eyebrow whitespace-nowrap text-gold-300 font-semibold transition-colors hover:text-white"
+              >
+                Combo Offers
+              </Link>
+            ) : null}
             <Link
               href="/shop?sort=popular"
               className="u-eyebrow whitespace-nowrap text-sand-100 font-medium transition-colors hover:text-gold-300"

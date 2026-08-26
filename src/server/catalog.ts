@@ -673,6 +673,10 @@ export type BestSellersSettings = {
   productIds: string[];
 };
 
+export type ComboSettings = {
+  enabled: boolean;
+};
+
 type SettingMap = {
   contact: ContactSettings;
   shipping: ShippingSettings;
@@ -680,6 +684,7 @@ type SettingMap = {
   social: SocialSettings;
   brand: BrandSettings;
   bestsellers: BestSellersSettings;
+  combos: ComboSettings;
 };
 
 // Annotated with SettingMap rather than `satisfies` on each entry: `satisfies`
@@ -709,6 +714,7 @@ const SETTING_DEFAULTS: SettingMap = {
     state: "",
   },
   bestsellers: { productIds: [] },
+  combos: { enabled: true },
 };
 
 /**
