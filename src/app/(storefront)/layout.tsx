@@ -47,9 +47,7 @@ export default async function StorefrontLayout({
         Skip to content
       </a>
 
-      {showAnnouncement ? (
-        <AnnouncementBar text={announcementText} href={announcementHref} />
-      ) : null}
+      <AnnouncementBar text={announcementText} href={announcementHref} />
 
       <Header />
 
