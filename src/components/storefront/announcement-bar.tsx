@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, CreditCard, ShieldCheck, Truck } from "lucide-react";
+import { CreditCard, ShieldCheck, Truck } from "lucide-react";
 
 export type AnnouncementItem = {
   text: string;
@@ -30,7 +30,7 @@ const DEFAULT_ANNOUNCEMENTS: AnnouncementItem[] = [
 
 /**
  * Announcement bar above the header.
- * Features rotating text with smooth fade/slide animation effect and white text styling.
+ * Automatically animates and changes text by itself with crisp white styling.
  */
 export function AnnouncementBar({
   text,
@@ -51,60 +51,30 @@ export function AnnouncementBar({
 
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isAnimating, setIsAnimating] = React.useState(false);
-  const [isPaused, setIsPaused] = React.useState(false);
 
   React.useEffect(() => {
-    if (isPaused || items.length <= 1) return;
+    if (items.length <= 1) return;
 
     const timer = setInterval(() => {
       setIsAnimating(true);
       setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % items.length);
         setIsAnimating(false);
-      }, 300);
-    }, 3800);
+      }, 350);
+    }, 3600);
 
     return () => clearInterval(timer);
-  }, [isPaused, items.length]);
+  }, [items.length]);
 
   const current = items[currentIndex];
   const Icon = current?.icon;
 
-  const handlePrev = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
-      setIsAnimating(false);
-    }, 200);
-  };
-
-  const handleNext = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
-      setIsAnimating(false);
-    }, 200);
-  };
-
   return (
-    <div
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      className="relative z-40 bg-brand-950 py-2.5 text-white shadow-xs border-b border-brand-900/50 select-none overflow-hidden"
-    >
-      <div className="u-container flex items-center justify-between gap-4 text-xs font-semibold tracking-wider">
-        <button
-          type="button"
-          onClick={handlePrev}
-          aria-label="Previous announcement"
-          className="hidden sm:inline-flex items-center justify-center p-1 text-sand-300 hover:text-white transition-colors rounded hover:bg-brand-900/60"
-        >
-          <ChevronLeft className="size-3.5" />
-        </button>
-
-        <div className="flex-1 flex justify-center items-center text-center overflow-hidden h-5">
+    <div className="relative z-40 bg-brand-950 py-2.5 text-white shadow-xs border-b border-brand-900/50 select-none overflow-hidden">
+      <div className="u-container flex justify-center items-center text-center text-xs font-medium tracking-wider">
+        <div className="overflow-hidden h-5 flex justify-center items-center">
           <div
-            className={`flex items-center justify-center gap-2 transition-all duration-300 transform ${
+            className={`flex items-center justify-center gap-2 transition-all duration-350 transform ${
               isAnimating
                 ? "-translate-y-2 opacity-0 scale-95"
                 : "translate-y-0 opacity-100 scale-100"
@@ -125,15 +95,6 @@ export function AnnouncementBar({
             )}
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={handleNext}
-          aria-label="Next announcement"
-          className="hidden sm:inline-flex items-center justify-center p-1 text-sand-300 hover:text-white transition-colors rounded hover:bg-brand-900/60"
-        >
-          <ChevronRight className="size-3.5" />
-        </button>
       </div>
     </div>
   );
