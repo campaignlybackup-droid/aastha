@@ -53,7 +53,7 @@ function createClient() {
     max: isBuild ? 1 : process.env.NODE_ENV === "production" ? 5 : 4,
     // Retire idle connections before any upstream pooler drops them.
     idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 30_000,
     maxLifetimeSeconds: 600,
   });
 

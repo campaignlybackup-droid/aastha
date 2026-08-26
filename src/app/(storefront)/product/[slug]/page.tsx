@@ -41,7 +41,7 @@ export async function generateStaticParams() {
     const products = await db.product.findMany({
       where: { status: "ACTIVE" },
       orderBy: { salesCount: "desc" },
-      take: 25,
+      take: 5,
       select: { slug: true },
     });
     return products.map((p) => ({ slug: p.slug }));
