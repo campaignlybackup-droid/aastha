@@ -241,6 +241,7 @@ model Product {
   ogImage          Media?                @relation("ProductOgImage", fields: [ogImageId], references: [id])
   reviews          Review[]
   wishlisted       WishlistItem[]
+  comboItems       ComboItem[]
 
   @@index([status, publishedAt])
   @@index([categoryId, status])
@@ -283,6 +284,7 @@ model ProductVariant {
   image             Media?          @relation("VariantImage", fields: [imageId], references: [id])
   product           Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   stockMovements    StockMovement[]
+  comboItems        ComboItem[]
 
   @@index([productId, position])
   @@map("product_variants")
@@ -667,6 +669,7 @@ model Media {
   categoryImages   Category[]       @relation("CategoryImage")
   categoryOgImages Category[]       @relation("CategoryOgImage")
   collectionImages Collection[]     @relation("CollectionImage")
+  comboImages      ComboOffer[]     @relation("ComboImage")
   productImages    ProductImage[]
   variantImages    ProductVariant[] @relation("VariantImage")
   productOgImages  Product[]        @relation("ProductOgImage")
@@ -887,6 +890,7 @@ enum MediaFolder {
   CATEGORY
   CAMPAIGN
   REVIEW
+  COMBO
   OTHER
 }
 
@@ -900,4 +904,42 @@ enum NotificationStatus {
   QUEUED
   SENT
   FAILED
+}
+
+model ComboOffer {
+  id              String      @id @default(cuid())
+  title           String
+  slug            String      @unique
+  description     String?
+  comboPricePaise Int
+  imageId         String?
+  startsAt        DateTime?
+  endsAt          DateTime?
+  isActive        Boolean     @default(true)
+  isFeatured      Boolean     @default(false)
+  position        Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  image           Media?      @relation("ComboImage", fields: [imageId], references: [id])
+  items           ComboItem[]
+
+  @@index([isActive, position])
+  @@map("combo_offers")
+}
+
+model ComboItem {
+  id           String          @id @default(cuid())
+  comboOfferId String
+  productId    String
+  variantId    String?
+  quantity     Int             @default(1)
+
+  comboOffer   ComboOffer      @relation(fields: [comboOfferId], references: [id], onDelete: Cascade)
+  product      Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([comboOfferId])
+  @@index([productId])
+  @@map("combo_items")
 }

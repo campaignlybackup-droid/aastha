@@ -44,6 +44,12 @@ export async function Header() {
             className="hidden min-w-0 flex-1 items-center gap-4 lg:flex xl:gap-5"
           >
             <Link
+              href="/combos"
+              className="u-eyebrow whitespace-nowrap text-gold-300 font-semibold transition-colors hover:text-white"
+            >
+              Combo Offers
+            </Link>
+            <Link
               href="/shop?sort=popular"
               className="u-eyebrow whitespace-nowrap text-sand-100 font-medium transition-colors hover:text-gold-300"
             >

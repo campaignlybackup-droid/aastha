@@ -353,3 +353,27 @@ export async function removeCouponFromCart(): Promise<CartActionResult> {
 
   return { ok: true, cart: updated, message: "Code removed." };
 }
+
+export async function addMultipleToCartAction(
+  items: Array<{ productId: string; variantId?: string; quantity: number }>,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    for (const item of items) {
+      let variantId = item.variantId;
+      if (!variantId) {
+        const firstVariant = await db.productVariant.findFirst({
+          where: { productId: item.productId, isActive: true },
+          orderBy: { position: "asc" },
+          select: { id: true },
+        });
+        if (!firstVariant) continue;
+        variantId = firstVariant.id;
+      }
+      await addToCart({ variantId, quantity: item.quantity });
+    }
+    revalidatePath("/cart");
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: "Could not add items to cart." };
+  }
+}

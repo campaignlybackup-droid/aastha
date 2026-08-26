@@ -30,6 +30,8 @@ import {
   getRelatedProducts,
   getSetting,
 } from "@/server/catalog";
+import { getCombosForProduct } from "@/server/combos";
+import { ProductComboBanner } from "@/components/storefront/product-combo-banner";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -94,9 +96,10 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const [related, shipping] = await Promise.all([
+  const [related, shipping, productCombos] = await Promise.all([
     getRelatedProducts(product.id, product.category.id, 8),
     getSetting("shipping"),
+    getCombosForProduct(product.id),
   ]);
 
   const images = product.images.map((image) => ({
@@ -257,6 +260,12 @@ export default async function ProductPage({ params }: Props) {
                 </li>
               ))}
             </ul>
+
+            {/* Interlink: Combo Offer Banner */}
+            <ProductComboBanner
+              combos={productCombos}
+              currentProductId={product.id}
+            />
 
             {/* Detail accordions ------------------------------------------- */}
             <ProductDetails product={product} shipping={shipping} />

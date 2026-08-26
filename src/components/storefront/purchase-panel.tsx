@@ -115,10 +115,7 @@ export function PurchasePanel({
     });
   }
 
-  const awayFromFreeShipping =
-    selected && selected.pricePaise * quantity < freeShippingAbovePaise
-      ? freeShippingAbovePaise - selected.pricePaise * quantity
-      : 0;
+  const awayFromFreeShipping = 0;
 
   return (
     <div className="space-y-6">

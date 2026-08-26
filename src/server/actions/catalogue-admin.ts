@@ -22,7 +22,7 @@ export type CatalogueResult =
   | { ok: false; error: string };
 
 /** Ensures a slug is unique by appending -2, -3 … as needed. */
-async function uniqueSlug(
+export async function uniqueSlug(
   base: string,
   table: "category" | "collection",
   excludeId?: string,

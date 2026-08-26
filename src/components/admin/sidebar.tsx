@@ -19,6 +19,7 @@ import {
   Search,
   Settings,
   ShoppingCart,
+  Sparkles,
   Star,
   Tags,
   Users,
@@ -48,6 +49,7 @@ const NAV: Array<{ heading: string; items: NavItem[] }> = [
     heading: "Catalogue",
     items: [
       { href: "/admin/products", label: "Products", icon: Package, area: "products" },
+      { href: "/admin/combos", label: "Combo Offers", icon: Sparkles, area: "products" },
       { href: "/admin/categories", label: "Categories", icon: Tags, area: "products" },
       { href: "/admin/collections", label: "Collections", icon: Boxes, area: "products" },
       { href: "/admin/inventory", label: "Inventory", icon: Boxes, area: "inventory" },
