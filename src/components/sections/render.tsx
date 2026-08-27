@@ -141,7 +141,10 @@ export async function RenderSection({ section }: { section: ParsedSection }) {
             name: c.name,
             slug: c.slug,
             href: `/collections/${c.slug}`,
-            imageUrl: c.image?.secureUrl ?? null,
+            imageUrl:
+              c.image?.secureUrl ??
+              c.products[0]?.product?.images[0]?.media?.secureUrl ??
+              null,
             count: c._count.products,
           }))}
         />

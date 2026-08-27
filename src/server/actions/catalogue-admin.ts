@@ -206,6 +206,7 @@ const collectionSchema = z.object({
   name: z.string().trim().min(2, "Enter a name").max(80),
   slug: z.string().trim().max(96).optional(),
   description: z.string().trim().max(600).optional(),
+  imageId: z.string().max(40).nullable().optional(),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
 });
@@ -227,6 +228,7 @@ export async function saveCollection(
   const payload = {
     name: data.name,
     description: data.description || null,
+    imageId: data.imageId || null,
     isActive: data.isActive,
     isFeatured: data.isFeatured,
   };

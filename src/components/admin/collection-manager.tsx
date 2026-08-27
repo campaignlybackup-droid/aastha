@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
+import { ImageIcon, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Field, Input, Label, Textarea } from "@/components/ui/field";
+import { Field, Input, Label, NativeSelect, Textarea } from "@/components/ui/field";
 import { Alert, Badge } from "@/components/ui/primitives";
+import { MediaImage } from "@/components/ui/media-image";
 import {
   deleteCollection,
   saveCollection,
@@ -14,11 +15,15 @@ import {
 } from "@/server/actions/catalogue-admin";
 import { cn } from "@/lib/utils";
 
+type MediaOption = { id: string; url: string; label: string };
+
 type Collection = {
   id: string;
   name: string;
   slug: string;
   description: string | null;
+  imageId: string | null;
+  image?: { id: string; url: string; secureUrl: string } | null;
   isActive: boolean;
   isFeatured: boolean;
   productIds: string[];
@@ -32,6 +37,7 @@ type FormState = {
   name: string;
   slug: string;
   description: string;
+  imageId: string | null;
   isActive: boolean;
   isFeatured: boolean;
 };
@@ -40,6 +46,7 @@ const EMPTY: FormState = {
   name: "",
   slug: "",
   description: "",
+  imageId: null,
   isActive: true,
   isFeatured: false,
 };
@@ -47,9 +54,11 @@ const EMPTY: FormState = {
 export function CollectionManager({
   collections,
   products,
+  media = [],
 }: {
   collections: Collection[];
   products: Product[];
+  media?: MediaOption[];
 }) {
   const router = useRouter();
   const [editing, setEditing] = React.useState<string | "new" | null>(null);
@@ -74,6 +83,20 @@ export function CollectionManager({
     });
   }
 
+  function beginEdit(c: Collection) {
+    setForm({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description ?? "",
+      imageId: c.imageId,
+      isActive: c.isActive,
+      isFeatured: c.isFeatured,
+    });
+    setEditing(c.id);
+    setMessage(null);
+  }
+
   return (
     <div>
       {message ? (
@@ -91,6 +114,7 @@ export function CollectionManager({
               <CollectionForm
                 form={form}
                 setForm={setForm}
+                media={media}
                 pending={pending}
                 submitLabel="Save changes"
                 onSubmit={() => run(() => saveCollection(form))}
@@ -98,31 +122,47 @@ export function CollectionManager({
               />
             ) : (
               <>
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={cn(
-                          "text-sm",
-                          !collection.isActive && "text-content-subtle",
-                        )}
-                      >
-                        {collection.name}
-                      </span>
-                      {collection.isFeatured ? (
-                        <Badge variant="gold">
-                          <Star className="size-2.5" aria-hidden="true" />
-                          Featured
-                        </Badge>
-                      ) : null}
-                      {!collection.isActive ? (
-                        <Badge variant="neutral">Hidden</Badge>
-                      ) : null}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative size-12 shrink-0 overflow-hidden rounded border border-line bg-sand-100 flex items-center justify-center">
+                      {collection.image?.secureUrl || collection.image?.url ? (
+                        <MediaImage
+                          src={collection.image.secureUrl || collection.image.url}
+                          alt={collection.name}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="size-4 text-content-subtle opacity-40" />
+                      )}
                     </div>
-                    <p className="mt-0.5 text-xs text-content-subtle">
-                      /collections/{collection.slug} · {collection._count.products}{" "}
-                      {collection._count.products === 1 ? "product" : "products"}
-                    </p>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={cn(
+                            "text-sm font-medium text-content",
+                            !collection.isActive && "text-content-subtle",
+                          )}
+                        >
+                          {collection.name}
+                        </span>
+                        {collection.isFeatured ? (
+                          <Badge variant="gold">
+                            <Star className="size-2.5" aria-hidden="true" />
+                            Featured
+                          </Badge>
+                        ) : null}
+                        {!collection.isActive ? (
+                          <Badge variant="neutral">Hidden</Badge>
+                        ) : null}
+                      </div>
+                      <p className="mt-0.5 text-xs text-content-subtle">
+                        /collections/{collection.slug} · {collection._count.products}{" "}
+                        {collection._count.products === 1 ? "product" : "products"}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex gap-1.5">
@@ -138,17 +178,7 @@ export function CollectionManager({
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setForm({
-                          id: collection.id,
-                          name: collection.name,
-                          slug: collection.slug,
-                          description: collection.description ?? "",
-                          isActive: collection.isActive,
-                          isFeatured: collection.isFeatured,
-                        });
-                        setEditing(collection.id);
-                      }}
+                      onClick={() => beginEdit(collection)}
                       disabled={pending}
                       aria-label={`Edit ${collection.name}`}
                       className="inline-flex size-8 items-center justify-center rounded-xs border border-line-strong text-content-muted hover:border-[var(--color-accent)] disabled:opacity-40"
@@ -336,6 +366,7 @@ function DeleteButton({
 function CollectionForm({
   form,
   setForm,
+  media = [],
   pending,
   submitLabel,
   onSubmit,
@@ -343,6 +374,7 @@ function CollectionForm({
 }: {
   form: FormState;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
+  media?: MediaOption[];
   pending: boolean;
   submitLabel: string;
   onSubmit: () => void;
@@ -351,16 +383,18 @@ function CollectionForm({
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
+  const selectedMedia = media.find((m) => m.id === form.imageId);
+
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
-      className="space-y-4"
+      className="space-y-4 rounded-md border border-line bg-surface-sunken/40 p-4"
     >
       <Field>
-        <Label required>Name</Label>
+        <Label required>Collection Name</Label>
         <Input
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
@@ -382,6 +416,42 @@ function CollectionForm({
           </p>
         </Field>
       ) : null}
+
+      {/* Collection Photo / Tile Cover Picker */}
+      <Field>
+        <Label>Collection Tile Cover Photo</Label>
+        <div className="flex items-center gap-4 rounded border border-line p-3 bg-surface">
+          <div className="relative size-14 shrink-0 overflow-hidden rounded border border-line bg-sand-100 flex items-center justify-center">
+            {selectedMedia ? (
+              <MediaImage
+                src={selectedMedia.url}
+                alt=""
+                fill
+                sizes="56px"
+                className="object-cover"
+              />
+            ) : (
+              <ImageIcon className="size-5 text-content-subtle opacity-40" />
+            )}
+          </div>
+          <div className="flex-1 space-y-1">
+            <NativeSelect
+              value={form.imageId ?? ""}
+              onChange={(e) => set("imageId", e.target.value || null)}
+            >
+              <option value="">No custom image (Use top product photo)</option>
+              {media.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </NativeSelect>
+            <p className="text-[11px] text-content-subtle">
+              Selected photo appears as the cover image in "Shop by occasion" &amp; collection carousels.
+            </p>
+          </div>
+        </div>
+      </Field>
 
       <Field>
         <Label>Description</Label>

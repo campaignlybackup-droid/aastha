@@ -8,7 +8,7 @@ export const metadata = { title: "Collections" };
 export default async function AdminCollectionsPage() {
   await requireArea("products");
 
-  const [collections, products] = await Promise.all([
+  const [collections, products, media] = await Promise.all([
     db.collection.findMany({
       orderBy: [{ position: "asc" }, { name: "asc" }],
       select: {
@@ -16,6 +16,8 @@ export default async function AdminCollectionsPage() {
         name: true,
         slug: true,
         description: true,
+        imageId: true,
+        image: { select: { id: true, url: true, secureUrl: true } },
         isActive: true,
         isFeatured: true,
         products: { select: { productId: true } },
@@ -27,13 +29,23 @@ export default async function AdminCollectionsPage() {
       orderBy: { name: "asc" },
       select: { id: true, name: true, sku: true },
     }),
+    db.media.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { id: true, url: true, filename: true, alt: true },
+    }),
   ]);
+
+  const mediaOptions = media.map((m) => ({
+    id: m.id,
+    url: m.url,
+    label: m.alt || m.filename || m.id,
+  }));
 
   return (
     <>
       <AdminHeading
         title="Collections"
-        description="Curated groups that cut across categories — “Bridal Edit”, “Under ₹2,000”. A product can sit in any number of them."
+        description="Curated groups that cut across categories — “Bridal Edit”, “Under ₹2,000”. Customize collection cover photos and products."
       />
 
       <Panel>
@@ -43,6 +55,7 @@ export default async function AdminCollectionsPage() {
             productIds: c.products.map((p) => p.productId),
           }))}
           products={products}
+          media={mediaOptions}
         />
       </Panel>
     </>

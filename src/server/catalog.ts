@@ -549,7 +549,25 @@ export const getCollections = cache(async (onlyFeatured = false) => {
   return db.collection.findMany({
     where: { isActive: true, ...(onlyFeatured ? { isFeatured: true } : {}) },
     orderBy: [{ position: "asc" }, { name: "asc" }],
-    include: { image: { select: { secureUrl: true } }, _count: { select: { products: true } } },
+    include: {
+      image: { select: { secureUrl: true } },
+      products: {
+        take: 1,
+        orderBy: { position: "asc" },
+        select: {
+          product: {
+            select: {
+              images: {
+                take: 1,
+                orderBy: { position: "asc" },
+                select: { media: { select: { secureUrl: true } } },
+              },
+            },
+          },
+        },
+      },
+      _count: { select: { products: true } },
+    },
   });
 });
 
