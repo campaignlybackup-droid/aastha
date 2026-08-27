@@ -55,12 +55,6 @@ export async function Header({
                 Combo Offers
               </Link>
             ) : null}
-            <Link
-              href="/shop?sort=popular"
-              className="u-eyebrow whitespace-nowrap text-sand-100 font-medium transition-colors hover:text-gold-300"
-            >
-              Best Selling
-            </Link>
             {primaryNav.map((category, index) => (
               <NavItem
                 key={category.id}
