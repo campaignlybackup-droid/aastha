@@ -33,7 +33,11 @@ export async function Header({
         <div className="flex h-16 items-center gap-2 lg:h-20 lg:gap-3 xl:gap-5">
           {/* Mobile: menu ------------------------------------------------- */}
           <div className="lg:hidden">
-            <MobileNav categories={categories} collections={collections} />
+            <MobileNav
+              categories={categories}
+              collections={collections}
+              hasActiveCombos={hasActiveCombos}
+            />
           </div>
 
           {/* Logo ---------------------------------------------------------- */}
