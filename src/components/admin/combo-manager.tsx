@@ -349,10 +349,12 @@ function ComboForm({
   const savingsPercent =
     originalSumPaise > 0 ? Math.round((savingsPaise / originalSumPaise) * 100) : 0;
 
-  const updateItem = (index: number, key: keyof FormItem, value: any) => {
-    const items = [...form.items];
-    items[index] = { ...items[index]!, [key]: value };
-    setForm((f) => ({ ...f, items }));
+  const updateItem = (index: number, patch: Partial<FormItem>) => {
+    setForm((f) => {
+      const items = [...f.items];
+      items[index] = { ...items[index]!, ...patch };
+      return { ...f, items };
+    });
   };
 
   const addItem = () => {
@@ -482,10 +484,9 @@ function ComboForm({
                 <div className="flex-1 min-w-[200px]">
                   <NativeSelect
                     value={item.productId}
-                    onChange={(e) => {
-                      updateItem(idx, "productId", e.target.value);
-                      updateItem(idx, "variantId", "");
-                    }}
+                    onChange={(e) =>
+                      updateItem(idx, { productId: e.target.value, variantId: "" })
+                    }
                     required
                   >
                     <option value="">Select a product...</option>
@@ -501,7 +502,7 @@ function ComboForm({
                   <div className="min-w-[160px]">
                     <NativeSelect
                       value={item.variantId}
-                      onChange={(e) => updateItem(idx, "variantId", e.target.value)}
+                      onChange={(e) => updateItem(idx, { variantId: e.target.value })}
                     >
                       <option value="">Default Variant</option>
                       {selectedProduct.variants.map((v) => (

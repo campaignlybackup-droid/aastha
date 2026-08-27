@@ -29,6 +29,24 @@ const comboOfferSchema = z.object({
   items: z.array(comboItemSchema).min(2, "Select at least 2 products for a combo offer"),
 });
 
+async function uniqueComboSlug(base: string, excludeId?: string): Promise<string> {
+  const root =
+    base
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "combo";
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const candidate = attempt === 0 ? root : `${root}-${attempt + 1}`;
+    const existing = await db.comboOffer.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    if (!existing || existing.id === excludeId) return candidate;
+  }
+  return `${root}-${Date.now()}`;
+}
+
 export async function saveComboOffer(
   input: z.input<typeof comboOfferSchema>,
 ): Promise<ComboResult> {
@@ -52,7 +70,7 @@ export async function saveComboOffer(
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
 
-  const slug = await uniqueSlug(baseSlug, "collection", data.id);
+  const slug = await uniqueComboSlug(baseSlug, data.id);
 
   const startsAt = data.startsAt ? new Date(data.startsAt) : null;
   const endsAt = data.endsAt ? new Date(data.endsAt) : null;
@@ -93,6 +111,10 @@ export async function saveComboOffer(
       }),
     ]);
 
+    revalidatePath("/", "layout");
+    revalidatePath("/combos");
+    revalidatePath("/admin/combos");
+
     return { ok: true, message: "Combo offer updated successfully." };
   } else {
     await db.comboOffer.create({
@@ -116,6 +138,10 @@ export async function saveComboOffer(
       },
     });
 
+    revalidatePath("/", "layout");
+    revalidatePath("/combos");
+    revalidatePath("/admin/combos");
+
     return { ok: true, message: "Combo offer created successfully." };
   }
 }
@@ -130,6 +156,11 @@ export async function deleteComboOffer(id: string): Promise<ComboResult> {
   if (!existing) return { ok: false, error: "Combo offer not found." };
 
   await db.comboOffer.delete({ where: { id } });
+
+  revalidatePath("/", "layout");
+  revalidatePath("/combos");
+  revalidatePath("/admin/combos");
+
   return { ok: true, message: "Combo offer deleted." };
 }
 
@@ -143,6 +174,10 @@ export async function toggleComboOfferStatus(
     where: { id },
     data: { isActive },
   });
+
+  revalidatePath("/", "layout");
+  revalidatePath("/combos");
+  revalidatePath("/admin/combos");
 
   return { ok: true, message: isActive ? "Combo activated." : "Combo hidden." };
 }
@@ -158,6 +193,7 @@ export async function toggleGlobalCombos(enabled: boolean): Promise<ComboResult>
 
   revalidatePath("/", "layout");
   revalidatePath("/combos");
+  revalidatePath("/admin/combos");
 
   return {
     ok: true,
