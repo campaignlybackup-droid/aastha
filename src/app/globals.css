@@ -356,10 +356,13 @@
     animation: u-shimmer 1.4s var(--ease-in-out-soft) infinite;
   }
 
-  @keyframes u-shimmer {
-    to {
-      background-position: -200% 0;
-    }
+  /* Hide scrollbar utility for horizontal scroll containers */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
