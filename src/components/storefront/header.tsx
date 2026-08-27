@@ -1,19 +1,18 @@
 import Link from "next/link";
-import { Heart, Search, User } from "lucide-react";
+import { ChevronDown, Heart, Search, User } from "lucide-react";
 
 import { CartBadge } from "@/components/storefront/cart-badge";
 import { Logo } from "@/components/storefront/logo";
 import { MobileNav } from "@/components/storefront/mobile-nav";
 import { SearchTrigger } from "@/components/storefront/search-dialog";
-import { getCategoryTree, getCollections } from "@/server/catalog";
+import { getCategoryTree, getCollections, type CategoryNode } from "@/server/catalog";
 import { cn } from "@/lib/utils";
 
 /**
  * Storefront header.
  *
  * Styled with the brand's signature Pine Emerald Teal Green background (bg-brand-900).
- * Displays all categories cleanly in the main navbar with responsive text scaling and gaps
- * so that no text overlaps the action icons under any screen resolution.
+ * Displays all categories cleanly in the main navbar with mouse hover subcategory dropdowns.
  */
 export async function Header({
   hasActiveCombos = false,
@@ -43,15 +42,15 @@ export async function Header({
             <Logo size="md" align="left" className="hidden lg:flex" />
           </div>
 
-          {/* Desktop: primary navigation (renders ALL categories cleanly without any More dropdown) */}
+          {/* Desktop: primary navigation (renders ALL categories cleanly with hover subcategories) */}
           <nav
             aria-label="Primary"
-            className="hidden min-w-0 flex-1 items-center justify-start overflow-x-auto no-scrollbar gap-1.5 sm:gap-2 lg:gap-2.5 xl:gap-3.5 2xl:gap-4.5 lg:flex py-1"
+            className="hidden min-w-0 flex-1 items-center justify-start gap-1.5 sm:gap-2 lg:gap-2.5 xl:gap-3.5 2xl:gap-4.5 lg:flex"
           >
             {hasActiveCombos ? (
               <Link
                 href="/combos"
-                className="u-eyebrow whitespace-nowrap text-gold-300 font-semibold text-[9.5px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[11px] tracking-tight xl:tracking-wider transition-colors hover:text-white shrink-0"
+                className="u-eyebrow whitespace-nowrap text-gold-300 font-semibold text-[9.5px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[11px] tracking-tight xl:tracking-wider transition-colors hover:text-white shrink-0 py-2"
               >
                 Combo Offers
               </Link>
@@ -97,66 +96,97 @@ const actionClass =
   "inline-flex size-10 items-center justify-center rounded-sm text-sand-100 transition-colors hover:bg-brand-800 hover:text-gold-300";
 
 /**
- * Top-level nav entry. Categories with children reveal a dropdown panel on hover/focus.
+ * Top-level nav entry. Categories reveal a subcategory dropdown panel on mouse hover.
  */
 function NavItem({
   category,
   className,
 }: {
-  category: Awaited<ReturnType<typeof getCategoryTree>>[number];
+  category: CategoryNode;
   className?: string;
 }) {
-  const hasChildren = category.children.length > 0;
+  const dbChildren = category.children || [];
+
+  // Fallback subcategory options if specific children records aren't in DB yet
+  const fallbackMap: Record<string, Array<{ name: string; href: string }>> = {
+    earrings: [
+      { name: "Stud Earrings", href: "/category/earrings?style=studs" },
+      { name: "Jhumka Earrings", href: "/category/earrings?style=jhumka" },
+      { name: "Dangler & Drop Earrings", href: "/category/earrings?style=dangler" },
+      { name: "Hoop Earrings", href: "/category/earrings?style=hoops" },
+    ],
+    rings: [
+      { name: "Solitaire Rings", href: "/category/rings?style=solitaire" },
+      { name: "Statement Rings", href: "/category/rings?style=statement" },
+      { name: "Adjustable Rings", href: "/category/rings?style=adjustable" },
+    ],
+    chains: [
+      { name: "Figaro Chains", href: "/category/chains?style=figaro" },
+      { name: "Rope & Box Chains", href: "/category/chains?style=rope" },
+    ],
+    anklets: [
+      { name: "Single Anklets", href: "/category/anklets?type=single" },
+      { name: "Pair Anklets", href: "/category/anklets?type=pair" },
+    ],
+    bracelets: [
+      { name: "Chain Bracelets", href: "/category/bracelets?type=chain" },
+      { name: "Cuff & Bangle Bracelets", href: "/category/bracelets?type=cuff" },
+    ],
+  };
+
+  const subItems =
+    dbChildren.length > 0
+      ? dbChildren.map((c) => ({ name: c.name, href: `/category/${c.slug}` }))
+      : fallbackMap[category.slug.toLowerCase()] || [];
+
+  const hasSubItems = subItems.length > 0;
 
   const itemLinkClass =
     "u-eyebrow whitespace-nowrap text-sand-100 font-medium text-[9.5px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[11px] tracking-normal lg:tracking-tight xl:tracking-wider transition-colors hover:text-gold-300 shrink-0";
 
-  if (!hasChildren) {
-    return (
-      <Link
-        href={`/category/${category.slug}`}
-        className={cn(itemLinkClass, className)}
-      >
-        {category.name}
-      </Link>
-    );
-  }
-
   return (
-    <div className={cn("group/nav relative shrink-0", className)}>
+    <div className={cn("group/nav relative shrink-0 py-2", className)}>
       <Link
         href={`/category/${category.slug}`}
-        className={cn(itemLinkClass, "inline-flex items-center py-2")}
-      >
-        {category.name}
-      </Link>
-
-      <div
         className={cn(
-          "invisible absolute left-0 top-full z-50 w-56 pt-2 opacity-0",
-          "transition-[opacity,visibility] duration-200",
-          "group-hover/nav:visible group-hover/nav:opacity-100",
-          "group-focus-within/nav:visible group-focus-within/nav:opacity-100",
+          itemLinkClass,
+          "inline-flex items-center gap-1 py-1 group-hover/nav:text-gold-300",
         )}
       >
-        <div className="rounded-sm border border-brand-800 bg-brand-900 p-2 shadow-2xl">
-          <Link
-            href={`/category/${category.slug}`}
-            className="block rounded-xs px-3 py-2 text-sm text-sand-300 transition-colors hover:bg-brand-800 hover:text-gold-300"
-          >
-            All {category.name}
-          </Link>
-          {category.children.map((child) => (
+        <span>{category.name}</span>
+        {hasSubItems ? (
+          <ChevronDown className="size-3 text-gold-400/80 transition-transform duration-200 group-hover/nav:rotate-180 group-hover/nav:text-gold-300" />
+        ) : null}
+      </Link>
+
+      {hasSubItems ? (
+        <div
+          className={cn(
+            "invisible absolute left-0 top-full z-50 min-w-[200px] pt-1 opacity-0 pointer-events-none",
+            "transition-all duration-200 transform translate-y-1",
+            "group-hover/nav:visible group-hover/nav:opacity-100 group-hover/nav:translate-y-0 group-hover/nav:pointer-events-auto",
+            "group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-focus-within/nav:translate-y-0 group-focus-within/nav:pointer-events-auto",
+          )}
+        >
+          <div className="rounded-md border border-brand-800/90 bg-brand-900/95 p-2 shadow-2xl backdrop-blur-md space-y-0.5">
             <Link
-              key={child.slug}
-              href={`/category/${child.slug}`}
-              className="block rounded-xs px-3 py-2 text-sm text-sand-100 transition-colors hover:bg-brand-800 hover:text-gold-300"
+              href={`/category/${category.slug}`}
+              className="block rounded-xs px-3 py-2 text-xs font-semibold text-gold-300 border-b border-brand-800/60 transition-colors hover:bg-brand-800 hover:text-white"
             >
-              {child.name}
+              All {category.name} →
             </Link>
-          ))}
+            {subItems.map((sub, idx) => (
+              <Link
+                key={idx}
+                href={sub.href}
+                className="block rounded-xs px-3 py-1.5 text-xs text-sand-100 transition-colors hover:bg-brand-800 hover:text-gold-300"
+              >
+                {sub.name}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
