@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronDown, Heart, Search, User } from "lucide-react";
+import { Heart, Search, User } from "lucide-react";
 
 import { CartBadge } from "@/components/storefront/cart-badge";
 import { Logo } from "@/components/storefront/logo";
@@ -150,13 +150,10 @@ function NavItem({
         href={`/category/${category.slug}`}
         className={cn(
           itemLinkClass,
-          "inline-flex items-center gap-1 py-1 group-hover/nav:text-gold-300",
+          "inline-flex items-center py-1 group-hover/nav:text-gold-300",
         )}
       >
-        <span>{category.name}</span>
-        {hasSubItems ? (
-          <ChevronDown className="size-3 text-gold-400/80 transition-transform duration-200 group-hover/nav:rotate-180 group-hover/nav:text-gold-300" />
-        ) : null}
+        {category.name}
       </Link>
 
       {hasSubItems ? (
