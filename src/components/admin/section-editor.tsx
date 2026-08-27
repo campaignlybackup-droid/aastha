@@ -297,7 +297,7 @@ function ProductSourcePicker({
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const set = (patch: Record<string, unknown>) =>
-    onChange({ productIds: currentProductIds, ...value, ...patch });
+    onChange({ ...value, productIds: currentProductIds, ...patch });
 
   const filteredProducts = searchTerm.trim()
     ? products.filter(
@@ -372,11 +372,16 @@ function ProductSourcePicker({
             <span className="text-xs font-semibold text-brand-950">
               {mode === "manual"
                 ? "Hand-picked Products List"
-                : "Hand-picked / Pinned Best Sellers (Optional)"}
+                : "Hand-picked / Pinned Best Sellers"}
             </span>
-            <span className="text-[11px] text-content-subtle">
-              {currentProductIds.length} product(s) selected
-            </span>
+            <a
+              href="/admin/bestsellers"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-brand-900 hover:text-gold-700 underline"
+            >
+              Open Full Best Sellers Manager →
+            </a>
           </div>
 
           <Input
