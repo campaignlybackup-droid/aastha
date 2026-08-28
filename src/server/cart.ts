@@ -13,11 +13,17 @@ import { validateCoupon } from "@/server/coupons";
  *
  * PRICING IS ALWAYS COMPUTED HERE, FROM THE DATABASE.
  *
- * The cart stores only (variant, quantity). Prices, discounts, shipping and
- * tax are recalculated on every read from current product data, so a cart left
- * open for a week cannot lock in last week's price, and a tampered client
- * payload has nothing to tamper with. Checkout re-runs this same function and
- * charges its output — the browser never supplies an amount.
+ * The cart stores only (variant, quantity, optional comboOfferId). Prices,
+ * discounts, shipping and tax are recalculated on every read from current
+ * product data, so a cart left open for a week cannot lock in last week's
+ * price, and a tampered client payload has nothing to tamper with. Checkout
+ * re-runs this same function and charges its output — the browser never
+ * supplies an amount.
+ *
+ * COMBO PRICING: when cart items carry a `comboOfferId`, their unit prices are
+ * proportionally allocated from the combo's `comboPricePaise` rather than from
+ * the individual variant price. This ensures the customer sees and is charged
+ * the combo discount throughout cart → checkout → order.
  *
  * TAX MODEL: displayed prices are GST-INCLUSIVE, which is the norm for Indian
  * jewellery retail. `taxPaise` is therefore the GST component already contained
@@ -47,6 +53,10 @@ export type CartLine = {
   inStock: boolean;
   /** True when the stored quantity exceeds what is available. */
   quantityAdjusted: boolean;
+  /** If this line belongs to a combo, the combo offer id. */
+  comboOfferId: string | null;
+  /** Human-readable combo title, if this line belongs to a combo. */
+  comboTitle: string | null;
 };
 
 export type CartTotals = {
@@ -149,6 +159,14 @@ const cartInclude = {
           image: { select: { secureUrl: true } },
         },
       },
+      comboOffer: {
+        select: {
+          id: true,
+          title: true,
+          comboPricePaise: true,
+          isActive: true,
+        },
+      },
     },
   },
 } satisfies Prisma.CartInclude;
@@ -199,6 +217,73 @@ export async function priceCart(cart: CartWithRelations): Promise<CartView> {
   const lines: CartLine[] = [];
   let hasStockIssues = false;
 
+  // --- Build a lookup of combo price allocations ----------------------------
+  // Group items by comboOfferId and compute proportional price allocation.
+  const comboGroups = new Map<
+    string,
+    {
+      comboTitle: string;
+      comboPricePaise: number;
+      comboActive: boolean;
+      items: typeof cart.items;
+    }
+  >();
+
+  for (const item of cart.items) {
+    if (item.comboOfferId && item.comboOffer) {
+      const existing = comboGroups.get(item.comboOfferId);
+      if (existing) {
+        existing.items.push(item);
+      } else {
+        comboGroups.set(item.comboOfferId, {
+          comboTitle: item.comboOffer.title,
+          comboPricePaise: item.comboOffer.comboPricePaise,
+          comboActive: item.comboOffer.isActive,
+          items: [item],
+        });
+      }
+    }
+  }
+
+  // For each combo group, compute each item's share of the combo price.
+  // Share is proportional to the item's original variant price × quantity.
+  const comboItemPrices = new Map<string, number>(); // itemId → allocated unitPricePaise
+
+  for (const [, group] of comboGroups) {
+    if (!group.comboActive) continue; // Combo deactivated — fall back to individual pricing
+
+    let originalTotal = 0;
+    for (const item of group.items) {
+      originalTotal += item.variant.pricePaise * item.quantity;
+    }
+
+    if (originalTotal <= 0) continue;
+
+    // Distribute combo price proportionally. The last item absorbs rounding.
+    let allocated = 0;
+    for (let i = 0; i < group.items.length; i++) {
+      const item = group.items[i];
+      const itemOriginal = item.variant.pricePaise * item.quantity;
+      const isLast = i === group.items.length - 1;
+
+      let itemShare: number;
+      if (isLast) {
+        itemShare = group.comboPricePaise - allocated;
+      } else {
+        itemShare = Math.round(
+          (itemOriginal / originalTotal) * group.comboPricePaise,
+        );
+      }
+      allocated += itemShare;
+
+      // Store per-unit price (itemShare is for quantity units)
+      const unitPrice = Math.round(itemShare / item.quantity);
+      comboItemPrices.set(item.id, unitPrice);
+    }
+  }
+
+  // --- Build cart lines -----------------------------------------------------
+
   for (const item of cart.items) {
     // Drop lines whose product was archived or variant deactivated. The line
     // simply disappears rather than blocking checkout with an error.
@@ -214,6 +299,16 @@ export async function priceCart(cart: CartWithRelations): Promise<CartView> {
     const quantity = Math.min(item.quantity, available);
     const quantityAdjusted = quantity !== item.quantity;
     if (quantityAdjusted) hasStockIssues = true;
+
+    // Use combo-allocated price if available, otherwise variant price.
+    const comboUnitPrice = comboItemPrices.get(item.id);
+    const unitPricePaise = comboUnitPrice ?? item.variant.pricePaise;
+
+    // Determine combo info
+    const comboGroup = item.comboOfferId
+      ? comboGroups.get(item.comboOfferId)
+      : null;
+    const comboIsActive = comboGroup?.comboActive ?? false;
 
     // Keep zero-stock lines visible so the customer understands why the total
     // changed, rather than silently deleting the thing they wanted.
@@ -232,12 +327,18 @@ export async function priceCart(cart: CartWithRelations): Promise<CartView> {
         null,
       quantity,
       availableQuantity: item.variant.trackInventory ? available : 99,
-      unitPricePaise: item.variant.pricePaise,
+      unitPricePaise,
       unitMrpPaise: item.variant.mrpPaise,
-      lineTotalPaise: item.variant.pricePaise * quantity,
+      lineTotalPaise: unitPricePaise * quantity,
       taxPercent: item.product.taxPercent,
       inStock: available > 0,
       quantityAdjusted,
+      comboOfferId:
+        item.comboOfferId && comboIsActive ? item.comboOfferId : null,
+      comboTitle:
+        item.comboOfferId && comboIsActive
+          ? (comboGroup?.comboTitle ?? null)
+          : null,
     });
   }
 

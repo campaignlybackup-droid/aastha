@@ -168,17 +168,30 @@ export async function addToCart(input: {
 
   const cartId = await getOrCreateCart();
 
+  // Non-combo items use comboOfferId = null in the unique constraint.
   const existing = await db.cartItem.findUnique({
-    where: { cartId_variantId: { cartId, variantId: variant.id } },
+    where: {
+      cartId_variantId_comboOfferId: {
+        cartId,
+        variantId: variant.id,
+        comboOfferId: "",
+      },
+    },
+    select: { id: true, quantity: true },
+  }).catch(() => null);
+
+  // Fallback: also check for rows with null comboOfferId directly
+  const existingItem = existing ?? await db.cartItem.findFirst({
+    where: { cartId, variantId: variant.id, comboOfferId: null },
     select: { id: true, quantity: true },
   });
 
-  const desired = (existing?.quantity ?? 0) + parsed.data.quantity;
+  const desired = (existingItem?.quantity ?? 0) + parsed.data.quantity;
   const quantity = Math.min(desired, available, MAX_QTY_PER_LINE);
 
-  if (existing) {
+  if (existingItem) {
     await db.cartItem.update({
-      where: { id: existing.id },
+      where: { id: existingItem.id },
       data: { quantity },
     });
   } else {
@@ -188,6 +201,7 @@ export async function addToCart(input: {
         productId: variant.productId,
         variantId: variant.id,
         quantity,
+        comboOfferId: null,
       },
     });
   }
@@ -233,6 +247,7 @@ export async function updateCartItemQuantity(input: {
     select: {
       id: true,
       cartId: true,
+      comboOfferId: true,
       variant: {
         select: {
           trackInventory: true,
@@ -246,10 +261,23 @@ export async function updateCartItemQuantity(input: {
   if (!item) return { ok: false, error: "That item is no longer in your bag." };
 
   if (parsed.data.quantity === 0) {
-    await db.cartItem.delete({ where: { id: item.id } });
+    // If this item belongs to a combo, remove all items in that combo group.
+    if (item.comboOfferId) {
+      await db.cartItem.deleteMany({
+        where: { cartId: item.cartId, comboOfferId: item.comboOfferId },
+      });
+    } else {
+      await db.cartItem.delete({ where: { id: item.id } });
+    }
     const cart = await loadCartById(item.cartId);
     revalidatePath("/cart");
     return { ok: true, cart, message: "Removed from your bag." };
+  }
+
+  // Don't allow quantity changes on combo items — combos are fixed bundles.
+  if (item.comboOfferId) {
+    const cart = await loadCartById(item.cartId);
+    return { ok: true, cart, message: "Combo quantities are fixed." };
   }
 
   const available = item.variant.trackInventory
@@ -354,10 +382,37 @@ export async function removeCouponFromCart(): Promise<CartActionResult> {
   return { ok: true, cart: updated, message: "Code removed." };
 }
 
+/**
+ * Add multiple items to cart, optionally as a combo bundle.
+ *
+ * When `comboOfferId` is provided, all items are tagged with that combo id
+ * so the cart pricing engine can apply the combo's discounted price instead
+ * of individual variant prices.
+ */
 export async function addMultipleToCartAction(
   items: Array<{ productId: string; variantId?: string; quantity: number }>,
+  comboOfferId?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   try {
+    const cartId = await getOrCreateCart();
+
+    // If this is a combo, validate it's still active and remove any previous
+    // instance of the same combo from the cart first (re-add = refresh).
+    if (comboOfferId) {
+      const combo = await db.comboOffer.findUnique({
+        where: { id: comboOfferId },
+        select: { id: true, isActive: true },
+      });
+      if (!combo || !combo.isActive) {
+        return { ok: false, error: "This combo offer is no longer available." };
+      }
+
+      // Remove any existing items from this combo in the cart
+      await db.cartItem.deleteMany({
+        where: { cartId, comboOfferId },
+      });
+    }
+
     for (const item of items) {
       let variantId = item.variantId;
       if (!variantId) {
@@ -369,11 +424,73 @@ export async function addMultipleToCartAction(
         if (!firstVariant) continue;
         variantId = firstVariant.id;
       }
-      await addToCart({ variantId, quantity: item.quantity });
+
+      // Validate stock
+      const variant = await db.productVariant.findUnique({
+        where: { id: variantId },
+        select: {
+          id: true,
+          productId: true,
+          isActive: true,
+          trackInventory: true,
+          stockQuantity: true,
+          reservedQuantity: true,
+        },
+      });
+      if (!variant || !variant.isActive) continue;
+
+      const available = variant.trackInventory
+        ? Math.max(0, variant.stockQuantity - variant.reservedQuantity)
+        : MAX_QTY_PER_LINE;
+      if (available <= 0) continue;
+
+      const quantity = Math.min(item.quantity, available, MAX_QTY_PER_LINE);
+
+      await db.cartItem.create({
+        data: {
+          cartId,
+          productId: variant.productId,
+          variantId: variant.id,
+          quantity,
+          comboOfferId: comboOfferId ?? null,
+        },
+      });
     }
+
+    await db.cart.update({
+      where: { id: cartId },
+      data: { expiresAt: cartExpiry() },
+    });
+
     revalidatePath("/cart");
     return { ok: true };
   } catch (error) {
+    console.error("[cart] addMultipleToCartAction failed", error);
     return { ok: false, error: "Could not add items to cart." };
   }
+}
+
+/**
+ * Remove an entire combo group from the cart.
+ */
+export async function removeComboFromCart(
+  comboOfferId: string,
+): Promise<CartActionResult> {
+  const token = await readCartToken();
+  if (!token) return { ok: false, error: "Your bag is empty." };
+
+  const cart = await db.cart.findUnique({
+    where: { token },
+    select: { id: true },
+  });
+  if (!cart) return { ok: false, error: "Your bag is empty." };
+
+  await db.cartItem.deleteMany({
+    where: { cartId: cart.id, comboOfferId },
+  });
+
+  const updated = await loadCartById(cart.id);
+  revalidatePath("/cart");
+
+  return { ok: true, cart: updated, message: "Combo removed from your bag." };
 }

@@ -18,14 +18,14 @@ export function ComboCard({ combo }: { combo: ComboOfferDetail }) {
 
   const handleAddCombo = () => {
     startTransition(async () => {
-      // Add all bundled items to cart
+      // Add all bundled items to cart, tagged with the combo offer id
       const itemsToAdd = combo.items.map((item) => ({
         productId: item.productId,
         variantId: item.variantId ?? undefined,
         quantity: item.quantity,
       }));
 
-      const res = await addMultipleToCartAction(itemsToAdd);
+      const res = await addMultipleToCartAction(itemsToAdd, combo.id);
       if (res.ok) {
         setAdded(true);
         setTimeout(() => setAdded(false), 2500);

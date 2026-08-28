@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingBag, Tag, Trash2, X } from "lucide-react";
+import { Minus, Package, Plus, ShoppingBag, Sparkles, Tag, Trash2, X } from "lucide-react";
 
 import { MediaImage } from "@/components/ui/media-image";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,12 @@ import { Alert, Badge, EmptyState } from "@/components/ui/primitives";
 import {
   applyCouponToCart,
   removeCouponFromCart,
+  removeComboFromCart,
   updateCartItemQuantity,
 } from "@/server/actions/cart";
 import { formatPrice } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import type { CartView as CartViewData } from "@/server/cart";
+import type { CartView as CartViewData, CartLine } from "@/server/cart";
 
 /**
  * The cart.
@@ -82,6 +83,9 @@ export function CartView({ initialCart }: { initialCart: CartViewData }) {
     );
   }
 
+  // Group lines: combo items grouped together, non-combo items standalone.
+  const { comboGroups, standaloneLines } = groupCartLines(cart.lines);
+
   const { totals } = cart;
 
   return (
@@ -96,124 +100,23 @@ export function CartView({ initialCart }: { initialCart: CartViewData }) {
         ) : null}
 
         <ul className="divide-y divide-line border-y border-line">
-          {cart.lines.map((line) => (
+          {/* Combo groups */}
+          {comboGroups.map((group) => (
+            <li key={group.comboOfferId} className="py-5">
+              <ComboGroupBlock
+                group={group}
+                pending={pending}
+                onRemove={() =>
+                  run(() => removeComboFromCart(group.comboOfferId))
+                }
+              />
+            </li>
+          ))}
+
+          {/* Standalone (non-combo) lines */}
+          {standaloneLines.map((line) => (
             <li key={line.itemId} className="flex gap-4 py-5">
-              <Link
-                href={`/product/${line.slug}`}
-                className="relative size-24 shrink-0 overflow-hidden bg-sand-100 sm:size-28"
-              >
-                {line.imageUrl ? (
-                  <MediaImage
-                    src={line.imageUrl}
-                    alt={line.name}
-                    fill
-                    sizes="112px"
-                    className="object-cover"
-                  />
-                ) : null}
-              </Link>
-
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/product/${line.slug}`}
-                      className="text-sm leading-snug hover:text-[var(--color-accent)]"
-                    >
-                      {line.name}
-                    </Link>
-                    {Object.keys(line.variantOptions).length ? (
-                      <p className="mt-0.5 text-xs text-content-muted">
-                        {Object.entries(line.variantOptions)
-                          .map(([key, value]) => `${key}: ${value}`)
-                          .join(" · ")}
-                      </p>
-                    ) : line.variantTitle !== "Standard" ? (
-                      <p className="mt-0.5 text-xs text-content-muted">
-                        {line.variantTitle}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      run(() =>
-                        updateCartItemQuantity({
-                          itemId: line.itemId,
-                          quantity: 0,
-                        }),
-                      )
-                    }
-                    disabled={pending}
-                    aria-label={`Remove ${line.name} from bag`}
-                    className="shrink-0 p-1 text-content-subtle transition-colors hover:text-danger-700 disabled:opacity-40"
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                  </button>
-                </div>
-
-                {!line.inStock ? (
-                  <Badge variant="danger">Out of stock</Badge>
-                ) : line.availableQuantity <= 3 ? (
-                  <Badge variant="warning">
-                    Only {line.availableQuantity} left
-                  </Badge>
-                ) : null}
-
-                <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2">
-                  <div className="inline-flex items-center rounded-sm border border-line-strong">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        run(() =>
-                          updateCartItemQuantity({
-                            itemId: line.itemId,
-                            quantity: line.quantity - 1,
-                          }),
-                        )
-                      }
-                      disabled={pending}
-                      aria-label="Decrease quantity"
-                      className="inline-flex size-9 items-center justify-center transition-colors hover:text-[var(--color-accent)] disabled:opacity-40"
-                    >
-                      <Minus className="size-3.5" aria-hidden="true" />
-                    </button>
-                    <span className="w-8 text-center text-sm tabular-nums">
-                      {line.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        run(() =>
-                          updateCartItemQuantity({
-                            itemId: line.itemId,
-                            quantity: line.quantity + 1,
-                          }),
-                        )
-                      }
-                      disabled={
-                        pending || line.quantity >= line.availableQuantity
-                      }
-                      aria-label="Increase quantity"
-                      className="inline-flex size-9 items-center justify-center transition-colors hover:text-[var(--color-accent)] disabled:opacity-40"
-                    >
-                      <Plus className="size-3.5" aria-hidden="true" />
-                    </button>
-                  </div>
-
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {formatPrice(line.lineTotalPaise)}
-                    </p>
-                    {line.quantity > 1 ? (
-                      <p className="text-xs text-content-subtle">
-                        {formatPrice(line.unitPricePaise)} each
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
+              <StandaloneLine line={line} pending={pending} run={run} />
             </li>
           ))}
         </ul>
@@ -296,6 +199,290 @@ export function CartView({ initialCart }: { initialCart: CartViewData }) {
         </div>
       </aside>
     </div>
+  );
+}
+
+/* -----------------------------------------------------------------------------
+ * Helpers to group cart lines by combo
+ * -------------------------------------------------------------------------- */
+
+type ComboGroup = {
+  comboOfferId: string;
+  comboTitle: string;
+  lines: CartLine[];
+  comboTotalPaise: number;
+  originalTotalPaise: number;
+};
+
+function groupCartLines(lines: CartLine[]) {
+  const comboMap = new Map<string, ComboGroup>();
+  const standaloneLines: CartLine[] = [];
+
+  for (const line of lines) {
+    if (line.comboOfferId && line.comboTitle) {
+      const existing = comboMap.get(line.comboOfferId);
+      if (existing) {
+        existing.lines.push(line);
+        existing.comboTotalPaise += line.lineTotalPaise;
+        existing.originalTotalPaise += line.unitMrpPaise * line.quantity;
+      } else {
+        comboMap.set(line.comboOfferId, {
+          comboOfferId: line.comboOfferId,
+          comboTitle: line.comboTitle,
+          lines: [line],
+          comboTotalPaise: line.lineTotalPaise,
+          originalTotalPaise: line.unitMrpPaise * line.quantity,
+        });
+      }
+    } else {
+      standaloneLines.push(line);
+    }
+  }
+
+  return {
+    comboGroups: Array.from(comboMap.values()),
+    standaloneLines,
+  };
+}
+
+/* -----------------------------------------------------------------------------
+ * Combo group visual block
+ * -------------------------------------------------------------------------- */
+
+function ComboGroupBlock({
+  group,
+  pending,
+  onRemove,
+}: {
+  group: ComboGroup;
+  pending: boolean;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="rounded-md border border-gold-300/60 bg-gold-50/30 p-4 space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Sparkles className="size-4 text-gold-600 shrink-0" />
+          <span className="font-display text-sm font-semibold text-brand-950 truncate">
+            {group.comboTitle}
+          </span>
+          <Badge variant="accent" className="bg-brand-900 text-white text-[10px] py-0.5 shrink-0">
+            Combo
+          </Badge>
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={pending}
+          aria-label={`Remove combo ${group.comboTitle} from bag`}
+          className="shrink-0 p-1 text-content-subtle transition-colors hover:text-danger-700 disabled:opacity-40"
+        >
+          <Trash2 className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* Items in the combo */}
+      <div className="divide-y divide-line/60">
+        {group.lines.map((line) => (
+          <div key={line.itemId} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
+            <Link
+              href={`/product/${line.slug}`}
+              className="relative size-16 shrink-0 overflow-hidden rounded-sm bg-sand-100"
+            >
+              {line.imageUrl ? (
+                <MediaImage
+                  src={line.imageUrl}
+                  alt={line.name}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              ) : null}
+            </Link>
+
+            <div className="flex min-w-0 flex-1 justify-between gap-2">
+              <div className="min-w-0">
+                <Link
+                  href={`/product/${line.slug}`}
+                  className="text-xs leading-snug hover:text-[var(--color-accent)]"
+                >
+                  {line.name}
+                </Link>
+                {Object.keys(line.variantOptions).length ? (
+                  <p className="mt-0.5 text-[11px] text-content-muted">
+                    {Object.entries(line.variantOptions)
+                      .map(([key, value]) => `${key}: ${value}`)
+                      .join(" · ")}
+                  </p>
+                ) : line.variantTitle !== "Standard" ? (
+                  <p className="mt-0.5 text-[11px] text-content-muted">
+                    {line.variantTitle}
+                  </p>
+                ) : null}
+                {line.quantity > 1 ? (
+                  <p className="text-[11px] text-content-muted">
+                    Qty: {line.quantity}
+                  </p>
+                ) : null}
+              </div>
+
+              <p className="shrink-0 text-xs text-content-muted">
+                {formatPrice(line.lineTotalPaise)}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Combo total */}
+      <div className="flex items-baseline justify-between border-t border-gold-300/40 pt-2.5">
+        <span className="text-xs font-medium text-content-muted">
+          Combo price
+        </span>
+        <span className="text-sm font-semibold text-brand-950">
+          {formatPrice(group.comboTotalPaise)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* -----------------------------------------------------------------------------
+ * Standalone (non-combo) line item
+ * -------------------------------------------------------------------------- */
+
+function StandaloneLine({
+  line,
+  pending,
+  run,
+}: {
+  line: CartLine;
+  pending: boolean;
+  run: (action: () => Promise<
+    | { ok: true; cart: CartViewData; message?: string }
+    | { ok: false; error: string }
+  >) => void;
+}) {
+  return (
+    <>
+      <Link
+        href={`/product/${line.slug}`}
+        className="relative size-24 shrink-0 overflow-hidden bg-sand-100 sm:size-28"
+      >
+        {line.imageUrl ? (
+          <MediaImage
+            src={line.imageUrl}
+            alt={line.name}
+            fill
+            sizes="112px"
+            className="object-cover"
+          />
+        ) : null}
+      </Link>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Link
+              href={`/product/${line.slug}`}
+              className="text-sm leading-snug hover:text-[var(--color-accent)]"
+            >
+              {line.name}
+            </Link>
+            {Object.keys(line.variantOptions).length ? (
+              <p className="mt-0.5 text-xs text-content-muted">
+                {Object.entries(line.variantOptions)
+                  .map(([key, value]) => `${key}: ${value}`)
+                  .join(" · ")}
+              </p>
+            ) : line.variantTitle !== "Standard" ? (
+              <p className="mt-0.5 text-xs text-content-muted">
+                {line.variantTitle}
+              </p>
+            ) : null}
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              run(() =>
+                updateCartItemQuantity({
+                  itemId: line.itemId,
+                  quantity: 0,
+                }),
+              )
+            }
+            disabled={pending}
+            aria-label={`Remove ${line.name} from bag`}
+            className="shrink-0 p-1 text-content-subtle transition-colors hover:text-danger-700 disabled:opacity-40"
+          >
+            <Trash2 className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        {!line.inStock ? (
+          <Badge variant="danger">Out of stock</Badge>
+        ) : line.availableQuantity <= 3 ? (
+          <Badge variant="warning">
+            Only {line.availableQuantity} left
+          </Badge>
+        ) : null}
+
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div className="inline-flex items-center rounded-sm border border-line-strong">
+            <button
+              type="button"
+              onClick={() =>
+                run(() =>
+                  updateCartItemQuantity({
+                    itemId: line.itemId,
+                    quantity: line.quantity - 1,
+                  }),
+                )
+              }
+              disabled={pending}
+              aria-label="Decrease quantity"
+              className="inline-flex size-9 items-center justify-center transition-colors hover:text-[var(--color-accent)] disabled:opacity-40"
+            >
+              <Minus className="size-3.5" aria-hidden="true" />
+            </button>
+            <span className="w-8 text-center text-sm tabular-nums">
+              {line.quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                run(() =>
+                  updateCartItemQuantity({
+                    itemId: line.itemId,
+                    quantity: line.quantity + 1,
+                  }),
+                )
+              }
+              disabled={
+                pending || line.quantity >= line.availableQuantity
+              }
+              aria-label="Increase quantity"
+              className="inline-flex size-9 items-center justify-center transition-colors hover:text-[var(--color-accent)] disabled:opacity-40"
+            >
+              <Plus className="size-3.5" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="text-right">
+            <p className="text-sm font-medium">
+              {formatPrice(line.lineTotalPaise)}
+            </p>
+            {line.quantity > 1 ? (
+              <p className="text-xs text-content-subtle">
+                {formatPrice(line.unitPricePaise)} each
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

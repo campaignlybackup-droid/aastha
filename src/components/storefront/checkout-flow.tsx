@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { CheckCircle2, Gift, Lock, Tag } from "lucide-react";
+import { CheckCircle2, Gift, Lock, Package, Tag } from "lucide-react";
 
 import {
   AddressBook,
@@ -398,35 +398,99 @@ export function CheckoutFlow({
               Review your order
             </h2>
             <ul className="divide-y divide-line border-y border-line">
-              {cart.lines.map((line) => (
-                <li key={line.itemId} className="flex gap-4 py-4">
-                  <div className="relative size-16 shrink-0 overflow-hidden bg-sand-100">
-                    {line.imageUrl ? (
-                      <MediaImage
-                        src={line.imageUrl}
-                        alt=""
-                        fill
-                        sizes="64px"
-                        className="object-cover"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="flex min-w-0 flex-1 justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium">{line.name}</p>
-                      <p className="mt-0.5 text-xs text-content-muted">
-                        {Object.entries(line.variantOptions)
-                          .map(([k, v]) => `${k}: ${v}`)
-                          .join(" · ") || line.variantTitle}
-                        {" · "}Qty {line.quantity}
-                      </p>
-                    </div>
-                    <p className="shrink-0 text-sm font-medium">
-                      {formatPrice(line.lineTotalPaise)}
-                    </p>
-                  </div>
-                </li>
-              ))}
+              {(() => {
+                // Group combo items together for display
+                const comboGroups = new Map<string, { title: string; lines: typeof cart.lines; totalPaise: number }>();
+                const standaloneLines: typeof cart.lines = [];
+
+                for (const line of cart.lines) {
+                  if (line.comboOfferId && line.comboTitle) {
+                    const existing = comboGroups.get(line.comboOfferId);
+                    if (existing) {
+                      existing.lines.push(line);
+                      existing.totalPaise += line.lineTotalPaise;
+                    } else {
+                      comboGroups.set(line.comboOfferId, {
+                        title: line.comboTitle,
+                        lines: [line],
+                        totalPaise: line.lineTotalPaise,
+                      });
+                    }
+                  } else {
+                    standaloneLines.push(line);
+                  }
+                }
+
+                return (
+                  <>
+                    {Array.from(comboGroups.entries()).map(([comboId, group]) => (
+                      <li key={comboId} className="py-4">
+                        <div className="rounded-md border border-gold-300/60 bg-gold-50/30 p-3 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold text-brand-950 flex items-center gap-1.5">
+                              <Package className="size-3.5 text-gold-600" />
+                              {group.title}
+                            </span>
+                            <span className="text-sm font-semibold text-brand-950">
+                              {formatPrice(group.totalPaise)}
+                            </span>
+                          </div>
+                          {group.lines.map((line) => (
+                            <div key={line.itemId} className="flex gap-3">
+                              <div className="relative size-12 shrink-0 overflow-hidden rounded-sm bg-sand-100">
+                                {line.imageUrl ? (
+                                  <MediaImage
+                                    src={line.imageUrl}
+                                    alt=""
+                                    fill
+                                    sizes="48px"
+                                    className="object-cover"
+                                  />
+                                ) : null}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs">{line.name}</p>
+                                <p className="text-[11px] text-content-muted">
+                                  Qty {line.quantity}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </li>
+                    ))}
+                    {standaloneLines.map((line) => (
+                      <li key={line.itemId} className="flex gap-4 py-4">
+                        <div className="relative size-16 shrink-0 overflow-hidden bg-sand-100">
+                          {line.imageUrl ? (
+                            <MediaImage
+                              src={line.imageUrl}
+                              alt=""
+                              fill
+                              sizes="64px"
+                              className="object-cover"
+                            />
+                          ) : null}
+                        </div>
+                        <div className="flex min-w-0 flex-1 justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">{line.name}</p>
+                            <p className="mt-0.5 text-xs text-content-muted">
+                              {Object.entries(line.variantOptions)
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(" · ") || line.variantTitle}
+                              {" · "}Qty {line.quantity}
+                            </p>
+                          </div>
+                          <p className="shrink-0 text-sm font-medium">
+                            {formatPrice(line.lineTotalPaise)}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </>
+                );
+              })()}
             </ul>
           </section>
         </div>

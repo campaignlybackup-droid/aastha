@@ -32,7 +32,7 @@ export function ProductComboBanner({
         quantity: item.quantity,
       }));
 
-      const res = await addMultipleToCartAction(itemsToAdd);
+      const res = await addMultipleToCartAction(itemsToAdd, combo.id);
       if (res.ok) {
         setAddedComboId(combo.id);
         setTimeout(() => setAddedComboId(null), 2500);

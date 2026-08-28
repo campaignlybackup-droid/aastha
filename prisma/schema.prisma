@@ -363,18 +363,20 @@ model Cart {
 }
 
 model CartItem {
-  id        String         @id @default(cuid())
-  cartId    String
-  productId String
-  variantId String
-  quantity  Int            @default(1)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  id           String         @id @default(cuid())
+  cartId       String
+  productId    String
+  variantId    String
+  quantity     Int            @default(1)
+  comboOfferId String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  cart         Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product      Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant      ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  comboOffer   ComboOffer?    @relation(fields: [comboOfferId], references: [id], onDelete: SetNull)
 
-  @@unique([cartId, variantId])
+  @@unique([cartId, variantId, comboOfferId])
   @@index([cartId])
   @@map("cart_items")
 }
@@ -923,6 +925,7 @@ model ComboOffer {
 
   image           Media?      @relation("ComboImage", fields: [imageId], references: [id])
   items           ComboItem[]
+  cartItems       CartItem[]
 
   @@index([isActive, position])
   @@map("combo_offers")
