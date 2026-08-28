@@ -169,10 +169,7 @@ export function CheckoutFlow({
     }
 
     if (created.paymentUnavailable || !created.razorpay) {
-      setError(
-        "Online payment isn't switched on yet. Your order has been recorded — we'll contact you on WhatsApp to complete it.",
-      );
-      setStatus("idle");
+      router.push(`/order/${created.orderId}`);
       return;
     }
 

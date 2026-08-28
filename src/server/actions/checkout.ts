@@ -191,7 +191,7 @@ export async function verifyCheckoutPayment(input: {
 
   const order = await db.order.findFirst({
     where: { id: input.orderId, userId: user.id },
-    select: { id: true, orderNumber: true, totalPaise: true, status: true },
+    select: { id: true, orderNumber: true, totalPaise: true, internalNote: true, status: true },
   });
   if (!order) return { ok: false, error: "Order not found." };
 
@@ -214,11 +214,14 @@ export async function verifyCheckoutPayment(input: {
     };
   }
 
+  const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+  const expectedAmountPaise = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
+
   const result = await confirmOrder({
     orderId: order.id,
     providerPaymentId: input.razorpayPaymentId,
     providerOrderId: input.razorpayOrderId,
-    amountPaise: order.totalPaise,
+    amountPaise: expectedAmountPaise,
   });
 
   if (!result.ok) return { ok: false, error: result.error };
