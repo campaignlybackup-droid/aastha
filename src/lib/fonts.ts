@@ -1,25 +1,25 @@
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 
 /**
- * Both faces are self-hosted by next/font at build time, so there is no
- * render-blocking request to fonts.googleapis.com and no layout shift from a
- * late-arriving webfont.
+ * Premium typography suite for Aastha Silver & Jewels:
+ * - Plus Jakarta Sans: Modern luxury sans-serif for UI, body, FAQs, cards & controls.
+ * - Playfair Display: Refined high-contrast serif for editorial headlines & brand titles.
  */
 
-export const cormorant = Cormorant_Garamond({
+export const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
-  variable: "--font-cormorant",
+  variable: "--font-playfair",
   display: "swap",
-  // Metric-matched fallback so the swap does not reflow headings.
   adjustFontFallback: true,
 });
 
-export const inter = Inter({
+export const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-jakarta",
   display: "swap",
 });
 
-export const fontVariables = `${cormorant.variable} ${inter.variable}`;
+export const fontVariables = `${playfair.variable} ${jakarta.variable}`;

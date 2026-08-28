@@ -152,7 +152,7 @@ export function SectionHeading({
           {eyebrow}
         </span>
       ) : null}
-      <Heading className="text-display-sm md:text-display-md">{title}</Heading>
+      <Heading className="font-display text-display-sm md:text-display-md">{title}</Heading>
       {description ? (
         <p
           className={cn(

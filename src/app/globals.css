@@ -76,13 +76,11 @@
   --color-info-700: #295a78;
 
   /* --- Typography -------------------------------------------------------- */
-  /* Cormorant Garamond: high-contrast old-style serif for display copy.
-     Inter: workhorse UI face, chosen for small-size legibility on the low-end
-     Android devices that dominate Indian mobile traffic. */
-  --font-display: var(--font-cormorant), "Cormorant Garamond", "Times New Roman",
-    serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
+  /* Playfair Display: refined luxury serif for editorial title copy.
+     Plus Jakarta Sans: modern workhorse UI face for FAQs, cards, body & controls. */
+  --font-display: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui,
+    -apple-system, sans-serif;
 
   /* Editorial display scale — larger jumps than the UI scale, tighter leading. */
   --text-display-sm: 1.75rem;
@@ -259,8 +257,8 @@
   }
 
   h1, h2, h3, h4 {
-    font-family: var(--font-display);
-    font-weight: 400;
+    font-family: var(--font-sans);
+    font-weight: 600;
     letter-spacing: -0.01em;
     text-wrap: balance;
   }

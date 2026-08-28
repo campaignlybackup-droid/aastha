@@ -24,7 +24,7 @@ export default async function CombosPage() {
   }
 
   return (
-    <div className="py-8 md:py-12">
+    <div className="py-8 md:py-12 font-sans">
       <div className="u-container">
         <PageHeader
           eyebrow="Exclusive Bundles & Sets"
@@ -33,33 +33,39 @@ export default async function CombosPage() {
         />
 
         {/* Feature Badges */}
-        <div className="my-8 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3">
-          <div className="flex items-center gap-2.5 rounded-md border border-line p-3 text-xs bg-surface-sunken/40">
-            <Sparkles className="size-4 text-gold-600 shrink-0" />
+        <div className="my-8 grid grid-cols-1 gap-3 sm:grid-cols-3 font-sans">
+          <div className="flex items-center gap-3 rounded-lg border border-gold-200/80 bg-gold-50/40 p-3.5 text-xs text-brand-950 font-medium shadow-2xs">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gold-200 text-gold-900">
+              <Sparkles className="size-3.5" />
+            </span>
             <span>Extra Savings on Bundles</span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-md border border-line p-3 text-xs bg-surface-sunken/40">
-            <Truck className="size-4 text-gold-600 shrink-0" />
+          <div className="flex items-center gap-3 rounded-lg border border-gold-200/80 bg-gold-50/40 p-3.5 text-xs text-brand-950 font-medium shadow-2xs">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gold-200 text-gold-900">
+              <Truck className="size-3.5" />
+            </span>
             <span>Free Shipping Across India</span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-md border border-line p-3 text-xs bg-surface-sunken/40 col-span-2 sm:col-span-1">
-            <ShieldCheck className="size-4 text-gold-600 shrink-0" />
+          <div className="flex items-center gap-3 rounded-lg border border-gold-200/80 bg-gold-50/40 p-3.5 text-xs text-brand-950 font-medium shadow-2xs">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gold-200 text-gold-900">
+              <ShieldCheck className="size-3.5" />
+            </span>
             <span>100% Hallmarked 925 Silver</span>
           </div>
         </div>
 
         {/* Combos Grid */}
         {combos.length === 0 ? (
-          <div className="my-12 rounded-lg border border-dashed border-line p-12 text-center space-y-3">
+          <div className="my-12 rounded-xl border border-dashed border-line/80 bg-surface p-12 text-center space-y-3 font-sans">
             <Package className="mx-auto size-10 text-content-subtle" />
-            <h2 className="font-display text-xl">No active combo offers right now</h2>
+            <h2 className="font-sans text-xl font-semibold text-brand-950">No active combo offers right now</h2>
             <p className="mx-auto max-w-sm text-sm text-content-muted">
               Check back soon for new silver jewellery bundles, or explore our full catalogue.
             </p>
             <div className="pt-3">
               <Link
                 href="/shop"
-                className="inline-flex items-center justify-center rounded-sm bg-brand-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-950 uppercase tracking-wider"
+                className="inline-flex items-center justify-center rounded-md bg-brand-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-950 uppercase tracking-wider font-sans"
               >
                 Browse All Jewellery
               </Link>

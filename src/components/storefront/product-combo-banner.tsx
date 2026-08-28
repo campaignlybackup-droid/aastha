@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, Flame, Sparkles, ShoppingBag } from "lucide-react";
+import { Check, Flame, Sparkles, ShoppingBag, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
@@ -41,19 +41,22 @@ export function ProductComboBanner({
   };
 
   return (
-    <div className="space-y-4 my-8 rounded-lg border border-gold-500/40 bg-gold-50/40 p-5 shadow-xs">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gold-300/40 pb-3">
+    <div className="my-8 rounded-xl border border-gold-300/80 bg-gradient-to-br from-gold-50/60 via-sand-50/50 to-gold-50/30 p-5 shadow-xs font-sans">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gold-300/40 pb-3.5 mb-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-gold-600 shrink-0" />
-          <h3 className="font-display text-base font-semibold text-brand-950">
-            Frequently Bought Together — Combo Offer Available!
+          <span className="flex size-6 items-center justify-center rounded-full bg-gold-200 text-gold-900">
+            <Sparkles className="size-3.5" />
+          </span>
+          <h3 className="font-sans text-sm md:text-base font-semibold text-brand-950">
+            Frequently Bought Together — Combo Savings!
           </h3>
         </div>
         <Link
           href="/combos"
-          className="text-xs font-semibold text-brand-900 underline underline-offset-4 hover:text-gold-700"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-brand-900 underline underline-offset-4 hover:text-gold-700"
         >
-          View all combo offers →
+          <span>All Combos</span>
+          <ArrowRight className="size-3" />
         </Link>
       </div>
 
@@ -65,7 +68,7 @@ export function ProductComboBanner({
         return (
           <div
             key={combo.id}
-            className="flex flex-col gap-4 rounded-md border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-4 rounded-lg border border-line/80 bg-surface p-4 shadow-2xs sm:flex-row sm:items-center sm:justify-between transition-all hover:border-gold-400"
           >
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
               {/* Product preview thumbnails */}
@@ -103,19 +106,19 @@ export function ProductComboBanner({
               </div>
 
               {/* Info & Timer */}
-              <div className="space-y-1 min-w-0">
+              <div className="space-y-1 min-w-0 font-sans">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="font-medium text-sm text-brand-950">{combo.title}</h4>
+                  <h4 className="font-semibold text-sm text-brand-950">{combo.title}</h4>
                   {combo.savingsPaise > 0 ? (
-                    <Badge variant="accent" className="bg-brand-900 text-white text-[10px] py-0.5">
+                    <span className="rounded bg-brand-950 px-2 py-0.5 text-[11px] font-semibold text-gold-300">
                       Save {formatPrice(combo.savingsPaise)} ({combo.savingsPercent}% OFF)
-                    </Badge>
+                    </span>
                   ) : null}
                 </div>
 
-                <p className="text-xs text-content-muted">
-                  Includes this item +{" "}
-                  <span className="font-semibold text-content">
+                <p className="text-xs text-content-muted leading-snug">
+                  Includes this piece +{" "}
+                  <span className="font-medium text-brand-900">
                     {otherItems.map((i) => i.productName).join(", ")}
                   </span>
                 </p>
@@ -124,7 +127,7 @@ export function ProductComboBanner({
                   {combo.endsAt ? <ComboTimer endsAt={combo.endsAt} variant="compact" /> : null}
                   {!soldOut && combo.availableStock <= 8 ? (
                     <span className="flex items-center gap-1 text-[11px] font-medium text-amber-800">
-                      <Flame className="size-3 text-amber-600" />
+                      <Flame className="size-3 text-amber-600 animate-pulse" />
                       Only {combo.availableStock} left
                     </span>
                   ) : null}
@@ -133,8 +136,8 @@ export function ProductComboBanner({
             </div>
 
             {/* Price & Action Button */}
-            <div className="flex flex-row items-center justify-between sm:flex-col sm:items-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line/60">
-              <div className="text-left sm:text-right">
+            <div className="flex flex-row items-center justify-between sm:flex-col sm:items-end gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-line/60">
+              <div className="text-left sm:text-right font-sans">
                 <div className="text-base font-bold text-brand-950">
                   {formatPrice(combo.comboPricePaise)}
                 </div>
@@ -150,7 +153,7 @@ export function ProductComboBanner({
                 size="sm"
                 onClick={() => handleAddCombo(combo)}
                 disabled={pending || soldOut}
-                className="bg-brand-900 hover:bg-brand-950 text-white text-xs px-4"
+                className="bg-brand-900 hover:bg-brand-950 text-white font-sans text-xs px-4 h-9 font-medium"
               >
                 {isAdded ? (
                   <>
