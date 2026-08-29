@@ -204,13 +204,13 @@ function IgChatCard({ review }: { review: IgReview }) {
   const chatSnippet = review.chatSnippet || "Loved the quality and 925 sterling silver finish! ✨";
 
   return (
-    <div className="w-[260px] sm:w-[310px] h-[340px] sm:h-[400px] shrink-0 rounded-2xl border border-gold-300/70 bg-surface shadow-md overflow-hidden font-sans pointer-events-none transition-all duration-300 relative group/card">
+    <div className="w-[250px] sm:w-[290px] h-[215px] sm:h-[235px] shrink-0 rounded-2xl border border-gold-300/70 bg-surface shadow-md overflow-hidden font-sans pointer-events-none transition-all duration-300 relative group/card">
       {imageSrc && !imgError ? (
         <Image
           src={imageSrc}
           alt="Instagram review screenshot"
           fill
-          sizes="(max-width: 640px) 260px, 310px"
+          sizes="(max-width: 640px) 250px, 290px"
           className="object-cover object-top transition-transform duration-500 group-hover/card:scale-[1.02]"
           onError={() => setImgError(true)}
         />
