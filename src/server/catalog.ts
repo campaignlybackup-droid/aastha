@@ -5,6 +5,7 @@ import { cache } from "react";
 import { db } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
 import type { Gender } from "@/generated/prisma/enums";
+import { DEFAULT_IG_REVIEWS } from "@/components/storefront/instagram-reviews-section";
 
 /**
  * Read-side catalogue queries.
@@ -750,7 +751,7 @@ const SETTING_DEFAULTS: SettingMap = {
     eyebrow: "Instagram DM Reviews",
     title: "Loved by 2,000+ Silver Enthusiasts",
     description: "Direct messages and order love from our Instagram family across India.",
-    items: [],
+    items: DEFAULT_IG_REVIEWS,
   },
 };
 

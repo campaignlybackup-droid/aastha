@@ -31,7 +31,7 @@ export type IgReview = {
   timeAgo?: string;
 };
 
-const IG_REVIEWS: IgReview[] = [
+export const DEFAULT_IG_REVIEWS: IgReview[] = [
   {
     id: "ig-1",
     imageSrc: "/reviews/ig-chat-1.jpg",
@@ -105,6 +105,8 @@ const IG_REVIEWS: IgReview[] = [
     timeAgo: "6d ago",
   },
 ];
+
+const IG_REVIEWS = DEFAULT_IG_REVIEWS;
 
 export function InstagramReviewsSection({
   eyebrow = "Instagram DM Reviews",

@@ -18,6 +18,7 @@ import { Alert } from "@/components/ui/primitives";
 import { MediaImage } from "@/components/ui/media-image";
 import { adminSaveSetting } from "@/server/actions/admin";
 import type { InstagramReviewsSettings } from "@/server/catalog";
+import { DEFAULT_IG_REVIEWS } from "@/components/storefront/instagram-reviews-section";
 
 type MediaOption = { id: string; secureUrl: string; filename: string | null };
 
@@ -46,42 +47,18 @@ export function InstagramReviewsManager({
       "Direct messages and order love from our Instagram family across India."
   );
 
+  const rawItems =
+    initial?.items && initial.items.length > 0 ? initial.items : DEFAULT_IG_REVIEWS;
+
   const [items, setItems] = React.useState<
     Array<{ id: string; imageSrc: string; chatSnippet: string; timeAgo: string }>
   >(
-    initial?.items && initial.items.length > 0
-      ? initial.items.map((item, idx) => ({
-          id: item.id || `ig-item-${idx}-${Date.now()}`,
-          imageSrc: item.imageSrc || "",
-          chatSnippet: item.chatSnippet || "",
-          timeAgo: item.timeAgo || "1d ago",
-        }))
-      : [
-          {
-            id: "ig-1",
-            imageSrc: "/reviews/ig-chat-1.jpg",
-            chatSnippet: "Hey! Received my Rukmini Temple Jhumkas today. Quality is stunning!",
-            timeAgo: "2h ago",
-          },
-          {
-            id: "ig-2",
-            imageSrc: "/reviews/ig-chat-2.jpg",
-            chatSnippet: "The Figaro chain shine in real life is unbelievable. Loved the gift packaging!",
-            timeAgo: "5h ago",
-          },
-          {
-            id: "ig-3",
-            imageSrc: "/reviews/ig-chat-3.jpg",
-            chatSnippet: "Got the combo offer rings set! Fits perfectly and silver certificate was included.",
-            timeAgo: "1d ago",
-          },
-          {
-            id: "ig-4",
-            imageSrc: "/reviews/ig-chat-4.jpg",
-            chatSnippet: "Super fast dispatch! Delivered to Delhi in just 2 days. The studs are light and comfortable.",
-            timeAgo: "1d ago",
-          },
-        ]
+    rawItems.map((item, idx) => ({
+      id: item.id || `ig-item-${idx}-${Date.now()}`,
+      imageSrc: item.imageSrc || "",
+      chatSnippet: item.chatSnippet || "",
+      timeAgo: item.timeAgo || "1d ago",
+    }))
   );
 
   const addItem = () => {
