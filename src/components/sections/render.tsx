@@ -18,6 +18,7 @@ import {
   TrustBadgesSection,
   VideoHeroSection,
 } from "@/components/sections/blocks";
+import { InstagramReviewsSection } from "@/components/storefront/instagram-reviews-section";
 import { db } from "@/lib/db";
 import type { ParsedSection, SectionSettings } from "@/lib/cms/sections";
 import {
@@ -180,23 +181,26 @@ export async function RenderSection({ section }: { section: ParsedSection }) {
       });
 
       return (
-        <ReviewsSection
-          eyebrow={section.settings.eyebrow || undefined}
-          title={section.settings.title}
-          description={section.settings.description || undefined}
-          reviews={reviews.map((r) => ({
-            id: r.id,
-            rating: r.rating,
-            title: r.title,
-            body: r.body,
-            // Reviewers are shown by first name only — a full name plus a
-            // purchase history is more personal data than a homepage needs.
-            authorName: r.user.name?.split(" ")[0] ?? "Verified customer",
-            isVerified: r.isVerified,
-            productName: r.product.name,
-            productSlug: r.product.slug,
-          }))}
-        />
+        <>
+          <InstagramReviewsSection />
+          {reviews.length > 0 && (
+            <ReviewsSection
+              eyebrow={section.settings.eyebrow || undefined}
+              title={section.settings.title}
+              description={section.settings.description || undefined}
+              reviews={reviews.map((r) => ({
+                id: r.id,
+                rating: r.rating,
+                title: r.title,
+                body: r.body,
+                authorName: r.user.name?.split(" ")[0] ?? "Verified customer",
+                isVerified: r.isVerified,
+                productName: r.product.name,
+                productSlug: r.product.slug,
+              }))}
+            />
+          )}
+        </>
       );
     }
 

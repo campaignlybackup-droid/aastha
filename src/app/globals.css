@@ -175,6 +175,29 @@
   from { height: var(--radix-accordion-content-height); }
   to { height: 0; }
 }
+@keyframes marquee-left {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee-left {
+  display: flex;
+  width: max-content;
+  animation: marquee-left 38s linear infinite;
+}
+.animate-marquee-right {
+  display: flex;
+  width: max-content;
+  animation: marquee-right 38s linear infinite;
+}
+.group\/marquee:hover .animate-marquee-left,
+.group\/marquee:hover .animate-marquee-right {
+  animation-play-state: paused;
+}
 
 /* -----------------------------------------------------------------------------
    Semantic layer
