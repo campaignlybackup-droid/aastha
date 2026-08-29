@@ -31,6 +31,7 @@ import {
   getProductsByCategory,
   getProductsByCollection,
   getProductsByIds,
+  getSetting,
   type ProductCardData,
 } from "@/server/catalog";
 
@@ -162,45 +163,26 @@ export async function RenderSection({ section }: { section: ParsedSection }) {
       return <TestimonialsSection settings={section.settings} />;
 
     case "REVIEWS": {
-      const reviews = await db.review.findMany({
-        where: {
-          status: "APPROVED",
-          ...(section.settings.onlyFeatured ? { isFeatured: true } : {}),
-        },
-        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-        take: section.settings.limit,
-        select: {
-          id: true,
-          rating: true,
-          title: true,
-          body: true,
-          isVerified: true,
-          user: { select: { name: true } },
-          product: { select: { name: true, slug: true } },
-        },
-      });
+      const globalIgSettings = await getSetting("instagram_reviews").catch(() => null);
+
+      const items =
+        section.settings.items && section.settings.items.length > 0
+          ? section.settings.items
+          : globalIgSettings?.items && globalIgSettings.items.length > 0
+          ? globalIgSettings.items
+          : undefined;
+
+      const title = section.settings.title || globalIgSettings?.title;
+      const description = section.settings.description || globalIgSettings?.description;
+      const eyebrow = section.settings.eyebrow || globalIgSettings?.eyebrow;
 
       return (
-        <>
-          <InstagramReviewsSection />
-          {reviews.length > 0 && (
-            <ReviewsSection
-              eyebrow={section.settings.eyebrow || undefined}
-              title={section.settings.title}
-              description={section.settings.description || undefined}
-              reviews={reviews.map((r) => ({
-                id: r.id,
-                rating: r.rating,
-                title: r.title,
-                body: r.body,
-                authorName: r.user.name?.split(" ")[0] ?? "Verified customer",
-                isVerified: r.isVerified,
-                productName: r.product.name,
-                productSlug: r.product.slug,
-              }))}
-            />
-          )}
-        </>
+        <InstagramReviewsSection
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
+          items={items}
+        />
       );
     }
 

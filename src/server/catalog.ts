@@ -695,6 +695,18 @@ export type ComboSettings = {
   enabled: boolean;
 };
 
+export type InstagramReviewsSettings = {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  items?: Array<{
+    id?: string;
+    imageSrc?: string;
+    chatSnippet?: string;
+    timeAgo?: string;
+  }>;
+};
+
 type SettingMap = {
   contact: ContactSettings;
   shipping: ShippingSettings;
@@ -703,6 +715,7 @@ type SettingMap = {
   brand: BrandSettings;
   bestsellers: BestSellersSettings;
   combos: ComboSettings;
+  instagram_reviews: InstagramReviewsSettings;
 };
 
 // Annotated with SettingMap rather than `satisfies` on each entry: `satisfies`
@@ -733,6 +746,12 @@ const SETTING_DEFAULTS: SettingMap = {
   },
   bestsellers: { productIds: [] },
   combos: { enabled: true },
+  instagram_reviews: {
+    eyebrow: "Instagram DM Reviews",
+    title: "Loved by 2,000+ Silver Enthusiasts",
+    description: "Direct messages and order love from our Instagram family across India.",
+    items: [],
+  },
 };
 
 /**

@@ -266,8 +266,41 @@ export const SECTION_FORMS: Partial<Record<SectionType, SectionFormSpec>> = {
       { path: "eyebrow", label: "Small label", kind: "text" },
       { path: "title", label: "Heading", kind: "text" },
       { path: "description", label: "Supporting line", kind: "textarea" },
-      { path: "limit", label: "How many to show", kind: "number", min: 2, max: 12 },
-      { path: "onlyFeatured", label: "Only featured reviews", kind: "boolean" },
+    ],
+    repeaters: [
+      {
+        path: "items",
+        label: "Instagram Review Cards / Screenshots",
+        itemLabel: "Instagram Screenshot Card",
+        titlePath: "chatSnippet",
+        min: 0,
+        max: 24,
+        fields: [
+          {
+            path: "imageSrc",
+            label: "Screenshot Image",
+            kind: "image",
+            help: "Choose an image from Media Library or paste an image URL.",
+          },
+          {
+            path: "chatSnippet",
+            label: "Chat Message / Caption",
+            kind: "textarea",
+            help: "Shown as fallback text if image fails to load or is empty.",
+          },
+          {
+            path: "timeAgo",
+            label: "Time Badge",
+            kind: "text",
+            placeholder: "e.g. 2h ago, 1d ago",
+          },
+        ],
+        blank: {
+          imageSrc: "",
+          chatSnippet: "Loved the silver quality! Pure 925 sterling silver.",
+          timeAgo: "1d ago",
+        },
+      },
     ],
   },
 

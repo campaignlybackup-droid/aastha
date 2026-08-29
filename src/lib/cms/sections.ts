@@ -187,12 +187,22 @@ export const sectionSchemas = {
   }),
 
   REVIEWS: z.object({
-    eyebrow: z.string().max(60).default(""),
-    title: z.string().max(120),
-    description: z.string().max(240).default(""),
-    /** Pulls approved, featured reviews from the database. */
-    limit: z.number().int().min(2).max(12).default(6),
-    onlyFeatured: z.boolean().default(true),
+    eyebrow: z.string().max(60).default("Instagram DM Reviews"),
+    title: z.string().max(120).default("Loved by 2,000+ Silver Enthusiasts"),
+    description: z
+      .string()
+      .max(240)
+      .default("Direct messages and order love from our Instagram family across India."),
+    items: z
+      .array(
+        z.object({
+          imageSrc: z.string().default(""),
+          chatSnippet: z.string().max(500).default(""),
+          timeAgo: z.string().max(40).default("1d ago"),
+        }),
+      )
+      .optional()
+      .default([]),
   }),
 
   FAQ: z.object({

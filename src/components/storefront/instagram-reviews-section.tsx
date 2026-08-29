@@ -25,10 +25,10 @@ function InstagramIcon({ className = "size-4" }: { className?: string }) {
 }
 
 export type IgReview = {
-  id: string;
-  imageSrc: string;
-  chatSnippet: string;
-  timeAgo: string;
+  id?: string;
+  imageSrc?: string;
+  chatSnippet?: string;
+  timeAgo?: string;
 };
 
 const IG_REVIEWS: IgReview[] = [
@@ -106,25 +106,50 @@ const IG_REVIEWS: IgReview[] = [
   },
 ];
 
-export function InstagramReviewsSection() {
+export function InstagramReviewsSection({
+  eyebrow = "Instagram DM Reviews",
+  title = "Loved by 2,000+ Silver Enthusiasts",
+  description = "Direct messages and order love from our Instagram family across India.",
+  items,
+}: {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  items?: IgReview[];
+}) {
+  const activeItems = items && items.length > 0 ? items : IG_REVIEWS;
+
   // Split items into 2 rows for dual-track marquee
-  const row1 = IG_REVIEWS.slice(0, 6);
-  const row2 = IG_REVIEWS.slice(6, 12);
+  const mid = Math.ceil(activeItems.length / 2);
+  let row1 = activeItems.slice(0, mid);
+  let row2 = activeItems.slice(mid);
+
+  if (row2.length === 0) row2 = row1;
+
+  // Ensure rows have enough items for seamless scrolling marquee loop (at least 6 per row)
+  while (row1.length > 0 && row1.length < 6) {
+    row1 = [...row1, ...row1];
+  }
+  while (row2.length > 0 && row2.length < 6) {
+    row2 = [...row2, ...row2];
+  }
 
   return (
     <section className="py-14 md:py-20 bg-gradient-to-b from-sand-50/90 via-gold-50/20 to-sand-50/90 border-y border-line/70 overflow-hidden select-none pointer-events-none">
       <div className="u-container mb-8 md:mb-12 text-center pointer-events-auto">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-gold-300/80 bg-gold-50/60 px-3.5 py-1 text-xs font-semibold text-gold-900 tracking-wide uppercase font-sans mb-3">
           <InstagramIcon className="size-3.5 text-pink-600 shrink-0" />
-          <span>Instagram DM Reviews</span>
+          <span>{eyebrow}</span>
         </div>
 
         <h2 className="font-display text-2xl md:text-4xl text-brand-950 font-normal tracking-tight">
-          Loved by 2,000+ Silver Enthusiasts
+          {title}
         </h2>
-        <p className="text-sm text-content-muted mt-2 max-w-xl mx-auto font-sans">
-          Direct messages and order love from our Instagram family across India.
-        </p>
+        {description ? (
+          <p className="text-sm text-content-muted mt-2 max-w-xl mx-auto font-sans">
+            {description}
+          </p>
+        ) : null}
       </div>
 
       {/* Dual Track Marquee Showcase (100% Non-Clickable) */}
@@ -173,6 +198,9 @@ export function InstagramReviewsSection() {
 
 function IgChatCard({ review }: { review: IgReview }) {
   const [imgError, setImgError] = React.useState(false);
+  const imageSrc = review.imageSrc?.trim();
+  const timeAgo = review.timeAgo || "Verified";
+  const chatSnippet = review.chatSnippet || "Loved the quality and 925 sterling silver finish! ✨";
 
   return (
     <div className="w-[250px] sm:w-[290px] shrink-0 rounded-2xl border border-gold-300/70 bg-surface shadow-md overflow-hidden font-sans pointer-events-none transition-transform duration-300">
@@ -192,7 +220,7 @@ function IgChatCard({ review }: { review: IgReview }) {
               <CheckCircle2 className="size-3 text-sky-500 fill-sky-500 text-white shrink-0" />
             </div>
             <span className="text-[10px] text-content-subtle">
-              Verified Order • {review.timeAgo}
+              Verified Order • {timeAgo}
             </span>
           </div>
         </div>
@@ -204,10 +232,10 @@ function IgChatCard({ review }: { review: IgReview }) {
 
       {/* Screenshot / Chat Container */}
       <div className="relative min-h-[160px] sm:min-h-[180px] bg-sand-100/50 p-3.5 flex flex-col justify-between">
-        {!imgError ? (
+        {imageSrc && !imgError ? (
           <div className="relative w-full h-[160px] sm:h-[180px] rounded-lg overflow-hidden">
             <Image
-              src={review.imageSrc}
+              src={imageSrc}
               alt="Instagram chat review"
               fill
               sizes="300px"
@@ -217,14 +245,14 @@ function IgChatCard({ review }: { review: IgReview }) {
           </div>
         ) : (
           /* Realistic Instagram DM Screenshot Layout Fallback */
-          <div className="flex flex-col gap-2.5 h-full justify-between">
+          <div className="flex flex-col gap-2.5 h-full justify-between min-h-[150px]">
             {/* Incoming DM Bubble */}
             <div className="flex items-start gap-2 max-w-[88%]">
               <div className="size-6 shrink-0 rounded-full bg-gradient-to-tr from-rose-400 to-purple-500 text-white flex items-center justify-center text-[10px] font-bold">
                 IG
               </div>
               <div className="rounded-2xl rounded-tl-xs bg-surface border border-line/80 p-3 text-xs text-brand-950 leading-relaxed shadow-2xs">
-                {review.chatSnippet}
+                {chatSnippet}
               </div>
             </div>
 
