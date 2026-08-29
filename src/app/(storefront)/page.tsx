@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { RenderSection } from "@/components/sections/render";
 import { TrustedCustomersBanner } from "@/components/storefront/trusted-customers-banner";
-import { InstagramReviewsSection } from "@/components/storefront/instagram-reviews-section";
 import { getHomepage } from "@/server/homepage";
 import { getSetting } from "@/server/catalog";
 import { publicEnv } from "@/lib/env";
@@ -92,8 +91,6 @@ export default async function HomePage() {
             }
             return <RenderSection key={section.id} section={section} />;
           })}
-
-          <InstagramReviewsSection />
         </>
       )}
     </>
