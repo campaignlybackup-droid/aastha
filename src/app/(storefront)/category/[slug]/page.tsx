@@ -6,6 +6,7 @@ import { ActiveFilterChips } from "@/components/storefront/filters";
 import { PageHeader } from "@/components/storefront/page-header";
 import { ProductListing } from "@/components/storefront/product-listing";
 import { JsonLd, breadcrumbJsonLd } from "@/lib/seo/json-ld";
+import { RingSizeGuidePage } from "@/components/storefront/ring-size-guide";
 import { getCategoryBySlug } from "@/server/catalog";
 import { db } from "@/lib/db";
 import type { RawSearchParams } from "@/lib/search-params";
@@ -32,6 +33,14 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
+    if (slug.toLowerCase() === "measure-ring-size" || slug.toLowerCase() === "ring-size-guide") {
+      return {
+        title: "Ring Size Guide & Measurement Chart — Aastha Silver & Jewels",
+        description: "Find your perfect 925 sterling silver ring fit with our Indian & US ring size charts and step-by-step measurement guide.",
+        alternates: { canonical: `/category/${slug}` },
+      };
+    }
+
     const category = await getCategoryBySlug(slug);
     if (!category) return { title: "Category not found" };
 
@@ -58,6 +67,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
+
+  const normalizedSlug = slug.toLowerCase();
+
+  if (normalizedSlug === "measure-ring-size" || normalizedSlug === "ring-size-guide") {
+    const category = await getCategoryBySlug(slug).catch(() => null);
+    return (
+      <RingSizeGuidePage
+        categoryName={category?.name || "Measure Ring Size"}
+        categoryDescription={category?.description}
+      />
+    );
+  }
 
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();

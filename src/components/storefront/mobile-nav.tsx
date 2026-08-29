@@ -37,6 +37,7 @@ const fallbackSubMap: Record<string, Array<{ name: string; href: string }>> = {
     { name: "Solitaire Rings", href: "/category/rings?style=solitaire" },
     { name: "Statement Rings", href: "/category/rings?style=statement" },
     { name: "Adjustable Rings", href: "/category/rings?style=adjustable" },
+    { name: "Measure Ring Size", href: "/category/measure-ring-size" },
   ],
   chains: [
     { name: "Figaro Chains", href: "/category/chains?style=figaro" },
