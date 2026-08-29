@@ -201,76 +201,51 @@ export function InstagramReviewsSection({
 function IgChatCard({ review }: { review: IgReview }) {
   const [imgError, setImgError] = React.useState(false);
   const imageSrc = review.imageSrc?.trim();
-  const timeAgo = review.timeAgo || "Verified";
   const chatSnippet = review.chatSnippet || "Loved the quality and 925 sterling silver finish! ✨";
 
   return (
-    <div className="w-[250px] sm:w-[290px] shrink-0 rounded-2xl border border-gold-300/70 bg-surface shadow-md overflow-hidden font-sans pointer-events-none transition-transform duration-300">
-      {/* Phone DM Header Bar */}
-      <div className="flex items-center justify-between border-b border-line/60 bg-sand-50/90 px-3.5 py-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-[1.5px]">
-            <div className="flex size-full items-center justify-center rounded-full bg-surface">
-              <InstagramIcon className="size-3.5 text-rose-600" />
+    <div className="w-[260px] sm:w-[310px] h-[340px] sm:h-[400px] shrink-0 rounded-2xl border border-gold-300/70 bg-surface shadow-md overflow-hidden font-sans pointer-events-none transition-all duration-300 relative group/card">
+      {imageSrc && !imgError ? (
+        <Image
+          src={imageSrc}
+          alt="Instagram review screenshot"
+          fill
+          sizes="(max-width: 640px) 260px, 310px"
+          className="object-cover object-top transition-transform duration-500 group-hover/card:scale-[1.02]"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        /* Realistic Instagram DM Screenshot Layout Fallback when image is absent or errors */
+        <div className="flex flex-col justify-between h-full p-4 bg-sand-50/90">
+          <div className="flex items-center gap-2 border-b border-line/60 pb-3">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-[1.5px]">
+              <div className="flex size-full items-center justify-center rounded-full bg-surface">
+                <InstagramIcon className="size-3.5 text-rose-600" />
+              </div>
+            </div>
+            <span className="font-semibold text-xs text-brand-950">Instagram DM</span>
+          </div>
+
+          <div className="flex items-start gap-2 my-auto">
+            <div className="size-6 shrink-0 rounded-full bg-gradient-to-tr from-rose-400 to-purple-500 text-white flex items-center justify-center text-[10px] font-bold">
+              IG
+            </div>
+            <div className="rounded-2xl rounded-tl-xs bg-surface border border-line/80 p-3 text-xs text-brand-950 leading-relaxed shadow-2xs">
+              {chatSnippet}
             </div>
           </div>
-          <div className="min-w-0 leading-tight">
-            <div className="flex items-center gap-1">
-              <span className="font-semibold text-xs text-brand-950 truncate">
-                Instagram DM
-              </span>
-              <CheckCircle2 className="size-3 text-sky-500 fill-sky-500 text-white shrink-0" />
+
+          <div className="flex flex-col items-end self-end max-w-[85%]">
+            <div className="rounded-2xl rounded-tr-xs bg-brand-900 text-white p-2.5 text-[11px] leading-snug shadow-2xs">
+              Thank you so much! We're thrilled you loved your jewellery ✨
             </div>
-            <span className="text-[10px] text-content-subtle">
-              Verified Order • {timeAgo}
-            </span>
+            <div className="flex items-center gap-1 text-[9px] text-content-subtle mt-1">
+              <span>Seen</span>
+              <Heart className="size-2.5 text-rose-500 fill-rose-500" />
+            </div>
           </div>
         </div>
-
-        <span className="rounded-full bg-gold-100/90 px-2 py-0.5 text-[10px] font-semibold text-gold-900 border border-gold-300/50">
-          Verified
-        </span>
-      </div>
-
-      {/* Screenshot / Chat Container */}
-      <div className="relative min-h-[160px] sm:min-h-[180px] bg-sand-100/50 p-3.5 flex flex-col justify-between">
-        {imageSrc && !imgError ? (
-          <div className="relative w-full h-[160px] sm:h-[180px] rounded-lg overflow-hidden">
-            <Image
-              src={imageSrc}
-              alt="Instagram chat review"
-              fill
-              sizes="300px"
-              className="object-cover"
-              onError={() => setImgError(true)}
-            />
-          </div>
-        ) : (
-          /* Realistic Instagram DM Screenshot Layout Fallback */
-          <div className="flex flex-col gap-2.5 h-full justify-between min-h-[150px]">
-            {/* Incoming DM Bubble */}
-            <div className="flex items-start gap-2 max-w-[88%]">
-              <div className="size-6 shrink-0 rounded-full bg-gradient-to-tr from-rose-400 to-purple-500 text-white flex items-center justify-center text-[10px] font-bold">
-                IG
-              </div>
-              <div className="rounded-2xl rounded-tl-xs bg-surface border border-line/80 p-3 text-xs text-brand-950 leading-relaxed shadow-2xs">
-                {chatSnippet}
-              </div>
-            </div>
-
-            {/* Outgoing Aastha Jewels Store Reply */}
-            <div className="flex flex-col items-end self-end max-w-[85%]">
-              <div className="rounded-2xl rounded-tr-xs bg-brand-900 text-white p-2.5 text-[11px] leading-snug shadow-2xs">
-                Thank you so much! We're thrilled you loved your jewellery ✨
-              </div>
-              <div className="flex items-center gap-1 text-[9px] text-content-subtle mt-0.5 pr-1">
-                <span>Seen</span>
-                <Heart className="size-2.5 text-rose-500 fill-rose-500" />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
