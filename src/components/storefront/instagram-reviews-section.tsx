@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { CheckCircle2, Heart, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { CheckCircle2, Heart, ShieldCheck, Sparkles } from "lucide-react";
 
 /** Custom SVG Instagram Icon */
 function InstagramIcon({ className = "size-4" }: { className?: string }) {
@@ -24,116 +24,85 @@ function InstagramIcon({ className = "size-4" }: { className?: string }) {
   );
 }
 
-/**
- * 15 Curated Instagram Chat Reviews Data
- * Drop your screenshots into `/public/reviews/ig-chat-1.jpg` through `ig-chat-15.jpg`.
- * Until uploaded, realistic IG chat card fallbacks display automatically!
- */
 export type IgReview = {
   id: string;
   imageSrc: string;
-  sender: string;
   chatSnippet: string;
   timeAgo: string;
-  productBought?: string;
 };
 
 const IG_REVIEWS: IgReview[] = [
   {
     id: "ig-1",
     imageSrc: "/reviews/ig-chat-1.jpg",
-    sender: "@priya_sharma",
     chatSnippet: "Hey! Received my Rukmini Temple Jhumkas today. Quality is stunning and the 925 stamp is genuine! Thank you ❤️",
     timeAgo: "2h ago",
-    productBought: "Temple Jhumka Earrings",
   },
   {
     id: "ig-2",
     imageSrc: "/reviews/ig-chat-2.jpg",
-    sender: "@ananya.m",
     chatSnippet: "The Figaro chain shine in real life is unbelievable. Loved the gift packaging too! Will order again soon ✨",
     timeAgo: "5h ago",
-    productBought: "Classic Figaro Chain",
   },
   {
     id: "ig-3",
     imageSrc: "/reviews/ig-chat-3.jpg",
-    sender: "@meera_v",
     chatSnippet: "Got the combo offer rings set! Fits perfectly and silver purity certificate was included in box 👍",
     timeAgo: "1d ago",
-    productBought: "Silver Stackable Rings Combo",
   },
   {
     id: "ig-4",
     imageSrc: "/reviews/ig-chat-4.jpg",
-    sender: "@pooja_designer",
     chatSnippet: "Super fast dispatch! Delivered to Delhi in just 2 days. The studs are so light and comfortable for daily wear.",
     timeAgo: "1d ago",
-    productBought: "Ira Zircon Studs",
   },
   {
     id: "ig-5",
     imageSrc: "/reviews/ig-chat-5.jpg",
-    sender: "@neha_kapoor21",
     chatSnippet: "Everyone in my family loved the bridal silver payal set! Genuine 925 quality, 100% satisfied customer ❤️",
     timeAgo: "2d ago",
-    productBought: "Bridal Silver Payal",
   },
   {
     id: "ig-6",
     imageSrc: "/reviews/ig-chat-6.jpg",
-    sender: "@rohit_k",
     chatSnippet: "Bought the silver combo for my wife's birthday. She was thrilled! Premium finish and prompt WhatsApp support.",
     timeAgo: "2d ago",
-    productBought: "Royal Solitaire Gift Combo",
   },
   {
     id: "ig-7",
     imageSrc: "/reviews/ig-chat-7.jpg",
-    sender: "@sneha_bliss",
     chatSnippet: "The shine hasn't faded at all even after weeks of continuous wear. Absolutely worth every rupee!",
     timeAgo: "3d ago",
-    productBought: "Minimalist Silver Band",
   },
   {
     id: "ig-8",
     imageSrc: "/reviews/ig-chat-8.jpg",
-    sender: "@divya_b",
     chatSnippet: "Packaging was super secure and luxury feeling. The hallmark card gave me complete peace of mind.",
     timeAgo: "3d ago",
-    productBought: "Floral Zircon Pendant",
   },
   {
     id: "ig-9",
     imageSrc: "/reviews/ig-chat-9.jpg",
-    sender: "@simran_khatri",
     chatSnippet: "Best online silver shopping experience! The combo offer saved me ₹1,200. Will recommend to all my friends!",
     timeAgo: "4d ago",
-    productBought: "Earrings & Chain Combo",
   },
   {
     id: "ig-10",
     imageSrc: "/reviews/ig-chat-10.jpg",
-    sender: "@tanvi_fashion",
     chatSnippet: "Thank you for the quick replacement when I chose wrong size! Exceptional customer service Aastha Silver team 🙏",
     timeAgo: "4d ago",
-    productBought: "Adjustable Silver Ring",
   },
   {
     id: "ig-11",
     imageSrc: "/reviews/ig-chat-11.jpg",
-    sender: "@kriti_s",
     chatSnippet: "Loved the craftsmanship! The detailing on the oxidized silver bracelet is pure perfection.",
     timeAgo: "5d ago",
-    productBought: "Oxidized Silver Bracelet",
   },
   {
     id: "ig-12",
     imageSrc: "/reviews/ig-chat-12.jpg",
-    sender: "@aashi_m",
     chatSnippet: "Received my order today! The packaging box looks so luxurious and the silver piece is sparkling!",
     timeAgo: "6d ago",
-    productBought: "Chandelier Drops",
   },
 ];
 
@@ -147,11 +116,11 @@ export function InstagramReviewsSection() {
       <div className="u-container mb-8 md:mb-12 text-center pointer-events-auto">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-gold-300/80 bg-gold-50/60 px-3.5 py-1 text-xs font-semibold text-gold-900 tracking-wide uppercase font-sans mb-3">
           <InstagramIcon className="size-3.5 text-pink-600 shrink-0" />
-          <span>Real Customer Feedback • DM Reviews</span>
+          <span>Instagram DM Reviews</span>
         </div>
 
         <h2 className="font-display text-2xl md:text-4xl text-brand-950 font-normal tracking-tight">
-          Loved by 10,000+ Silver Enthusiasts
+          Loved by 2,000+ Silver Enthusiasts
         </h2>
         <p className="text-sm text-content-muted mt-2 max-w-xl mx-auto font-sans">
           Direct messages and order love from our Instagram family across India.
@@ -184,7 +153,7 @@ export function InstagramReviewsSection() {
         <div className="inline-flex flex-wrap items-center justify-center gap-6 rounded-xl border border-line/70 bg-surface/80 px-6 py-3 text-xs text-content-muted font-sans shadow-2xs">
           <span className="flex items-center gap-1.5 font-medium text-brand-950">
             <ShieldCheck className="size-4 text-gold-600" />
-            100% Verified Buyer Screenshots
+            Verified Buyer Screenshots
           </span>
           <span className="hidden sm:inline text-line">•</span>
           <span className="flex items-center gap-1.5 font-medium text-brand-950">
@@ -218,12 +187,12 @@ function IgChatCard({ review }: { review: IgReview }) {
           <div className="min-w-0 leading-tight">
             <div className="flex items-center gap-1">
               <span className="font-semibold text-xs text-brand-950 truncate">
-                {review.sender}
+                Instagram DM
               </span>
               <CheckCircle2 className="size-3 text-sky-500 fill-sky-500 text-white shrink-0" />
             </div>
             <span className="text-[10px] text-content-subtle">
-              Instagram DM • {review.timeAgo}
+              Verified Order • {review.timeAgo}
             </span>
           </div>
         </div>
@@ -239,7 +208,7 @@ function IgChatCard({ review }: { review: IgReview }) {
           <div className="relative w-full h-[160px] sm:h-[180px] rounded-lg overflow-hidden">
             <Image
               src={review.imageSrc}
-              alt={`Instagram review from ${review.sender}`}
+              alt="Instagram chat review"
               fill
               sizes="300px"
               className="object-cover"
@@ -252,7 +221,7 @@ function IgChatCard({ review }: { review: IgReview }) {
             {/* Incoming DM Bubble */}
             <div className="flex items-start gap-2 max-w-[88%]">
               <div className="size-6 shrink-0 rounded-full bg-gradient-to-tr from-rose-400 to-purple-500 text-white flex items-center justify-center text-[10px] font-bold">
-                {review.sender.slice(1, 2).toUpperCase()}
+                IG
               </div>
               <div className="rounded-2xl rounded-tl-xs bg-surface border border-line/80 p-3 text-xs text-brand-950 leading-relaxed shadow-2xs">
                 {review.chatSnippet}
@@ -262,7 +231,7 @@ function IgChatCard({ review }: { review: IgReview }) {
             {/* Outgoing Aastha Jewels Store Reply */}
             <div className="flex flex-col items-end self-end max-w-[85%]">
               <div className="rounded-2xl rounded-tr-xs bg-brand-900 text-white p-2.5 text-[11px] leading-snug shadow-2xs">
-                Thank you so much! We're thrilled you loved your {review.productBought || "jewellery"} ✨
+                Thank you so much! We're thrilled you loved your jewellery ✨
               </div>
               <div className="flex items-center gap-1 text-[9px] text-content-subtle mt-0.5 pr-1">
                 <span>Seen</span>
@@ -272,16 +241,6 @@ function IgChatCard({ review }: { review: IgReview }) {
           </div>
         )}
       </div>
-
-      {/* Footer Tag */}
-      {review.productBought ? (
-        <div className="border-t border-line/60 bg-sand-50/60 px-3.5 py-1.5 text-[10px] text-content-muted flex items-center justify-between">
-          <span className="truncate font-medium text-brand-950">
-            Purchased: {review.productBought}
-          </span>
-          <span className="shrink-0 text-gold-700 font-semibold">925 Silver</span>
-        </div>
-      ) : null}
     </div>
   );
 }
