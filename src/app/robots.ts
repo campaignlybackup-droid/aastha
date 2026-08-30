@@ -25,8 +25,6 @@ export default function robots(): MetadataRoute.Robots {
           "/order/",
           "/login",
           "/api/",
-          // Faceted URLs multiply into near-duplicate pages; the canonical
-          // category page is what should rank.
           "/*?*sort=",
           "/*?*page=",
           "/*?*purity=",
@@ -37,6 +35,11 @@ export default function robots(): MetadataRoute.Robots {
           "/*?*max=",
           "/search",
         ],
+      },
+      {
+        userAgent: ["GPTBot", "ClaudeBot", "PerplexityBot", "Applebot-Extended", "Google-Extended"],
+        allow: ["/", "/llms.txt", "/shop", "/product/", "/category/"],
+        disallow: ["/admin/", "/account/", "/cart", "/checkout", "/api/"],
       },
     ],
     sitemap: `${publicEnv.siteUrl}/sitemap.xml`,
