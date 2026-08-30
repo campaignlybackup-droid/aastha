@@ -31,9 +31,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       ) : null}
 
       {/* --- GA4 --------------------------------------------------------
-          Only loaded directly when GTM is absent. Running both would create
-          two gtag instances and double-count every pageview. */}
-      {ga4MeasurementId && !gtmContainerId ? (
+          Only loaded directly when GTM is absent and tag is not G-QJ90CG4PQM (which is mounted directly in layout head). */}
+      {ga4MeasurementId && ga4MeasurementId !== "G-QJ90CG4PQM" && !gtmContainerId ? (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${ga4MeasurementId}`}

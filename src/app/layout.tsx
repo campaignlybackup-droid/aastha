@@ -38,6 +38,16 @@ export default function RootLayout({
   return (
     <html lang="en-IN" className={fontVariables} suppressHydrationWarning>
       <head>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-QJ90CG4PQM" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-QJ90CG4PQM');`,
+          }}
+        />
         <link rel="icon" type="image/svg+xml" href="/aastha-logo-monogram.svg" />
         <link rel="preload" as="image" href="/banner-poster-mobile.webp" media="(max-width: 767px)" fetchPriority="high" />
         <link rel="preload" as="image" href="/banner-poster.jpg" media="(min-width: 768px)" fetchPriority="high" />

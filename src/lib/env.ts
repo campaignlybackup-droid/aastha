@@ -123,6 +123,6 @@ export const publicEnv = {
   cloudinaryCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "",
   supportWhatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "919116662871",
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
-  ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || "",
+  ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || "G-QJ90CG4PQM",
   gtmContainerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID || "",
 } as const;
