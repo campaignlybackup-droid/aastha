@@ -40,7 +40,7 @@ export default async function StorefrontLayout({
   return (
     <div
       style={campaignThemeStyle(campaign?.theme)}
-      className="flex min-h-dvh flex-col overflow-x-hidden"
+      className="flex min-h-dvh flex-col overflow-x-clip"
       data-campaign={campaign?.slug ?? undefined}
     >
       {/* Keyboard users land here first; the storefront nav is long. */}
