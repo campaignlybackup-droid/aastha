@@ -51,8 +51,11 @@ gtag('config', 'G-QJ90CG4PQM');`,
         <link rel="icon" type="image/svg+xml" href="/aastha-logo-monogram.svg" />
         <link rel="preload" as="image" href="/banner-poster-mobile.webp" media="(max-width: 767px)" fetchPriority="high" />
         <link rel="preload" as="image" href="/banner-poster.jpg" media="(min-width: 768px)" fetchPriority="high" />
+        <link rel="preload" as="video" href="/banner-mobile.mp4" type="video/mp4" media="(max-width: 767px)" fetchPriority="high" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body>
         {/* GTM's noscript iframe must be the first element inside <body>. */}

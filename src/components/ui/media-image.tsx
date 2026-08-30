@@ -43,15 +43,14 @@ export function MediaImage({
       : "/brand/logo-mark-transparent.png";
   const safeSrc = optimizeMediaUrl(rawSrc);
   const isSvg = safeSrc.toLowerCase().endsWith(".svg");
-  const isExternal = safeSrc.startsWith("http://") || safeSrc.startsWith("https://");
 
   const image = (
     <Image
       src={safeSrc}
       alt={alt || "Aastha Silver & Jewels"}
       fill={fill}
-      sizes={fill ? (sizes ?? "100vw") : sizes}
-      unoptimized={isSvg || isExternal}
+      sizes={fill ? (sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw") : sizes}
+      unoptimized={isSvg}
       className={cn(fill && "object-cover", className)}
       {...props}
     />

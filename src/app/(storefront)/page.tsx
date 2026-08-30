@@ -7,6 +7,8 @@ import { getSetting } from "@/server/catalog";
 import { publicEnv } from "@/lib/env";
 import { organizationJsonLd, websiteJsonLd, JsonLd } from "@/lib/seo/json-ld";
 
+import { HeroVideoPlayer } from "@/components/storefront/hero-video-player";
+
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -56,31 +58,7 @@ export default async function HomePage() {
         </div>
       ) : (
         <>
-          <section className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-sand-900">
-            <picture className="absolute inset-0 size-full object-cover pointer-events-none">
-              <source srcSet="/banner-poster-mobile.webp" media="(max-width: 767px)" type="image/webp" />
-              <source srcSet="/banner-poster.jpg" media="(min-width: 768px)" />
-              <img
-                src="/banner-poster-mobile.webp"
-                alt=""
-                aria-hidden="true"
-                className="size-full object-cover"
-              />
-            </picture>
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              aria-hidden="true"
-              className="absolute inset-0 size-full object-cover"
-            >
-              <source src="/banner-final.mp4" type="video/mp4" media="(min-width: 768px)" />
-              <source src="/banner-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
-            </video>
-            <div className="absolute inset-0 bg-sand-950/0 pointer-events-none" aria-hidden="true" />
-          </section>
+          <HeroVideoPlayer />
 
           <TrustedCustomersBanner />
 
