@@ -120,11 +120,11 @@ export function ProductGallery({
         ) : null}
       </div>
 
-      {/* ---------------- Desktop: vertical stack + sticky thumbnail rail ---------------- */}
-      <div className="hidden gap-4 lg:flex items-start">
+      {/* ---------------- Desktop: rail + single main image with zoom ---------------- */}
+      <div className="hidden gap-4 lg:flex">
         {images.length > 1 ? (
           <div
-            className="sticky top-24 flex w-20 shrink-0 flex-col gap-3 self-start max-h-[calc(100vh-7rem)] overflow-y-auto [scrollbar-width:none]"
+            className="flex w-20 shrink-0 flex-col gap-3"
             role="tablist"
             aria-label={`${productName} image thumbnails`}
           >
@@ -134,15 +134,9 @@ export function ProductGallery({
                 type="button"
                 role="tab"
                 aria-selected={index === active}
-                onClick={() => {
-                  setActive(index);
-                  const el = document.getElementById(`product-image-${index}`);
-                  if (el) {
-                    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                  }
-                }}
+                onClick={() => setActive(index)}
                 className={cn(
-                  "relative aspect-[4/5] shrink-0 overflow-hidden border bg-sand-100 transition-colors rounded-xs",
+                  "relative aspect-[4/5] overflow-hidden border bg-sand-100 transition-colors rounded-xs",
                   index === active
                     ? "border-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
                     : "border-transparent hover:border-line-strong",
@@ -161,20 +155,36 @@ export function ProductGallery({
           </div>
         ) : null}
 
-        {/* Vertical Stack of All Product Images */}
-        <div className="flex-1 space-y-6">
-          {images.map((image, index) => (
-            <DesktopZoomImageItem
-              key={image.url + index}
-              image={image}
-              index={index}
-              isPriority={index === 0}
-              onOpenLightbox={() => {
-                setActive(index);
-                setLightboxOpen(true);
+        <div className="relative flex-1">
+          <div
+            className="relative aspect-[4/5] cursor-zoom-in overflow-hidden bg-sand-100 rounded-sm border border-line/40"
+            onPointerEnter={() => setZooming(true)}
+            onPointerLeave={() => setZooming(false)}
+            onPointerMove={onPointerMove}
+            onClick={() => setLightboxOpen(true)}
+          >
+            <MediaImage
+              src={images[active].url}
+              alt={images[active].alt}
+              fill
+              priority
+              sizes="(min-width: 1280px) 45vw, 50vw"
+              className="object-cover transition-transform duration-300 ease-out"
+              style={{
+                transform: zooming ? "scale(1.9)" : "scale(1)",
+                transformOrigin: origin,
               }}
             />
-          ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            aria-label="View full screen"
+            className="absolute bottom-3 right-3 inline-flex size-9 items-center justify-center rounded-sm bg-surface-raised/90 text-content shadow-[var(--shadow-subtle)] transition-colors hover:text-[var(--color-accent)]"
+          >
+            <Expand className="size-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
 

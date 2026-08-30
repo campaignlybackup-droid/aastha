@@ -181,11 +181,11 @@ export default async function ProductPage({ params }: Props) {
       {/* ---------------- Buy box ---------------- */}
       <div className="u-container pb-16">
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-start">
-          <div className="min-w-0">
+          <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
             <ProductGallery images={images} productName={product.name} />
           </div>
 
-          <div className="min-w-0 space-y-7 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto [scrollbar-width:none]">
+          <div className="min-w-0 space-y-7">
             <div className="space-y-3">
               <Link
                 href={`/category/${product.category.slug}`}
