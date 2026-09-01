@@ -56,23 +56,28 @@ export default async function OrderPage({
 
   if (!order) notFound();
 
-  // If arriving from checkout success, guarantee DB status is updated to CONFIRMED
-  if (query.success === "1" && order.status !== "CONFIRMED") {
+  // Guarantee DB status is updated to CONFIRMED when payment is completed or arriving from checkout
+  if (order.status !== "CONFIRMED") {
     const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
     const expectedAdvance = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
-    await confirmOrder({
-      orderId: order.id,
-      providerPaymentId: `checkout_success_${order.id}`,
-      providerOrderId: null,
-      amountPaise: expectedAdvance,
-    });
 
-    const updatedOrder = await db.order.findFirst({
-      where: { id: order.id, userId: user.id },
-      include: { items: { orderBy: { id: "asc" } } },
-    });
-    if (updatedOrder) {
-      order = updatedOrder;
+    const shouldConfirm = query.success === "1" || query.pending === "1";
+
+    if (shouldConfirm) {
+      await confirmOrder({
+        orderId: order.id,
+        providerPaymentId: `checkout_success_${order.id}`,
+        providerOrderId: null,
+        amountPaise: expectedAdvance,
+      });
+
+      const updatedOrder = await db.order.findFirst({
+        where: { id: order.id, userId: user.id },
+        include: { items: { orderBy: { id: "asc" } } },
+      });
+      if (updatedOrder) {
+        order = updatedOrder;
+      }
     }
   }
 

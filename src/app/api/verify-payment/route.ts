@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { confirmOrder } from "@/server/orders";
 
 function safeEqual(a: string, b: string): boolean {
   const bufferA = Buffer.from(a, "utf8");
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return NextResponse.json(
@@ -41,6 +43,29 @@ export async function POST(request: Request) {
         { success: false, error: "Signature mismatch" },
         { status: 400 }
       );
+    }
+
+    // Update database order to CONFIRMED & PAID
+    const targetId = orderId || body.order_id;
+    if (targetId) {
+      const order = await db.order.findUnique({
+        where: { id: targetId },
+        select: { id: true, totalPaise: true, internalNote: true },
+      }).catch(() => null);
+
+      if (order) {
+        const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+        const expectedAdvance = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
+
+        await confirmOrder({
+          orderId: order.id,
+          providerPaymentId: razorpay_payment_id,
+          providerOrderId: razorpay_order_id,
+          amountPaise: expectedAdvance,
+        }).catch((err) => {
+          console.error("[verify-payment] confirmOrder error:", err);
+        });
+      }
     }
 
     return NextResponse.json({
