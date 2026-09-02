@@ -122,7 +122,7 @@ export const publicEnv = {
   razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TSrlBSoTbyjL4f",
   cloudinaryCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "",
   supportWhatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "919116662871",
-  metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
+  metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || "846146745157978",
   ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || "G-QJ90CG4PQM",
   gtmContainerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID || "",
 } as const;
