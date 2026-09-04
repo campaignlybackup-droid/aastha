@@ -17,7 +17,7 @@ import { RouteTracker } from "./route-tracker";
  * during load.
  */
 export function AnalyticsScripts() {
-  const { gtmContainerId, ga4MeasurementId, metaPixelId } = publicEnv;
+  const { ga4MeasurementId, metaPixelId } = publicEnv;
 
   return (
     <>
@@ -25,20 +25,9 @@ export function AnalyticsScripts() {
         <RouteTracker gaId={ga4MeasurementId || "G-QJ90CG4PQM"} />
       </Suspense>
 
-      {/* --- Google Tag Manager ---------------------------------------- */}
-      {gtmContainerId ? (
-        <Script id="gtm" strategy="afterInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmContainerId}');`}
-        </Script>
-      ) : null}
-
       {/* --- GA4 --------------------------------------------------------
           Only loaded directly when GTM is absent. */}
-      {ga4MeasurementId && !gtmContainerId ? (
+      {ga4MeasurementId ? (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${ga4MeasurementId}`}
@@ -81,25 +70,5 @@ fbq('track', 'PageView');`}
         </>
       ) : null}
     </>
-  );
-}
-
-/**
- * The GTM <noscript> iframe. Must be the first thing inside <body>, which is
- * why it is separate from the script block above.
- */
-export function GtmNoScript() {
-  if (!publicEnv.gtmContainerId) return null;
-
-  return (
-    <noscript>
-      <iframe
-        src={`https://www.googletagmanager.com/ns.html?id=${publicEnv.gtmContainerId}`}
-        height="0"
-        width="0"
-        style={{ display: "none", visibility: "hidden" }}
-        title="Google Tag Manager"
-      />
-    </noscript>
   );
 }

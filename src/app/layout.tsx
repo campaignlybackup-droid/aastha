@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 
 import {
   AnalyticsScripts,
-  GtmNoScript,
 } from "@/components/analytics/scripts";
 import { fontVariables } from "@/lib/fonts";
 import { publicEnv } from "@/lib/env";
@@ -50,6 +49,17 @@ export default function RootLayout({
   return (
     <html lang="en-IN" className={fontVariables} suppressHydrationWarning>
       <head>
+        {/* Google Tag Manager */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-PBQX27W8');`
+          }}
+        />
+        {/* End Google Tag Manager */}
 
         {/* Favicon suite */}
         <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -68,8 +78,16 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body>
-        {/* GTM's noscript iframe must be the first element inside <body>. */}
-        <GtmNoScript />
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-PBQX27W8"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          ></iframe>
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
         {children}
         <AnalyticsScripts />
       </body>
