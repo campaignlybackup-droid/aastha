@@ -1,6 +1,8 @@
 import Script from "next/script";
+import { Suspense } from "react";
 
 import { publicEnv } from "@/lib/env";
+import { RouteTracker } from "./route-tracker";
 
 /**
  * Third-party tracking tags.
@@ -10,7 +12,7 @@ import { publicEnv } from "@/lib/env";
  * id is configured — an unconfigured store ships zero third-party JavaScript
  * rather than a broken tag.
  *
- * `afterInteractive` for everything: none of these affect what the customer
+ * \`afterInteractive\` for everything: none of these affect what the customer
  * sees, so none of them should compete with the page for main-thread time
  * during load.
  */
@@ -19,9 +21,13 @@ export function AnalyticsScripts() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <RouteTracker gaId={ga4MeasurementId || "G-QJ90CG4PQM"} />
+      </Suspense>
+
       {/* --- Google Tag Manager ---------------------------------------- */}
       {gtmContainerId ? (
-        <Script id="gtm" strategy="lazyOnload">
+        <Script id="gtm" strategy="afterInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -31,14 +37,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       ) : null}
 
       {/* --- GA4 --------------------------------------------------------
-          Only loaded directly when GTM is absent and tag is not G-QJ90CG4PQM (which is mounted directly in layout head). */}
-      {ga4MeasurementId && ga4MeasurementId !== "G-QJ90CG4PQM" && !gtmContainerId ? (
+          Only loaded directly when GTM is absent. */}
+      {ga4MeasurementId && !gtmContainerId ? (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${ga4MeasurementId}`}
-            strategy="lazyOnload"
+            strategy="afterInteractive"
           />
-          <Script id="ga4" strategy="lazyOnload">
+          <Script id="ga4" strategy="afterInteractive">
             {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
@@ -50,7 +56,7 @@ gtag('config', '${ga4MeasurementId}', { send_page_view: true });`}
       {/* --- Meta Pixel -------------------------------------------------- */}
       {metaPixelId ? (
         <>
-          <Script id="meta-pixel" strategy="lazyOnload">
+          <Script id="meta-pixel" strategy="afterInteractive">
             {`!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
