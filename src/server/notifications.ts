@@ -90,16 +90,17 @@ async function sendAdminWhatsApp(order: OrderWithRelations) {
     order.shipPincode
   ].filter(Boolean).join(", ");
 
-  const messageDetails = `Order ID: ${order.orderNumber}
-Customer: ${order.shipName || order.user.name || "Customer"}
-Mobile: ${order.shipMobile || order.user.mobile || "N/A"}
-Amount: ${formatPrice(order.totalPaise)}
-SKU(s): ${skus}
-Address: ${addressString}`;
+  const customerInfo = `${order.shipName || order.user.name || "Customer"} (${order.shipMobile || order.user.mobile || "N/A"})`;
+  const orderDetails = `${skus} for ${formatPrice(order.totalPaise)}`;
 
   const result = await whatsappDriver().sendTemplate(adminMobile, {
     name: WHATSAPP_TEMPLATES.paymentReceived,
-    variables: [messageDetails],
+    variables: [
+      order.orderNumber,
+      customerInfo,
+      orderDetails,
+      addressString
+    ],
   });
 
   await db.notification.create({
