@@ -151,7 +151,7 @@ export const getHomepage = cache(async function getHomepage({
     console.warn("[getHomepage] Database read failed, returning default fallback layout:", error);
     return { sections: [], campaign: null };
   }
-}
+});
 
 /**
  * Maps a campaign's theme JSON onto the CSS custom properties the design system
