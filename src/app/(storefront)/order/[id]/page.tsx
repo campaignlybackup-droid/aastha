@@ -39,7 +39,7 @@ export default async function OrderPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ pending?: string; success?: string }>;
+  searchParams: Promise<{ pending?: string; success?: string; error?: string }>;
 }) {
   const [{ id }, query, user] = await Promise.all([
     params,
