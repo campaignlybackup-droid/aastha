@@ -397,26 +397,36 @@ export async function confirmOrder({
       }
 
       // --- Payment record ----------------------------------------------------
-      await tx.payment.upsert({
-        where: { providerPaymentId },
-        update: {
-          status: "PAID",
-          capturedAt: new Date(),
-          method: method ?? undefined,
-          rawPayload: (rawPayload ?? undefined) as never,
-        },
-        create: {
-          orderId,
-          provider: "RAZORPAY",
-          status: "PAID",
-          amountPaise,
-          providerOrderId,
-          providerPaymentId,
-          method: method ?? null,
-          capturedAt: new Date(),
-          rawPayload: (rawPayload ?? undefined) as never,
-        },
+      const existingPayment = await tx.payment.findFirst({
+        where: providerOrderId ? { providerOrderId } : { providerPaymentId },
       });
+
+      if (existingPayment) {
+        await tx.payment.update({
+          where: { id: existingPayment.id },
+          data: {
+            status: "PAID",
+            capturedAt: new Date(),
+            method: method ?? undefined,
+            rawPayload: (rawPayload ?? undefined) as never,
+            providerPaymentId,
+          },
+        });
+      } else {
+        await tx.payment.create({
+          data: {
+            orderId,
+            provider: "RAZORPAY",
+            status: "PAID",
+            amountPaise,
+            providerOrderId,
+            providerPaymentId,
+            method: method ?? null,
+            capturedAt: new Date(),
+            rawPayload: (rawPayload ?? undefined) as never,
+          },
+        });
+      }
 
       await tx.order.update({
         where: { id: orderId },
