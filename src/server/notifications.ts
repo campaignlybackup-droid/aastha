@@ -83,7 +83,8 @@ async function sendAdminWhatsApp(order: OrderWithRelations) {
 
   const skus = order.items.map((i) => i.sku).filter(Boolean).join(", ") || "No SKU";
   const addressString = [
-    order.shipAddress,
+    order.shipLine1,
+    order.shipLine2,
     order.shipCity,
     order.shipState,
     order.shipPincode
