@@ -115,6 +115,9 @@ export default async function OrderPage({
                 : "Order awaiting payment"}
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
+              {query.error ? (
+                <strong className="text-red-600 block mb-2">Error: {query.error}</strong>
+              ) : null}
               {awaitingConfirmation
                 ? "Your payment is being verified with the bank. This usually takes a few seconds — refresh in a moment. If money was debited, the order will confirm automatically."
                 : "This order hasn't been paid for yet. You can complete it from your bag."}

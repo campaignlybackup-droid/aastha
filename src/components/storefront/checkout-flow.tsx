@@ -213,7 +213,7 @@ export function CheckoutFlow({
           });
 
           if (!verified.ok) {
-            router.push(`/order/${created.orderId}?pending=1`);
+            router.push(`/order/${created.orderId}?pending=1&error=${encodeURIComponent(verified.error)}`);
             return;
           }
 
