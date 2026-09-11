@@ -67,7 +67,7 @@ function isVisible(section: {
   return true;
 }
 
-export async function getHomepage({
+export const getHomepage = cache(async function getHomepage({
   now = new Date(),
   /** Preview mode includes disabled and out-of-window sections. */
   preview = false,
