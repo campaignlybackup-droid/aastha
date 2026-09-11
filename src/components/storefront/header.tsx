@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Heart, Search, User } from "lucide-react";
 
+import dynamic from "next/dynamic";
 import { CartBadge } from "@/components/storefront/cart-badge";
 import { Logo } from "@/components/storefront/logo";
-import { MobileNav } from "@/components/storefront/mobile-nav";
 import { SearchTrigger } from "@/components/storefront/search-dialog";
+
+const MobileNav = dynamic(() =>
+  import("@/components/storefront/mobile-nav").then((mod) => mod.MobileNav)
+);
 import { getCategoryTree, getCollections, type CategoryNode } from "@/server/catalog";
 import { cn } from "@/lib/utils";
 

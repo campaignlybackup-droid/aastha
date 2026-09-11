@@ -431,6 +431,9 @@ model Order {
   analyticsSentAt DateTime?
   placedAt        DateTime?
   cancelledAt     DateTime?
+  /// India Post consignment number entered by admin when marking the order as SHIPPED.
+  trackingNumber  String?
+  shippedAt       DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   items           OrderItem[]

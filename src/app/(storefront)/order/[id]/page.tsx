@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, Clock, MessageCircle, Package } from "lucide-react";
+import { CheckCircle2, Clock, MessageCircle, Package, Truck } from "lucide-react";
 
 import { OrderSuccessTimer } from "@/components/storefront/order-success-timer";
 import {
@@ -52,6 +52,7 @@ export default async function OrderPage({
   let order = await db.order.findFirst({
     where: { id, userId: user.id },
     include: { items: { orderBy: { id: "asc" } } },
+    // Include tracking fields so the customer can see the consignment number.
   });
 
   if (!order) notFound();
@@ -167,6 +168,14 @@ export default async function OrderPage({
         ) : null}
       </div>
 
+      {/* --- Tracking card (shown once a tracking number is assigned) ------ */}
+      {order.trackingNumber ? (
+        <TrackingCard
+          trackingNumber={order.trackingNumber}
+          shippedAt={order.shippedAt}
+        />
+      ) : null}
+
       {confirmed && isPartialCod ? (
         <Alert variant="info" className="mb-8">
           <strong>Partial COD Order Confirmed:</strong> You have paid the 60% advance of {formatPrice(advancePaise)}. Please pay the remaining balance of <strong>{formatPrice(balanceOnDeliveryPaise)}</strong> (40%) in cash or UPI to the courier upon delivery.
@@ -251,6 +260,63 @@ function Fact({
       <dd className={`mt-1 text-sm ${mono ? "font-medium tracking-wide" : ""}`}>
         {value}
       </dd>
+    </div>
+  );
+}
+
+function TrackingCard({
+  trackingNumber,
+  shippedAt,
+}: {
+  trackingNumber: string;
+  shippedAt: Date | null;
+}) {
+  return (
+    <div className="mb-8 overflow-hidden rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b border-blue-200 bg-blue-600 px-5 py-3">
+        <Truck className="size-4 text-white" aria-hidden="true" />
+        <span className="text-sm font-semibold text-white">Your shipment is on the way!</span>
+      </div>
+
+      <div className="px-5 py-4 space-y-4">
+        {/* Tracking number display */}
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-blue-700 mb-1">
+            India Post Tracking Number
+          </p>
+          <p className="font-mono text-2xl font-bold tracking-widest text-gray-800 select-all">
+            {trackingNumber}
+          </p>
+          {shippedAt ? (
+            <p className="mt-1 text-xs text-blue-600">
+              Shipped on {formatDateTime(shippedAt)}
+            </p>
+          ) : null}
+        </div>
+
+        {/* Instructions */}
+        <p className="text-sm text-blue-800 leading-relaxed">
+          Use the tracking number above on the India Post website to see real-time
+          delivery updates. Click the button below to open the tracking page.
+        </p>
+
+        {/* CTA */}
+        <a
+          href="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+        >
+          <Truck className="size-4" aria-hidden="true" />
+          Track on India Post →
+        </a>
+
+        <p className="text-[11px] text-blue-500">
+          Copy your tracking number, then paste it in the "Consignment Number" field
+          on the India Post site.
+        </p>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
+
+import posterMobileImg from "../../../public/banner-poster-mobile.webp";
 
 /**
  * Ultra-optimized responsive Hero Video component.
@@ -38,10 +41,11 @@ export function HeroVideoPlayer() {
       <picture className="absolute inset-0 size-full object-cover pointer-events-none z-0">
         <source srcSet="/banner-poster-mobile.webp" media="(max-width: 767px)" type="image/webp" />
         <source srcSet="/banner-poster.jpg" media="(min-width: 768px)" />
-        <img
-          src="/banner-poster-mobile.webp"
+        <Image
+          src={posterMobileImg}
           alt=""
           aria-hidden="true"
+          priority
           className="size-full object-cover"
         />
       </picture>

@@ -14,6 +14,11 @@ export type LogoProps = {
   asLink?: boolean;
 };
 
+import logoCardImg from "../../../public/logo-card.png";
+import logoMarkImg from "../../../public/logo-mark.png";
+import logoStackedImg from "../../../public/logo-stacked.png";
+import logoHorizontalImg from "../../../public/logo-horizontal.png";
+
 /**
  * Official Brand Logo Component for Aastha Silver & Jewels.
  * Uses the exact horizontal, stacked, card, and monogram logo variations
@@ -42,9 +47,10 @@ export function Logo({
           className
         )}
       >
-        <img
-          src="/logo-card.png"
+        <Image
+          src={logoCardImg}
           alt="Aastha Silver & Jewels"
+          priority
           className={cn("w-auto object-contain", cardHeightMap[size])}
         />
       </div>
@@ -68,9 +74,10 @@ export function Logo({
     };
 
     const markElement = (
-      <img
-        src="/logo-mark.png"
+      <Image
+        src={logoMarkImg}
         alt="Aastha Silver & Jewels Monogram"
+        priority
         className={cn(
           "shrink-0 object-contain transition-transform hover:scale-105",
           markHeightMap[size],
@@ -97,9 +104,10 @@ export function Logo({
     };
 
     const stackedElement = (
-      <img
-        src="/logo-stacked.png"
+      <Image
+        src={logoStackedImg}
         alt="Aastha Silver & Jewels"
+        priority
         className={cn(
           "shrink-0 object-contain transition-transform hover:scale-[1.02]",
           stackedHeightMap[size],
@@ -125,9 +133,10 @@ export function Logo({
   };
 
   const horizElement = (
-    <img
-      src="/logo-horizontal.png"
+    <Image
+      src={logoHorizontalImg}
       alt="Aastha Silver & Jewels"
+      priority
       className={cn(
         horizHeightMap[size],
         className

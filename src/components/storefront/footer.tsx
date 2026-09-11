@@ -23,9 +23,9 @@ export async function Footer() {
   return (
     <footer className="mt-24 bg-brand-900 text-sand-200">
       <div className="u-container py-14 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           {/* Brand ---------------------------------------------------------- */}
-          <div className="space-y-5">
+          <div className="col-span-2 lg:col-span-1 space-y-5">
             <Logo tone="light" size="md" />
             {brand.tagline ? (
               <p className="max-w-xs text-sm leading-relaxed text-sand-300">
@@ -78,7 +78,7 @@ export async function Footer() {
           </FooterColumn>
 
           {/* Newsletter + contact -------------------------------------------- */}
-          <div className="space-y-6">
+          <div className="col-span-2 lg:col-span-1 space-y-6">
             <div>
               <h2 className="u-eyebrow mb-3 text-gold-300">Stay in touch</h2>
               <p className="mb-4 text-sm leading-relaxed text-sand-300">

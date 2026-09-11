@@ -86,16 +86,18 @@ export async function adminUpdateOrderStatus({
   orderId,
   status,
   paymentStatus,
+  trackingNumber,
 }: {
   orderId: string;
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput["set"] | "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"] | "PENDING" | "AUTHORIZED" | "PAID" | "FAILED" | "REFUNDED";
+  trackingNumber?: string;
 }): Promise<AdminResult> {
   const user = await requireArea("orders");
 
   const order = await db.order.findUnique({
     where: { id: orderId },
-    select: { id: true, status: true, paymentStatus: true, totalPaise: true, placedAt: true },
+    select: { id: true, status: true, paymentStatus: true, totalPaise: true, placedAt: true, shippedAt: true },
   });
 
   if (!order) return { ok: false, error: "Order not found." };
@@ -110,12 +112,18 @@ export async function adminUpdateOrderStatus({
     });
   }
 
+  const trimmedTracking = trackingNumber?.trim() || undefined;
+
   await db.order.update({
     where: { id: orderId },
     data: {
       ...(status ? { status } : {}),
       ...(paymentStatus ? { paymentStatus } : {}),
       ...(status === "CONFIRMED" && !order.placedAt ? { placedAt: new Date() } : {}),
+      // Stamp shippedAt the first time we move to SHIPPED; preserve it on subsequent edits.
+      ...(status === "SHIPPED" && !order.shippedAt ? { shippedAt: new Date() } : {}),
+      // Store tracking number whenever one is provided.
+      ...(trimmedTracking ? { trackingNumber: trimmedTracking } : {}),
     },
   });
 
@@ -124,12 +132,13 @@ export async function adminUpdateOrderStatus({
     action: "order.update_status",
     entityType: "Order",
     entityId: orderId,
-    changes: { status, paymentStatus },
+    changes: { status, paymentStatus, trackingNumber: trimmedTracking },
   });
 
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
   revalidatePath(`/order/${orderId}`);
+  revalidatePath("/account/orders");
 
   return { ok: true, message: "Order & Payment status updated." };
 }

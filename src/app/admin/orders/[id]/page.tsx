@@ -87,6 +87,7 @@ export default async function AdminOrderDetailPage({
           orderId={order.id}
           currentStatus={order.status}
           currentPaymentStatus={order.paymentStatus}
+          currentTrackingNumber={order.trackingNumber}
         />
       </div>
 
