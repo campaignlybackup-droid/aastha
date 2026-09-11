@@ -57,7 +57,6 @@ async function sendOrderWhatsApp(order: OrderWithRelations) {
       order.shipName.split(" ")[0] ?? "there",
       order.orderNumber,
       formatPrice(order.totalPaise),
-      `${publicEnv.siteUrl}/account/orders/${order.id}`,
     ],
   });
 
