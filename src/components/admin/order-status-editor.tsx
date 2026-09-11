@@ -137,7 +137,7 @@ export function OrderStatusEditor({
           <p className="text-[11px] text-amber-700 leading-relaxed">
             Customers will see this number and a direct link to{" "}
             <a
-              href="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+              href="https://www.indiapost.gov.in/"
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-2"

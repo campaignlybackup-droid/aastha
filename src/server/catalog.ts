@@ -352,7 +352,7 @@ export async function getFacets(filters: CatalogFilters) {
  * Merchandising shortcuts — used by the homepage section renderers.
  * -------------------------------------------------------------------------- */
 
-export async function getNewArrivals(limit = 8) {
+export const getNewArrivals = cache(async (limit = 8) => {
   const rows = await db.product.findMany({
     where: { status: "ACTIVE" },
     select: productCardSelect,
@@ -360,9 +360,9 @@ export async function getNewArrivals(limit = 8) {
     take: limit,
   });
   return rows.map(toProductCard);
-}
+});
 
-export async function getBestSellers(limit = 8) {
+export const getBestSellers = cache(async (limit = 8) => {
   const pinnedSetting = await getSetting("bestsellers").catch(() => null);
   const pinnedIds: string[] =
     pinnedSetting && Array.isArray((pinnedSetting as any).productIds)
@@ -389,9 +389,9 @@ export async function getBestSellers(limit = 8) {
     take: limit,
   });
   return rows.map(toProductCard);
-}
+});
 
-export async function getFeaturedProducts(limit = 8) {
+export const getFeaturedProducts = cache(async (limit = 8) => {
   const rows = await db.product.findMany({
     where: { status: "ACTIVE", isFeatured: true },
     select: productCardSelect,
@@ -399,9 +399,9 @@ export async function getFeaturedProducts(limit = 8) {
     take: limit,
   });
   return rows.map(toProductCard);
-}
+});
 
-export async function getProductsByIds(ids: string[]) {
+export const getProductsByIds = cache(async (ids: string[]) => {
   if (!ids.length) return [];
   const rows = await db.product.findMany({
     where: { id: { in: ids }, status: "ACTIVE" },
@@ -413,9 +413,9 @@ export async function getProductsByIds(ids: string[]) {
     .map((id) => byId.get(id))
     .filter((r): r is ProductCardRow => Boolean(r))
     .map(toProductCard);
-}
+});
 
-export async function getProductsByCategory(slug: string, limit = 8) {
+export const getProductsByCategory = cache(async (slug: string, limit = 8) => {
   const rows = await db.product.findMany({
     where: { status: "ACTIVE", category: { slug } },
     select: productCardSelect,
@@ -423,9 +423,9 @@ export async function getProductsByCategory(slug: string, limit = 8) {
     take: limit,
   });
   return rows.map(toProductCard);
-}
+});
 
-export async function getProductsByCollection(slug: string, limit = 8) {
+export const getProductsByCollection = cache(async (slug: string, limit = 8) => {
   const rows = await db.product.findMany({
     where: {
       status: "ACTIVE",
@@ -436,17 +436,17 @@ export async function getProductsByCollection(slug: string, limit = 8) {
     take: limit,
   });
   return rows.map(toProductCard);
-}
+});
 
 /**
  * Related products: same category first, topped up with the same collection so
  * a thin category still fills the row.
  */
-export async function getRelatedProducts(
+export const getRelatedProducts = cache(async (
   productId: string,
   categoryId: string,
   limit = 8,
-) {
+) => {
   const sameCategory = await db.product.findMany({
     where: { status: "ACTIVE", categoryId, id: { not: productId } },
     select: productCardSelect,
@@ -470,7 +470,7 @@ export async function getRelatedProducts(
   });
 
   return [...sameCategory, ...topUp].map(toProductCard);
-}
+});
 
 /* -----------------------------------------------------------------------------
  * Single records

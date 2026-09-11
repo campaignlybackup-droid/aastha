@@ -57,30 +57,7 @@ export default async function OrderPage({
 
   if (!order) notFound();
 
-  // Guarantee DB status is updated to CONFIRMED when payment is completed or arriving from checkout
-  if (order.status !== "CONFIRMED") {
-    const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
-    const expectedAdvance = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
 
-    const shouldConfirm = query.success === "1" || query.pending === "1";
-
-    if (shouldConfirm) {
-      await confirmOrder({
-        orderId: order.id,
-        providerPaymentId: `checkout_success_${order.id}`,
-        providerOrderId: null,
-        amountPaise: expectedAdvance,
-      });
-
-      const updatedOrder = await db.order.findFirst({
-        where: { id: order.id, userId: user.id },
-        include: { items: { orderBy: { id: "asc" } } },
-      });
-      if (updatedOrder) {
-        order = updatedOrder;
-      }
-    }
-  }
 
   const [contact, shipping] = await Promise.all([
     getSetting("contact"),
@@ -303,7 +280,7 @@ function TrackingCard({
 
         {/* CTA */}
         <a
-          href="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+          href="https://www.indiapost.gov.in/"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
