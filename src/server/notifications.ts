@@ -28,6 +28,7 @@ export async function onOrderConfirmed(orderId: string) {
   // Run independently so one failure cannot prevent the others.
   await Promise.allSettled([
     sendOrderWhatsApp(order),
+    sendAdminWhatsApp(order),
     sendOrderEmail(order),
     reportPurchaseToMeta(order),
   ]);
@@ -73,6 +74,44 @@ async function sendOrderWhatsApp(order: OrderWithRelations) {
       sentAt: result.ok ? new Date() : null,
       attempts: 1,
       payload: { orderNumber: order.orderNumber },
+    },
+  });
+}
+
+async function sendAdminWhatsApp(order: OrderWithRelations) {
+  const adminMobile = publicEnv.supportWhatsapp;
+  if (!adminMobile) return;
+
+  const skus = order.items.map((i) => i.sku).filter(Boolean).join(", ") || "No SKU";
+  const addressString = [
+    order.shipAddress,
+    order.shipCity,
+    order.shipState,
+    order.shipPincode
+  ].filter(Boolean).join(", ");
+
+  const result = await whatsappDriver().sendTemplate(adminMobile, {
+    name: WHATSAPP_TEMPLATES.paymentReceived,
+    variables: [
+      order.orderNumber,
+      order.shipName || order.user.name || "Customer",
+      order.shipMobile || order.user.mobile || "N/A",
+      formatPrice(order.totalPaise),
+      skus,
+      addressString
+    ],
+  });
+
+  await db.notification.create({
+    data: {
+      channel: "WHATSAPP",
+      status: result.ok ? "SENT" : "FAILED",
+      recipient: adminMobile,
+      template: "admin.payment_received",
+      providerMessageId: result.ok ? result.providerMessageId : null,
+      error: result.ok ? null : result.error,
+      orderId: order.id,
+      userId: order.userId,
     },
   });
 }
