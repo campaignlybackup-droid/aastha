@@ -437,7 +437,7 @@ export async function confirmOrder({
     });
   } catch (error) {
     console.error("[orders] confirmOrder failed", error);
-    return { ok: false, error: "Could not confirm the order." };
+    return { ok: false, error: `Could not confirm the order. ${error instanceof Error ? error.message : String(error)}` };
   }
 }
 
