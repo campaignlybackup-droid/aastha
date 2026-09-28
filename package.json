@@ -6,8 +6,8 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "[ -d \"$HOME/.nvm/versions/node/v24.18.0/bin\" ] && export PATH=\"$HOME/.nvm/versions/node/v24.18.0/bin:$PATH\"; next dev",
-    "build": "[ -d \"$HOME/.nvm/versions/node/v24.18.0/bin\" ] && export PATH=\"$HOME/.nvm/versions/node/v24.18.0/bin:$PATH\"; prisma generate && prisma db push && next build",
+    "dev": "next dev",
+    "build": "prisma generate && prisma db push && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
