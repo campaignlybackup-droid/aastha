@@ -58,6 +58,35 @@ export function CheckoutFlow({
   const [needsScript, setNeedsScript] = React.useState(false);
   const [paymentMethod, setPaymentMethod] = React.useState<"ONLINE" | "PARTIAL_COD">("ONLINE");
 
+  // Pre-fill custom ring sizes / specifications from sessionStorage into customer note
+  React.useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("asj_custom_specs");
+      if (!stored) return;
+      const specs = JSON.parse(stored) as Record<
+        string,
+        { productName: string; variantTitle: string; ringSize?: string }
+      >;
+      const relevantLines = cart.lines
+        .map((line) => {
+          const spec = specs[line.variantId];
+          if (spec?.ringSize) {
+            return `${line.name} (${spec.ringSize})`;
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      if (relevantLines.length > 0) {
+        const customNoteStr = relevantLines.join(", ");
+        setNote((current) => {
+          if (relevantLines.some((rl) => rl && current.includes(rl))) return current;
+          return current ? `${current} · ${customNoteStr}` : customNoteStr;
+        });
+      }
+    } catch {}
+  }, [cart.lines]);
+
   // Coupon state
   const [couponInput, setCouponInput] = React.useState("");
   const [couponError, setCouponError] = React.useState<string | null>(null);

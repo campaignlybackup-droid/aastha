@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Minus, Plus, Ruler, ShoppingBag } from "lucide-react";
+import { Check, Minus, Plus, Ruler, ShoppingBag, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { notifyCartUpdated } from "@/components/storefront/cart-badge";
@@ -22,6 +22,91 @@ export type PurchaseVariant = {
   isLowStock: boolean;
 };
 
+export type ProductSpecsProp = {
+  silverPurity?: string | null;
+  silverWeightGram?: number | null;
+  dimensions?: string | null;
+  finish?: string | null;
+  plating?: string | null;
+  stoneType?: string | null;
+  stoneColour?: string | null;
+  stoneCount?: number | null;
+  isAdjustable?: boolean | null;
+  extraSpecs?: Record<string, string | number> | null;
+};
+
+export function isProductRing(
+  categoryName: string,
+  productName: string,
+): boolean {
+  const c = (categoryName || "").toLowerCase();
+  const p = (productName || "").toLowerCase();
+  if (
+    c.includes("earring") ||
+    p.includes("earring") ||
+    p.includes("stud") ||
+    p.includes("hoop") ||
+    p.includes("silicon-ring-adjuster") ||
+    p.includes("silicon ring adjuster")
+  ) {
+    return false;
+  }
+  return /\brings?\b/i.test(c) || /\brings?\b/i.test(p) || /\bband\b/i.test(p);
+}
+
+const COMMON_GEMSTONES = [
+  "blue topaz",
+  "yellow topaz",
+  "green amethyst",
+  "rose quartz",
+  "rosequarts",
+  "black onyx",
+  "pink zircon",
+  "garnet",
+  "topaz",
+  "amethyst",
+  "peridot",
+  "citrine",
+  "quartz",
+  "onyx",
+  "pearl",
+  "zircon",
+  "ruby",
+  "sapphire",
+  "emerald",
+  "larimar",
+  "labradorite",
+  "moonstone",
+  "tourmaline",
+  "turquoise",
+  "lapiz",
+  "lapis",
+  "carnelian",
+];
+
+function extractGemstoneName(title: string): string | null {
+  const lower = (title || "").toLowerCase();
+  for (const gem of COMMON_GEMSTONES) {
+    if (new RegExp(`\\b${gem}\\b`, "i").test(lower)) {
+      if (gem === "rosequarts") return "Rose Quartz";
+      if (gem === "lapiz") return "Lapis";
+      return gem
+        .split(" ")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
+    }
+  }
+  return null;
+}
+
+function extractSizeFromTitle(title: string): string | null {
+  const m =
+    title.match(/\b(?:us\s*)?size\s*(\d+(?:\/\d+)?)\b/i) ||
+    title.match(/\bsize(\d+)\b/i);
+  if (m) return `Size ${m[1]}`;
+  return null;
+}
+
 function isGenericTitle(title: string): boolean {
   const t = (title || "").trim().toLowerCase();
   return !t || t === "standard" || t === "default title" || t === "default";
@@ -32,71 +117,105 @@ function inferDimensionLabel(
   categoryName: string,
   productName: string,
 ): string {
-  const isRing = /ring/i.test(categoryName) || /ring/i.test(productName);
+  const isRing = isProductRing(categoryName, productName);
   const isBangleOrBracelet =
     /bangle|bracelet|kada/i.test(categoryName) ||
     /bangle|bracelet|kada/i.test(productName);
   const isChainOrNecklace =
     /chain|necklace|pendant|mangalsutra/i.test(categoryName) ||
     /chain|necklace|pendant|mangalsutra/i.test(productName);
+  const isAnklet = /anklet/i.test(categoryName) || /anklet/i.test(productName);
 
   const titles = variants.map((v) => (v.title || "").toLowerCase());
 
-  const hasSizeWord = titles.some((t) => /\bsize\b/i.test(t));
-  const hasMeasurements = titles.some((t) =>
-    /\b\d+\s*(mm|cm|inch|in|"|'|gauge)\b/i.test(t),
+  const hasFinish = titles.some((t) =>
+    /\b(silver|gold|gold plating|gold plated|rose gold|oxidised|polish|rhodium)\b/i.test(
+      t,
+    ),
   );
-  const hasNumbers = titles.some((t) => /\b\d+(\.\d+)?\b/.test(t));
+  const hasMeasurements = titles.some(
+    (t) =>
+      /\b\d+\s*(inch|in|"|cm|mm)\b/i.test(t) ||
+      /^(16|18|20|22|24|7|8|9|10)$/i.test(t.trim()),
+  );
 
+  // Mixed finish and measurements (e.g. 18 vs Gold Plating)
+  if (hasFinish && hasMeasurements) {
+    return "Specification";
+  }
+
+  // Plating / Finish
+  if (hasFinish) {
+    return "Finish / Plating";
+  }
+
+  // Single / Pair
+  if (titles.some((t) => /\b(pair|single|piece|set)\b/i.test(t))) {
+    return "Set / Quantity";
+  }
+
+  // Length on chains, anklets, bracelets
+  if (isChainOrNecklace || isAnklet || isBangleOrBracelet) {
+    if (hasMeasurements) {
+      return "Length";
+    }
+  }
+
+  // Rings
+  if (isRing) {
+    const hasGems = titles.some((t) => extractGemstoneName(t) !== null);
+    const hasSizes = titles.some(
+      (t) => /\bsize\b/i.test(t) || extractSizeFromTitle(t) !== null,
+    );
+    if (hasGems) return "Gemstone";
+    if (hasSizes) return "Ring Size";
+    return "Ring Size";
+  }
+
+  const hasSizeWord = titles.some((t) => /\bsize\b/i.test(t));
   if (hasSizeWord) return "Size";
-  if (hasMeasurements) {
-    if (isChainOrNecklace) return "Length";
-    return "Size";
-  }
-  if ((isRing || isBangleOrBracelet) && hasNumbers) return "Size";
 
-  const commonGems = [
-    "garnet",
-    "topaz",
-    "amethyst",
-    "peridot",
-    "citrine",
-    "quartz",
-    "onyx",
-    "pearl",
-    "zircon",
-    "ruby",
-    "sapphire",
-    "emerald",
-    "larimar",
-    "labradorite",
-    "moonstone",
-    "tourmaline",
-    "turquoise",
-    "stone",
-    "gemstone",
-  ];
-  if (titles.some((t) => commonGems.some((g) => t.includes(g)))) {
-    return "Gemstone";
+  const hasGems = titles.some((t) => extractGemstoneName(t) !== null);
+  if (hasGems) return "Gemstone";
+
+  return "Specification";
+}
+
+function cleanOptionTitle(title: string, inferredLabel: string): string {
+  const trimmed = (title || "").trim();
+  if (!trimmed) return "Standard";
+
+  if (inferredLabel === "Finish / Plating") {
+    if (/^gold\s*plat(ing|ed)$/i.test(trimmed)) return "Gold Plating";
+    if (/^silver$/i.test(trimmed)) return "925 Silver";
   }
 
-  if (
-    titles.some((t) =>
-      /silver|gold|rose gold|oxidised|polish|rhodium|plating/i.test(t),
-    )
-  ) {
-    return "Finish";
+  if (inferredLabel === "Set / Quantity") {
+    if (/^single(\s*(anklet|bracelet))?$/i.test(trimmed)) return "Single";
+    if (/^pair(\s*(anklet|bracelet))?$/i.test(trimmed)) return "Pair";
+    if (/^silver\s*single$/i.test(trimmed)) return "Silver Single";
+    if (/^silver\s*pair$/i.test(trimmed)) return "Silver Pair";
   }
 
-  if (titles.some((t) => /pair|single|piece|set/i.test(t))) {
-    return "Option";
+  // Pure numeric length or inch
+  const numMatch = trimmed.match(/^(\d+)(?:\s*(?:inch|in|"))?$/i);
+  if (numMatch && (inferredLabel === "Length" || inferredLabel === "Specification" || Number(numMatch[1]) >= 6)) {
+    return `${numMatch[1]} Inch`;
   }
 
-  if (isRing) return "Size";
-  if (isBangleOrBracelet) return "Size";
-  if (isChainOrNecklace) return "Length";
+  if (inferredLabel === "Ring Size") {
+    const m =
+      trimmed.match(/^(?:us\s*)?size\s*(\d+(?:\/\d+)?)$/i) ||
+      trimmed.match(/^size(\d+)$/i);
+    if (m) return `Size ${m[1]}`;
+  }
 
-  return "Size";
+  if (inferredLabel === "Gemstone") {
+    const gem = extractGemstoneName(trimmed);
+    if (gem) return gem;
+  }
+
+  return formatVariantDisplay(trimmed);
 }
 
 function formatVariantDisplay(title: string): string {
@@ -114,12 +233,11 @@ function formatVariantDisplay(title: string): string {
     .join(" ");
 }
 
+const STANDARD_RING_SIZES = ["Size 6", "Size 7", "Size 8", "Size 9"];
+
 /**
- * Variant selection + add to bag.
- *
- * Supports both structured dimensional options (e.g. Size + Finish) and
- * variant-level size/style variations (e.g. "Size 6", "Size 7", "4mm", "Pair")
- * so any product with variants allows seamless selection on both mobile and desktop.
+ * Variant selection + add to bag with comprehensive specification highlights,
+ * dynamic pricing per spec, and ring size selection.
  */
 export function PurchasePanel({
   productId,
@@ -128,6 +246,7 @@ export function PurchasePanel({
   variants,
   freeShippingAbovePaise,
   dispatchCopy,
+  specs,
 }: {
   productId: string;
   productName: string;
@@ -135,6 +254,7 @@ export function PurchasePanel({
   variants: PurchaseVariant[];
   freeShippingAbovePaise: number;
   dispatchCopy?: string;
+  specs?: ProductSpecsProp;
 }) {
   const router = useRouter();
 
@@ -151,8 +271,13 @@ export function PurchasePanel({
 
   const selected = variants.find((v) => v.id === selectedId) ?? variants[0];
 
-  const isRingProduct =
-    /ring/i.test(categoryName ?? "") || /ring/i.test(productName ?? "");
+  const isRing = isProductRing(categoryName ?? "", productName ?? "");
+  const isAdjustableRing = Boolean(
+    isRing &&
+      (specs?.isAdjustable ||
+        /adjustable/i.test(selected?.title ?? "") ||
+        /adjustable/i.test(productName ?? "")),
+  );
 
   // Check if explicit structured options exist on any variant
   const hasStructuredOptions = React.useMemo(() => {
@@ -182,7 +307,6 @@ export function PurchasePanel({
       const rawValues = [
         ...new Set(variants.map((v) => v.options[key]).filter(Boolean)),
       ];
-      // Natural sort so numeric sizes (e.g. 12, 14, 16, 18) appear in ascending order
       rawValues.sort((a, b) =>
         a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }),
       );
@@ -198,27 +322,83 @@ export function PurchasePanel({
     return inferDimensionLabel(variants, categoryName, productName);
   }, [variants, categoryName, productName]);
 
-  const sortedVariants = React.useMemo(() => {
-    return [...variants].sort((a, b) =>
-      a.title.localeCompare(b.title, undefined, {
-        numeric: true,
-        sensitivity: "base",
-      }),
-    );
+  // Check if prices differ across variants
+  const hasDifferingPrices = React.useMemo(() => {
+    return new Set(variants.map((v) => v.pricePaise)).size > 1;
   }, [variants]);
 
+  // Rings with gemstone variants where ring size needs selection
+  const isGemstoneRing = React.useMemo(() => {
+    if (!isRing || isAdjustableRing) return false;
+    return variants.some((v) => extractGemstoneName(v.title) !== null);
+  }, [isRing, isAdjustableRing, variants]);
+
+  // Extract initial ring size for gemstone rings if present in variant title
+  const initialRingSize = React.useMemo(() => {
+    if (!isRing) return null;
+    const extracted = extractSizeFromTitle(selected?.title ?? "");
+    return extracted ?? "Size 7";
+  }, [isRing, selected?.title]);
+
+  const [selectedRingSize, setSelectedRingSize] = React.useState<string>(
+    initialRingSize ?? "Size 7",
+  );
+
+  // If variants have multi-size gemstone combinations (e.g. Celeste ring)
+  const multiSizeVariantsForCurrentStone = React.useMemo(() => {
+    if (!isGemstoneRing) return [];
+    const currentStone = extractGemstoneName(selected?.title ?? "");
+    if (!currentStone) return [];
+    return variants.filter(
+      (v) =>
+        extractGemstoneName(v.title)?.toLowerCase() ===
+          currentStone.toLowerCase() && extractSizeFromTitle(v.title) !== null,
+    );
+  }, [isGemstoneRing, selected?.title, variants]);
+
+  const sortedVariants = React.useMemo(() => {
+    return [...variants].sort((a, b) => {
+      if (hasDifferingPrices && a.pricePaise !== b.pricePaise) {
+        return a.pricePaise - b.pricePaise;
+      }
+      return a.title.localeCompare(b.title, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    });
+  }, [hasDifferingPrices, variants]);
+
   const maxQuantity = Math.max(1, Math.min(selected?.available ?? 1, 10));
-
-  // Clamp during render rather than syncing state in an effect: switching to a
-  // lower-stock variant must never leave an impossible quantity on screen,
-  // even for one frame.
   const quantity = Math.min(requestedQuantity, maxQuantity);
-
   const soldOut = !selected || selected.available <= 0;
 
   function onAdd(thenGoToCheckout: boolean) {
     if (!selected || soldOut) return;
     setFeedback(null);
+
+    // Save ring size / spec customization to sessionStorage so checkout & bag can pick it up
+    if (typeof window !== "undefined") {
+      try {
+        const saved = JSON.parse(
+          sessionStorage.getItem("asj_custom_specs") || "{}",
+        );
+        const ringCustomization = isRing
+          ? isAdjustableRing
+            ? "Adjustable Free Size"
+            : isGemstoneRing
+              ? selectedRingSize
+              : extractSizeFromTitle(selected.title) || selected.title
+          : null;
+
+        saved[selected.id] = {
+          productId,
+          productName,
+          variantTitle: selected.title,
+          ringSize: ringCustomization,
+        };
+        sessionStorage.setItem("asj_custom_specs", JSON.stringify(saved));
+      } catch {}
+    }
 
     startTransition(async () => {
       const result = await addToCart({ variantId: selected.id, quantity });
@@ -242,18 +422,38 @@ export function PurchasePanel({
         message: result.message ?? "Added to your bag.",
       });
 
-      // The header badge is client-rendered, so push it the fresh count
-      // directly rather than making it refetch.
       notifyCartUpdated(result.cart.itemCount);
 
       if (thenGoToCheckout) router.push("/checkout");
     });
   }
 
-  const awayFromFreeShipping = 0;
+  // Handle switching ring size for gemstone rings
+  function handleRingSizeChange(size: string) {
+    setSelectedRingSize(size);
+    // If variants actually encode different sizes for this gemstone (like Celeste ring)
+    if (multiSizeVariantsForCurrentStone.length > 1) {
+      const match = multiSizeVariantsForCurrentStone.find(
+        (v) => extractSizeFromTitle(v.title) === size,
+      );
+      if (match) setSelectedId(match.id);
+    }
+  }
+
+  // Check if any specifications are available to highlight
+  const hasSpecs = Boolean(
+    specs?.silverPurity ||
+      specs?.silverWeightGram ||
+      specs?.dimensions ||
+      specs?.plating ||
+      specs?.finish ||
+      specs?.stoneType ||
+      specs?.isAdjustable,
+  );
 
   return (
     <div className="space-y-6">
+      {/* Price & Taxes --------------------------------------------------- */}
       <div className="space-y-2">
         <Price
           pricePaise={selected?.pricePaise ?? 0}
@@ -265,12 +465,66 @@ export function PurchasePanel({
         </p>
       </div>
 
+      {/* Product Highlights & Key Specifications ------------------------- */}
+      {hasSpecs && (
+        <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
+          {specs?.silverPurity ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-sand-300 bg-sand-100/70 px-2.5 py-1 text-xs font-medium text-content">
+              <Sparkles className="size-3 text-[var(--color-accent)]" />
+              {specs.silverPurity}
+            </span>
+          ) : null}
+          {specs?.silverWeightGram ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-sand-300 bg-sand-100/70 px-2.5 py-1 text-xs font-medium text-content-muted">
+              Weight:{" "}
+              <span className="font-medium text-content">
+                {specs.silverWeightGram}g
+              </span>
+            </span>
+          ) : null}
+          {specs?.dimensions ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-sand-300 bg-sand-100/70 px-2.5 py-1 text-xs font-medium text-content-muted">
+              Dimensions:{" "}
+              <span className="font-medium text-content">
+                {specs.dimensions}
+              </span>
+            </span>
+          ) : null}
+          {specs?.plating ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-sand-300 bg-sand-100/70 px-2.5 py-1 text-xs font-medium text-content-muted">
+              Plating:{" "}
+              <span className="font-medium text-content">{specs.plating}</span>
+            </span>
+          ) : null}
+          {specs?.finish ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-sand-300 bg-sand-100/70 px-2.5 py-1 text-xs font-medium text-content-muted">
+              Finish:{" "}
+              <span className="font-medium text-content">{specs.finish}</span>
+            </span>
+          ) : null}
+          {specs?.stoneType ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-sand-300 bg-sand-100/70 px-2.5 py-1 text-xs font-medium text-content-muted">
+              Stone:{" "}
+              <span className="font-medium text-content capitalize">
+                {specs.stoneType}
+              </span>
+            </span>
+          ) : null}
+          {specs?.isAdjustable ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">
+              <Check className="size-3 text-emerald-700" />
+              Adjustable (Free Size)
+            </span>
+          ) : null}
+        </div>
+      )}
+
       {/* Variant selectors ------------------------------------------------ */}
       {hasStructuredOptions ? (
         // Case 1: Structured dimensional options (e.g. Size + Finish)
         structuredDimensions.map((dimension) => {
           const isSizeDimension = /size|length/i.test(dimension.key);
-          const showSizeGuide = isSizeDimension && isRingProduct;
+          const showSizeGuide = isSizeDimension && isRing && !isAdjustableRing;
 
           return (
             <fieldset key={dimension.key} className="space-y-2.5">
@@ -336,7 +590,24 @@ export function PurchasePanel({
                           "text-content-subtle opacity-60 line-through hover:border-line-strong",
                       )}
                     >
-                      {value}
+                      <span className="flex items-center gap-1.5">
+                        <span>{value}</span>
+                        {hasDifferingPrices && candidate ? (
+                          <span
+                            className={cn(
+                              "text-xs font-semibold tabular-nums",
+                              isSelected
+                                ? "text-[var(--color-accent-contrast)] opacity-90"
+                                : "text-[var(--color-accent)]",
+                            )}
+                          >
+                            · ₹
+                            {(candidate.pricePaise / 100).toLocaleString(
+                              "en-IN",
+                            )}
+                          </span>
+                        ) : null}
+                      </span>
                     </button>
                   );
                 })}
@@ -345,28 +616,31 @@ export function PurchasePanel({
           );
         })
       ) : variants.length > 1 ? (
-        // Case 2: Variants without structured options (e.g. Size 6, Size 7, Size 8, Size 9)
+        // Case 2: Variants without structured options (e.g. Gemstone, Length, Set/Quantity, Size)
         <fieldset className="space-y-2.5">
           <div className="flex items-center justify-between">
             <legend className="u-eyebrow text-content-muted">
               <span>{inferredLabel}</span>
               {selected?.title ? (
                 <span className="ml-2 font-medium normal-case tracking-normal text-content">
-                  {formatVariantDisplay(selected.title)}
+                  {cleanOptionTitle(selected.title, inferredLabel)}
                 </span>
               ) : null}
             </legend>
 
-            {isRingProduct && /size/i.test(inferredLabel) && (
-              <Link
-                href="/category/ring-size-guide"
-                target="_blank"
-                className="inline-flex items-center gap-1 text-xs font-medium text-content-muted transition-colors hover:text-[var(--color-accent)] underline underline-offset-4"
-              >
-                <Ruler className="size-3.5" aria-hidden="true" />
-                <span>Size guide</span>
-              </Link>
-            )}
+            {isRing &&
+              !isAdjustableRing &&
+              /size/i.test(inferredLabel) &&
+              !isGemstoneRing && (
+                <Link
+                  href="/category/ring-size-guide"
+                  target="_blank"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-content-muted transition-colors hover:text-[var(--color-accent)] underline underline-offset-4"
+                >
+                  <Ruler className="size-3.5" aria-hidden="true" />
+                  <span>Size guide</span>
+                </Link>
+              )}
           </div>
 
           <div
@@ -377,6 +651,7 @@ export function PurchasePanel({
             {sortedVariants.map((variant) => {
               const isSelected = selected?.id === variant.id;
               const unavailable = variant.available <= 0;
+              const cleanTitle = cleanOptionTitle(variant.title, inferredLabel);
 
               return (
                 <button
@@ -395,24 +670,40 @@ export function PurchasePanel({
                       "text-content-subtle opacity-60 line-through hover:border-line-strong",
                   )}
                 >
-                  {formatVariantDisplay(variant.title)}
+                  <span className="flex items-center gap-1.5">
+                    <span>{cleanTitle}</span>
+                    {hasDifferingPrices ? (
+                      <span
+                        className={cn(
+                          "text-xs font-semibold tabular-nums",
+                          isSelected
+                            ? "text-[var(--color-accent-contrast)] opacity-90"
+                            : "text-[var(--color-accent)]",
+                        )}
+                      >
+                        · ₹{(variant.pricePaise / 100).toLocaleString("en-IN")}
+                      </span>
+                    ) : null}
+                  </span>
                 </button>
               );
             })}
           </div>
         </fieldset>
-      ) : variants.length === 1 && !isGenericTitle(variants[0].title) ? (
+      ) : variants.length === 1 &&
+        !isGenericTitle(variants[0].title) &&
+        !isAdjustableRing ? (
         // Case 3: Single variant with specific size/option (e.g. "Size 7" or "18 inch")
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="u-eyebrow text-content-muted">
               <span>{inferredLabel}</span>
               <span className="ml-2 font-medium normal-case tracking-normal text-content">
-                {formatVariantDisplay(variants[0].title)}
+                {cleanOptionTitle(variants[0].title, inferredLabel)}
               </span>
             </span>
 
-            {isRingProduct && /size/i.test(inferredLabel) && (
+            {isRing && !isAdjustableRing && /size/i.test(inferredLabel) && (
               <Link
                 href="/category/ring-size-guide"
                 target="_blank"
@@ -426,11 +717,75 @@ export function PurchasePanel({
 
           <div className="flex flex-wrap gap-2.5">
             <span className="inline-flex min-h-10 min-w-12 items-center justify-center rounded-xs border border-[var(--color-accent)] bg-[var(--color-accent)] px-3.5 py-2 text-sm font-medium text-[var(--color-accent-contrast)] shadow-xs">
-              {formatVariantDisplay(variants[0].title)}
+              {cleanOptionTitle(variants[0].title, inferredLabel)}
             </span>
           </div>
         </div>
       ) : null}
+
+      {/* Ring Size Customization for Rings with Gemstones ---------------- */}
+      {isRing && isGemstoneRing && !isAdjustableRing && (
+        <fieldset className="space-y-2.5 pt-1">
+          <div className="flex items-center justify-between">
+            <legend className="u-eyebrow text-content-muted">
+              <span>Ring Size</span>
+              <span className="ml-2 font-medium normal-case tracking-normal text-content">
+                {selectedRingSize}
+              </span>
+            </legend>
+
+            <Link
+              href="/category/ring-size-guide"
+              target="_blank"
+              className="inline-flex items-center gap-1 text-xs font-medium text-content-muted transition-colors hover:text-[var(--color-accent)] underline underline-offset-4"
+            >
+              <Ruler className="size-3.5" aria-hidden="true" />
+              <span>Size guide</span>
+            </Link>
+          </div>
+
+          <div
+            className="flex flex-wrap gap-2.5"
+            role="radiogroup"
+            aria-label="Select Ring Size"
+          >
+            {STANDARD_RING_SIZES.map((size) => {
+              const isSelected = selectedRingSize === size;
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  onClick={() => handleRingSizeChange(size)}
+                  className={cn(
+                    "relative min-h-10 min-w-12 rounded-xs border px-3.5 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2",
+                    isSelected
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-accent-contrast)] shadow-xs"
+                      : "border-line-strong bg-surface text-content hover:border-[var(--color-accent)] hover:bg-sand-50 active:scale-[0.98]",
+                  )}
+                >
+                  {size}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
+
+      {/* Adjustable Ring Notice ------------------------------------------- */}
+      {isRing && isAdjustableRing && (
+        <div className="rounded-xs border border-emerald-300/80 bg-emerald-50/70 p-3 text-sm">
+          <div className="flex items-center gap-2 font-medium text-emerald-900">
+            <Check className="size-4 text-emerald-700" />
+            <span>Adjustable Free Size</span>
+          </div>
+          <p className="mt-0.5 text-xs text-emerald-800">
+            Gently adjustable to fit any finger size comfortably. No ring sizing
+            required.
+          </p>
+        </div>
+      )}
 
       {/* Stock & Dispatch info --------------------------------------------- */}
       <div aria-live="polite" className="flex flex-wrap items-center gap-2">
@@ -533,10 +888,9 @@ export function PurchasePanel({
         </Alert>
       ) : null}
 
-      {!soldOut && awayFromFreeShipping > 0 ? (
+      {!soldOut && freeShippingAbovePaise > 0 ? (
         <p className="text-xs text-content-muted">
-          Add ₹{(awayFromFreeShipping / 100).toLocaleString("en-IN")} more for
-          free shipping.
+          Free Shipping on all orders.
         </p>
       ) : null}
     </div>

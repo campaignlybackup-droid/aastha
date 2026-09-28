@@ -227,6 +227,18 @@ export default async function ProductPage({ params }: Props) {
               variants={variants}
               freeShippingAbovePaise={shipping.freeAbovePaise}
               dispatchCopy={shipping.dispatchCopy}
+              specs={{
+                silverPurity: product.silverPurity,
+                silverWeightGram: product.silverWeightGram,
+                dimensions: product.dimensions,
+                finish: product.finish,
+                plating: product.plating,
+                stoneType: product.stoneType,
+                stoneColour: product.stoneColour,
+                stoneCount: product.stoneCount,
+                isAdjustable: product.isAdjustable,
+                extraSpecs: (product.extraSpecs as Record<string, string | number> | null) ?? null,
+              }}
             />
 
             {/* Resolves its own saved state after hydration — reading the

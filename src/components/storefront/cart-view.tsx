@@ -364,6 +364,19 @@ function StandaloneLine({
     | { ok: false; error: string }
   >) => void;
 }) {
+  const [customSpec, setCustomSpec] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("asj_custom_specs");
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      if (parsed[line.variantId]?.ringSize) {
+        setCustomSpec(parsed[line.variantId].ringSize);
+      }
+    } catch {}
+  }, [line.variantId]);
+
   return (
     <>
       <Link
@@ -399,6 +412,12 @@ function StandaloneLine({
             ) : line.variantTitle !== "Standard" ? (
               <p className="mt-0.5 text-xs text-content-muted">
                 {line.variantTitle}
+              </p>
+            ) : null}
+            {customSpec &&
+            !line.variantTitle.toLowerCase().includes(customSpec.toLowerCase()) ? (
+              <p className="mt-0.5 text-xs font-medium text-[var(--color-accent)]">
+                Size: {customSpec}
               </p>
             ) : null}
           </div>
