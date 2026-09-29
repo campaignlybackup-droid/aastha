@@ -76,7 +76,8 @@ export default async function OrdersPage() {
                         <p className="mt-0.5 text-xs text-content-subtle">
                           {formatDate(order.placedAt ?? order.createdAt)} ·{" "}
                           {order.items.length}{" "}
-                          {order.items.length === 1 ? "item" : "items"}
+                          {order.items.length === 1 ? "item" : "items"} ·{" "}
+                          <span className="text-content-muted">Delivered within 14 days</span>
                         </p>
                       </div>
                       <div className="flex items-center gap-3">

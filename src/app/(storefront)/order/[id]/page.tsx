@@ -135,7 +135,7 @@ export default async function OrderPage({
               Order packed &amp; ready for dispatch
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
-              Your order has been handcrafted, certified, and securely packed. It will be handed over to our delivery partner shortly.
+              Your order has been handcrafted, certified, and securely packed. It will be handed over to our delivery partner shortly and delivered within 14 days of your order.
             </p>
           </>
         ) : isConfirmed ? (
@@ -332,7 +332,7 @@ function TrackingCard({
         {/* Instructions */}
         <p className="text-sm text-blue-800 leading-relaxed">
           Use the tracking number above on the India Post website to see real-time
-          delivery updates. Click the button below to open the tracking page.
+          delivery updates. Your parcel will be delivered within 14 days of your order date.
         </p>
 
         {/* CTA */}

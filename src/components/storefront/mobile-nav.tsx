@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Accordion from "@radix-ui/react-accordion";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, Truck, X } from "lucide-react";
 
 import { Logo } from "@/components/storefront/logo";
 import { cn } from "@/lib/utils";
@@ -223,6 +223,13 @@ export function MobileNav({
                     {item.label}
                   </Link>
                 ))}
+              </div>
+            </div>
+
+            <div className="mt-4 border-t border-line px-3 pt-3 pb-6">
+              <div className="flex items-center gap-2 rounded-md bg-sand-100/70 p-2.5 text-xs text-content-muted">
+                <Truck className="size-4 shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
+                <span>Orders delivered within 14 days of order</span>
               </div>
             </div>
           </nav>

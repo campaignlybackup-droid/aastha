@@ -187,6 +187,33 @@ export function productJsonLd({
         applicableCountry: "IN",
         returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
       },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: "0",
+          currency: "INR",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "IN",
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: 3,
+            maxValue: 4,
+            unitCode: "d",
+          },
+          transitTime: {
+            "@type": "QuantitativeValue",
+            minValue: 3,
+            maxValue: 14,
+            unitCode: "d",
+          },
+        },
+      },
     },
     // Only emit a rating when one genuinely exists — a fabricated
     // aggregateRating is a policy violation, and zero reviews is not "0 stars".

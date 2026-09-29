@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone, Truck } from "lucide-react";
 
 import {
   FacebookIcon,
@@ -130,6 +130,22 @@ export async function Footer() {
               ) : null}
             </address>
           </div>
+        </div>
+      </div>
+
+      {/* Nationwide delivery assurance bar */}
+      <div className="border-t border-sand-50/10 bg-brand-950/40 py-3.5 text-center text-xs text-sand-300">
+        <div className="u-container flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+          <span className="flex items-center gap-2 text-gold-300 font-medium">
+            <Truck className="size-4 shrink-0" aria-hidden="true" />
+            <span>Delivered within 14 days of order</span>
+          </span>
+          <span className="hidden sm:inline text-sand-500">·</span>
+          <span>Free Nationwide Delivery</span>
+          <span className="hidden sm:inline text-sand-500">·</span>
+          <span>100% Genuine 925 Sterling Silver</span>
+          <span className="hidden sm:inline text-sand-500">·</span>
+          <span>Partial COD Available</span>
         </div>
       </div>
 

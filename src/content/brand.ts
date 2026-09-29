@@ -15,7 +15,7 @@ export const PLATED_ITEMS_COPY =
   "Plated items may take a few additional days to dispatch. Plating naturally wears off over time.";
 
 export const ORDER_POLICY_SUMMARY =
-  "Orders cannot be cancelled once placed. We do not accept exchanges, returns or refunds for sizing issues, change of mind or other non-defect reasons. If you receive a defective or incorrect item, contact us with a raw, continuous and unedited unboxing video that clearly shows the address label while the parcel is being opened.";
+  "Orders cannot be cancelled once placed. Orders are delivered within 14 days of order. We do not accept exchanges, returns or refunds for sizing issues, change of mind or other non-defect reasons. If you receive a defective or incorrect item, contact us with a raw, continuous and unedited unboxing video that clearly shows the address label while the parcel is being opened.";
 
 export const AUTHENTICITY_COPY =
   "Every Aastha Silver piece is guaranteed to be genuine 925 sterling silver. We do not offer a warranty because tarnishing is a natural characteristic of real silver, not a manufacturing defect. With proper care, tarnish can be cleaned and the original shine restored, allowing your jewellery to last for years.";

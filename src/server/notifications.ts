@@ -91,7 +91,7 @@ async function sendAdminWhatsApp(order: OrderWithRelations) {
   ].filter(Boolean).join(", ");
 
   const customerInfo = `${order.shipName || order.user.name || "Customer"} (${order.shipMobile || order.user.mobile || "N/A"})`;
-  const orderDetails = `${skus} for ${formatPrice(order.totalPaise)}`;
+  const orderDetails = `${skus} for ${formatPrice(order.totalPaise)} (Delivery within 14 days)`;
 
   const result = await whatsappDriver().sendTemplate(adminMobile, {
     name: WHATSAPP_TEMPLATES.paymentReceived,
