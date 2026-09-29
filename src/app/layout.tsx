@@ -59,9 +59,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Aastha Silver" />
         <link rel="manifest" href="/site.webmanifest" />
 
-        {/* Mobile hero video & poster preloader for instant zero-delay playback */}
+        {/* Mobile hero poster preloader for instant zero-delay first frame */}
         <link rel="preload" as="image" href="/banner-poster-mobile.webp" media="(max-width: 767px)" fetchPriority="high" />
-        <link rel="preload" as="video" href="/banner-mobile.mp4" type="video/mp4" media="(max-width: 767px)" fetchPriority="high" />
         <link rel="preload" as="image" href="/banner-poster.jpg" media="(min-width: 768px)" fetchPriority="high" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />

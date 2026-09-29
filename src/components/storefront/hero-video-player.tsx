@@ -1,9 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
-
-import posterMobileImg from "../../../public/banner-poster-mobile.webp";
 
 /**
  * Ultra-optimized responsive Hero Video component.
@@ -21,38 +18,36 @@ export function HeroVideoPlayer() {
   const mobileRef = React.useRef<HTMLVideoElement | null>(null);
   const desktopRef = React.useRef<HTMLVideoElement | null>(null);
 
-  // Autoplay trigger ensuring playback starts immediately even if browser pauses initial frame
   React.useEffect(() => {
-    const playSafe = (v: HTMLVideoElement | null) => {
-      if (v && v.paused) {
-        v.play().catch(() => {
-          // Autoplay restricted by iOS/Android low power mode; poster remains visible
-        });
-      }
-    };
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
 
-    playSafe(mobileRef.current);
-    playSafe(desktopRef.current);
+    if (isMobile) {
+      if (mobileRef.current) {
+        mobileRef.current.defaultMuted = true;
+        mobileRef.current.muted = true;
+        if (mobileRef.current.paused) {
+          mobileRef.current.play().catch(() => {});
+        }
+      }
+    } else {
+      if (desktopRef.current) {
+        if (!desktopRef.current.src && desktopRef.current.dataset.src) {
+          desktopRef.current.src = desktopRef.current.dataset.src;
+        }
+        desktopRef.current.defaultMuted = true;
+        desktopRef.current.muted = true;
+        if (desktopRef.current.paused) {
+          desktopRef.current.play().catch(() => {});
+        }
+      }
+    }
   }, []);
 
   return (
     <div className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-sand-900">
-      {/* Fallback Poster Background Image - rendered synchronously for 0ms initial render */}
-      <picture className="absolute inset-0 size-full object-cover pointer-events-none z-0">
-        <source srcSet="/banner-poster-mobile.webp" media="(max-width: 767px)" type="image/webp" />
-        <source srcSet="/banner-poster.jpg" media="(min-width: 768px)" />
-        <Image
-          src={posterMobileImg}
-          alt=""
-          aria-hidden="true"
-          priority
-          className="size-full object-cover"
-        />
-      </picture>
-
       {/* ---------------- Mobile Video (< 768px) ----------------
-          Rendered directly in initial SSR HTML. Coupled with the <link rel="preload"> in layout.tsx,
-          this begins streaming and playing instantly on mobile without waiting for React hydration. */}
+          Rendered directly in initial SSR HTML with parse-time inline script.
+          Starts playback seamlessly the millisecond bytes arrive with zero pause. */}
       <div className="md:hidden absolute inset-0 size-full z-10">
         <video
           ref={mobileRef}
@@ -66,19 +61,34 @@ export function HeroVideoPlayer() {
           aria-hidden="true"
           className="size-full object-cover"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var v = document.currentScript.previousElementSibling;
+                if (v && v.tagName === 'VIDEO') {
+                  v.muted = true;
+                  v.defaultMuted = true;
+                  v.playsInline = true;
+                  var p = v.play();
+                  if (p && p.catch) p.catch(function() {});
+                }
+              } catch(e) {}
+            `,
+          }}
+        />
       </div>
 
       {/* ---------------- Desktop Video (>= 768px) ----------------
-          Preload metadata only so mobile devices never download the desktop video payload. */}
+          Uses data-src so mobile devices never download the 8.8MB desktop payload. */}
       <div className="hidden md:block absolute inset-0 size-full z-10">
         <video
           ref={desktopRef}
-          src="/banner-final.mp4"
-          autoPlay
+          data-src="/banner-final.mp4"
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="none"
           poster="/banner-poster.jpg"
           aria-hidden="true"
           className="size-full object-cover"
