@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/server/auth";
+import { canAccess } from "@/lib/auth/roles";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user || !canAccess(user.role, "settings")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let e;
   try {
     e = env();

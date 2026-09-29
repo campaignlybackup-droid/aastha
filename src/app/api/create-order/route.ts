@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 
 import { env, publicEnv } from "@/lib/env";
+import { getCurrentUser } from "@/server/auth";
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
+    }
+
     const keyId = publicEnv.razorpayKeyId || process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = env().RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
 

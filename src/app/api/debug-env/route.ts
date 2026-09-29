@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/server/auth";
+import { canAccess } from "@/lib/auth/roles";
 import { env, publicEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user || !canAccess(user.role, "settings")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const mask = (str?: string) => {
     if (!str) return "MISSING";
     if (str.length <= 4) return "****";

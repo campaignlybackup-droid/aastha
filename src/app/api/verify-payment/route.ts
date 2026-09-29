@@ -4,6 +4,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { confirmOrder } from "@/server/orders";
+import { getCurrentUser } from "@/server/auth";
 
 function safeEqual(a: string, b: string): boolean {
   const bufferA = Buffer.from(a, "utf8");
@@ -14,6 +15,11 @@ function safeEqual(a: string, b: string): boolean {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
+    }
+
     const keySecret = env().RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
     if (!keySecret) {
       return NextResponse.json(
@@ -48,8 +54,8 @@ export async function POST(request: Request) {
     // Update database order to CONFIRMED & PAID
     const targetId = orderId || body.order_id;
     if (targetId) {
-      const order = await db.order.findUnique({
-        where: { id: targetId },
+      const order = await db.order.findFirst({
+        where: { id: targetId, userId: user.id },
         select: { id: true, totalPaise: true, internalNote: true },
       }).catch(() => null);
 
