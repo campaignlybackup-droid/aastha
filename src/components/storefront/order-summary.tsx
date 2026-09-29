@@ -178,6 +178,11 @@ export function OrderSummary({ order }: { order: OrderDetail }) {
             </dd>
           </div>
 
+          <div className="flex justify-between text-xs text-content-muted">
+            <dt>Estimated Delivery</dt>
+            <dd className="font-medium text-brand-900">Within 14 days of order</dd>
+          </div>
+
           {isPartialCod ? (
             <>
               <div className="flex justify-between text-xs text-content-muted">

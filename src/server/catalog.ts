@@ -735,8 +735,8 @@ const SETTING_DEFAULTS: SettingMap = {
   shipping: {
     freeAbovePaise: 0,
     flatRatePaise: 0,
-    dispatchCopy: "",
-    deliveryCopy: "",
+    dispatchCopy: "Orders are dispatched within 3–4 business days.",
+    deliveryCopy: "Delivered within 14 days of order.",
   },
   announcement: { enabled: false, text: "" },
   social: {},

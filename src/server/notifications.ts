@@ -145,14 +145,15 @@ async function sendOrderEmail(order: OrderWithRelations) {
     ``,
     lines,
     ``,
-    `Subtotal:  ${formatPrice(order.subtotalPaise)}`,
+    `Subtotal:            ${formatPrice(order.subtotalPaise)}`,
     order.discountPaise > 0
-      ? `Discount:  − ${formatPrice(order.discountPaise)}`
+      ? `Discount:            − ${formatPrice(order.discountPaise)}`
       : null,
-    `Shipping:  ${order.shippingPaise === 0 ? "Free" : formatPrice(order.shippingPaise)}`,
-    `Total:     ${formatPrice(order.totalPaise)}`,
+    `Shipping:            ${order.shippingPaise === 0 ? "Free" : formatPrice(order.shippingPaise)}`,
+    `Total:               ${formatPrice(order.totalPaise)}`,
     `(includes ${formatPrice(order.taxPaise)} GST)`,
-    `Delivery:  Within 14 days of order`,
+    ``,
+    `Estimated Delivery:  Within 14 days of order`,
     ``,
     `Delivering to:`,
     `  ${order.shipName}`,
@@ -172,8 +173,11 @@ async function sendOrderEmail(order: OrderWithRelations) {
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1f1c18">
       <h1 style="font-weight:400;font-size:24px;letter-spacing:0.02em">Thank you for your order</h1>
       <p style="color:#625b50;font-size:14px;line-height:1.6">
-        Order <strong>${order.orderNumber}</strong> is confirmed. Your order will be delivered within 14 days of order.
+        Order <strong>${order.orderNumber}</strong> is confirmed.
       </p>
+      <div style="margin:16px 0;padding:12px 16px;background-color:#faf7f2;border:1px solid #e8e3db;border-radius:6px;font-size:13px;color:#244b47;line-height:1.5">
+        <strong>Estimated Delivery:</strong> Your order will be delivered within 14 days of order.
+      </div>
       <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px">
         ${order.items
           .map(
@@ -193,6 +197,12 @@ async function sendOrderEmail(order: OrderWithRelations) {
           </tr>`,
           )
           .join("")}
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #e8e3db;color:#625b50">Delivery Timeline</td>
+          <td style="padding:10px 0;border-bottom:1px solid #e8e3db;text-align:right;font-weight:600;color:#244b47">
+            Within 14 days of order
+          </td>
+        </tr>
         <tr>
           <td style="padding:12px 0;font-weight:bold">Total</td>
           <td style="padding:12px 0;text-align:right;font-weight:bold">
