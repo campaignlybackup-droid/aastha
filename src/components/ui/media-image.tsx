@@ -22,7 +22,7 @@ export function optimizeMediaUrl(url: string, width = 800): string {
   if (!url || typeof url !== "string") return url;
   if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
     if (url.includes("/upload/f_auto") || url.includes("/upload/q_auto")) return url;
-    return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width},c_limit/`);
+    return url.replace("/upload/", `/upload/f_auto,q_auto:good,w_${width},c_limit/`);
   }
   return url;
 }
@@ -43,6 +43,7 @@ export function MediaImage({
       : "/brand/logo-mark-transparent.png";
   const safeSrc = optimizeMediaUrl(rawSrc);
   const isSvg = safeSrc.toLowerCase().endsWith(".svg");
+  const isCloudinary = safeSrc.includes("res.cloudinary.com");
 
   const image = (
     <Image
@@ -50,7 +51,7 @@ export function MediaImage({
       alt={alt || "Aastha Silver & Jewels"}
       fill={fill}
       sizes={fill ? (sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw") : sizes}
-      unoptimized={isSvg}
+      unoptimized={isSvg || isCloudinary}
       className={cn(fill && "object-cover", className)}
       {...props}
     />

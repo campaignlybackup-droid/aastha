@@ -129,7 +129,7 @@ export async function ProductListing({
                   <ProductCard
                     key={product.id}
                     product={product}
-                    priority={index < 3}
+                    priority={index < 4}
                     sizes="(min-width: 1280px) 26vw, (min-width: 768px) 30vw, 45vw"
                   />
                 ))}

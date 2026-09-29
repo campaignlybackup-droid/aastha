@@ -75,10 +75,11 @@ export function ProductCarouselSection({
       </div>
 
       <Carousel ariaLabel={settings.title}>
-        {products.map((product) => (
+        {products.map((product, index) => (
           <ProductCard
             key={product.id}
             product={product}
+            priority={index < 2}
             sizes="(min-width: 1280px) 24vw, (min-width: 768px) 32vw, 70vw"
           />
         ))}
@@ -116,8 +117,8 @@ export function ProductGridSection({
       </div>
 
       <ProductGrid columns={settings.columns as 2 | 3 | 4}>
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+        {products.map((product, index) => (
+          <ProductCard key={product.id} product={product} priority={index < 4} />
         ))}
       </ProductGrid>
     </SectionShell>
