@@ -18,36 +18,26 @@ import posterMobileImg from "../../../public/banner-poster-mobile.webp";
  * - Desktop (>= 768px): Requests `/banner-final.mp4` (13.1MB).
  */
 export function HeroVideoPlayer() {
-  const [device, setDevice] = React.useState<"mobile" | "desktop" | null>(null);
-  const [isPlaying, setIsPlaying] = React.useState(false);
-  const videoRef = React.useRef<HTMLVideoElement | null>(null);
+  const mobileRef = React.useRef<HTMLVideoElement | null>(null);
+  const desktopRef = React.useRef<HTMLVideoElement | null>(null);
 
+  // Autoplay trigger ensuring playback starts immediately even if browser pauses initial frame
   React.useEffect(() => {
-    const mql = window.matchMedia("(max-width: 767px)");
-    setDevice(mql.matches ? "mobile" : "desktop");
-
-    const handler = (e: MediaQueryListEvent) => {
-      setDevice(e.matches ? "mobile" : "desktop");
+    const playSafe = (v: HTMLVideoElement | null) => {
+      if (v && v.paused) {
+        v.play().catch(() => {
+          // Autoplay restricted by iOS/Android low power mode; poster remains visible
+        });
+      }
     };
 
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
+    playSafe(mobileRef.current);
+    playSafe(desktopRef.current);
   }, []);
-
-  // Ensure autoplay triggers as soon as video element is available
-  React.useEffect(() => {
-    if (!videoRef.current) return;
-    const v = videoRef.current;
-    if (v.paused) {
-      v.play().catch(() => {
-        // Autoplay may be restricted by low-power mode; poster remains visible
-      });
-    }
-  }, [device]);
 
   return (
     <div className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-sand-900">
-      {/* Fallback Poster Background Image - visible immediately, 0ms latency */}
+      {/* Fallback Poster Background Image - rendered synchronously for 0ms initial render */}
       <picture className="absolute inset-0 size-full object-cover pointer-events-none z-0">
         <source srcSet="/banner-poster-mobile.webp" media="(max-width: 767px)" type="image/webp" />
         <source srcSet="/banner-poster.jpg" media="(min-width: 768px)" />
@@ -60,42 +50,40 @@ export function HeroVideoPlayer() {
         />
       </picture>
 
-      {/* Render ONLY the single active device video element to prevent loading both 9MB desktop and 1MB mobile payloads */}
-      {device === "mobile" && (
-        <div className="absolute inset-0 size-full z-10">
-          <video
-            ref={videoRef}
-            src="/banner-mobile.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster="/banner-poster-mobile.webp"
-            aria-hidden="true"
-            onPlaying={() => setIsPlaying(true)}
-            className={`size-full object-cover transition-opacity duration-500 ${isPlaying ? "opacity-100" : "opacity-0"}`}
-          />
-        </div>
-      )}
+      {/* ---------------- Mobile Video (< 768px) ----------------
+          Rendered directly in initial SSR HTML. Coupled with the <link rel="preload"> in layout.tsx,
+          this begins streaming and playing instantly on mobile without waiting for React hydration. */}
+      <div className="md:hidden absolute inset-0 size-full z-10">
+        <video
+          ref={mobileRef}
+          src="/banner-mobile.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster="/banner-poster-mobile.webp"
+          aria-hidden="true"
+          className="size-full object-cover"
+        />
+      </div>
 
-      {device === "desktop" && (
-        <div className="absolute inset-0 size-full z-10">
-          <video
-            ref={videoRef}
-            src="/banner-final.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster="/banner-poster.jpg"
-            aria-hidden="true"
-            onPlaying={() => setIsPlaying(true)}
-            className={`size-full object-cover transition-opacity duration-500 ${isPlaying ? "opacity-100" : "opacity-0"}`}
-          />
-        </div>
-      )}
+      {/* ---------------- Desktop Video (>= 768px) ----------------
+          Preload metadata only so mobile devices never download the desktop video payload. */}
+      <div className="hidden md:block absolute inset-0 size-full z-10">
+        <video
+          ref={desktopRef}
+          src="/banner-final.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/banner-poster.jpg"
+          aria-hidden="true"
+          className="size-full object-cover"
+        />
+      </div>
 
       <div className="absolute inset-0 bg-sand-950/0 pointer-events-none z-20" aria-hidden="true" />
     </div>

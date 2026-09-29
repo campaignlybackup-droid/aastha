@@ -37,6 +37,7 @@ export function ProductCard({
               fill
               sizes={sizes}
               priority={priority}
+              cloudinaryWidth={500}
               className={cn(
                 "object-cover transition-[opacity,transform] duration-700 ease-[var(--ease-out-quart)]",
                 "group-hover:scale-[1.03]",
@@ -50,8 +51,8 @@ export function ProductCard({
             </div>
           )}
 
-          {/* Second image cross-fades in on hover. Hidden from assistive tech —
-              it is the same product, and announcing it twice is noise. */}
+          {/* Second image cross-fades in on hover. Hidden from assistive tech & touch devices
+              to eliminate redundant network overhead on mobile */}
           {product.hoverImage ? (
             <MediaImage
               src={product.hoverImage.url}
@@ -59,7 +60,9 @@ export function ProductCard({
               aria-hidden="true"
               fill
               sizes={sizes}
-              className="object-cover opacity-0 transition-opacity duration-700 ease-[var(--ease-out-quart)] group-hover:opacity-100"
+              loading="lazy"
+              cloudinaryWidth={500}
+              className="hidden md:block object-cover opacity-0 transition-opacity duration-700 ease-[var(--ease-out-quart)] group-hover:opacity-100"
             />
           ) : null}
         </div>

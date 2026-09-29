@@ -236,6 +236,7 @@ function SearchDialogContent({ onNavigate }: { onNavigate: () => void }) {
                                 src={product.image.url}
                                 alt=""
                                 fill
+                                cloudinaryWidth={150}
                                 sizes="56px"
                                 className="object-cover"
                               />

@@ -62,6 +62,7 @@ export default function RootLayout({
         {/* Mobile hero video & poster preloader for instant zero-delay playback */}
         <link rel="preload" as="image" href="/banner-poster-mobile.webp" media="(max-width: 767px)" fetchPriority="high" />
         <link rel="preload" as="video" href="/banner-mobile.mp4" type="video/mp4" media="(max-width: 767px)" fetchPriority="high" />
+        <link rel="preload" as="image" href="/banner-poster.jpg" media="(min-width: 768px)" fetchPriority="high" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -69,6 +70,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@400..700&display=swap"
           rel="stylesheet"
         />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />

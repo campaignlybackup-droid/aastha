@@ -91,6 +91,7 @@ export function ProductGallery({
                   alt={image.alt}
                   fill
                   priority={index === 0}
+                  cloudinaryWidth={700}
                   sizes="100vw"
                   className="object-cover"
                 />
@@ -146,6 +147,7 @@ export function ProductGallery({
                   src={image.url}
                   alt=""
                   fill
+                  cloudinaryWidth={160}
                   sizes="80px"
                   className="object-cover"
                 />
@@ -168,6 +170,7 @@ export function ProductGallery({
               alt={images[active].alt}
               fill
               priority
+              cloudinaryWidth={1000}
               sizes="(min-width: 1280px) 45vw, 50vw"
               className="object-cover transition-transform duration-300 ease-out"
               style={{
@@ -254,6 +257,7 @@ function Lightbox({
                 src={images[index].url}
                 alt={images[index].alt}
                 fill
+                cloudinaryWidth={1200}
                 sizes="100vw"
                 className="object-contain"
               />
@@ -344,6 +348,7 @@ function DesktopZoomImageItem({
         alt={image.alt}
         fill
         priority={isPriority}
+        cloudinaryWidth={1000}
         sizes="(min-width: 1280px) 45vw, 50vw"
         className="object-cover transition-transform duration-300 ease-out"
         style={{

@@ -295,6 +295,7 @@ function ComboGroupBlock({
                   src={line.imageUrl}
                   alt={line.name}
                   fill
+                  cloudinaryWidth={160}
                   sizes="64px"
                   className="object-cover"
                 />
@@ -388,6 +389,7 @@ function StandaloneLine({
             src={line.imageUrl}
             alt={line.name}
             fill
+            cloudinaryWidth={240}
             sizes="112px"
             className="object-cover"
           />

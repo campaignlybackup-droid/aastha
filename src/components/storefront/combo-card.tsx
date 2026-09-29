@@ -61,6 +61,7 @@ export function ComboCard({ combo }: { combo: ComboOfferDetail }) {
             src={combo.imageUrl}
             alt={combo.title}
             fill
+            cloudinaryWidth={500}
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
@@ -80,6 +81,7 @@ export function ComboCard({ combo }: { combo: ComboOfferDetail }) {
                       src={item.imageUrl}
                       alt={item.productName}
                       fill
+                      cloudinaryWidth={250}
                       sizes="150px"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
