@@ -45,6 +45,20 @@ export default async function HomePage() {
 
   return (
     <>
+      <link
+        rel="preload"
+        as="video"
+        href="/banner-mobile.mp4"
+        type="video/mp4"
+        media="(max-width: 767px)"
+      />
+      <link
+        rel="preload"
+        as="video"
+        href="/banner-final.mp4"
+        type="video/mp4"
+        media="(min-width: 768px)"
+      />
       <JsonLd data={organizationJsonLd(contact)} />
       <JsonLd data={websiteJsonLd()} />
 

@@ -18,26 +18,36 @@ import posterMobileImg from "../../../public/banner-poster-mobile.webp";
  * - Desktop (>= 768px): Requests `/banner-final.mp4` (13.1MB).
  */
 export function HeroVideoPlayer() {
-  const mobileRef = React.useRef<HTMLVideoElement | null>(null);
-  const desktopRef = React.useRef<HTMLVideoElement | null>(null);
+  const [device, setDevice] = React.useState<"mobile" | "desktop" | null>(null);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const videoRef = React.useRef<HTMLVideoElement | null>(null);
 
-  // Playback trigger on mount/visible
   React.useEffect(() => {
-    const playVideo = (video: HTMLVideoElement | null) => {
-      if (video && video.paused) {
-        video.play().catch(() => {
-          // Autoplay prevented by browser power-saving; poster stays visible
-        });
-      }
+    const mql = window.matchMedia("(max-width: 767px)");
+    setDevice(mql.matches ? "mobile" : "desktop");
+
+    const handler = (e: MediaQueryListEvent) => {
+      setDevice(e.matches ? "mobile" : "desktop");
     };
 
-    playVideo(mobileRef.current);
-    playVideo(desktopRef.current);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
   }, []);
+
+  // Ensure autoplay triggers as soon as video element is available
+  React.useEffect(() => {
+    if (!videoRef.current) return;
+    const v = videoRef.current;
+    if (v.paused) {
+      v.play().catch(() => {
+        // Autoplay may be restricted by low-power mode; poster remains visible
+      });
+    }
+  }, [device]);
 
   return (
     <div className="relative w-full aspect-[1078/800] md:aspect-auto md:h-[60vh] lg:h-[85vh] flex items-center justify-center overflow-hidden bg-sand-900">
-      {/* Fallback Poster Background Image */}
+      {/* Fallback Poster Background Image - visible immediately, 0ms latency */}
       <picture className="absolute inset-0 size-full object-cover pointer-events-none z-0">
         <source srcSet="/banner-poster-mobile.webp" media="(max-width: 767px)" type="image/webp" />
         <source srcSet="/banner-poster.jpg" media="(min-width: 768px)" />
@@ -50,40 +60,42 @@ export function HeroVideoPlayer() {
         />
       </picture>
 
-      {/* ---------------- Mobile Video (< 768px) ----------------
-          Loads ONLY the 1.0MB mobile video payload. Streams instantly. */}
-      <div className="md:hidden absolute inset-0 size-full z-10">
-        <video
-          ref={mobileRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster="/banner-poster-mobile.webp"
-          aria-hidden="true"
-          className="size-full object-cover"
-        >
-          <source src="/banner-mobile.mp4" type="video/mp4" />
-        </video>
-      </div>
+      {/* Render ONLY the single active device video element to prevent loading both 9MB desktop and 1MB mobile payloads */}
+      {device === "mobile" && (
+        <div className="absolute inset-0 size-full z-10">
+          <video
+            ref={videoRef}
+            src="/banner-mobile.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/banner-poster-mobile.webp"
+            aria-hidden="true"
+            onPlaying={() => setIsPlaying(true)}
+            className={`size-full object-cover transition-opacity duration-500 ${isPlaying ? "opacity-100" : "opacity-0"}`}
+          />
+        </div>
+      )}
 
-      {/* ---------------- Desktop Video (>= 768px) ---------------- */}
-      <div className="hidden md:block absolute inset-0 size-full z-10">
-        <video
-          ref={desktopRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster="/banner-poster.jpg"
-          aria-hidden="true"
-          className="size-full object-cover"
-        >
-          <source src="/banner-final.mp4" type="video/mp4" />
-        </video>
-      </div>
+      {device === "desktop" && (
+        <div className="absolute inset-0 size-full z-10">
+          <video
+            ref={videoRef}
+            src="/banner-final.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/banner-poster.jpg"
+            aria-hidden="true"
+            onPlaying={() => setIsPlaying(true)}
+            className={`size-full object-cover transition-opacity duration-500 ${isPlaying ? "opacity-100" : "opacity-0"}`}
+          />
+        </div>
+      )}
 
       <div className="absolute inset-0 bg-sand-950/0 pointer-events-none z-20" aria-hidden="true" />
     </div>
