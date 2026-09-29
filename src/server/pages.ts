@@ -100,7 +100,7 @@ export const PAGE_DEFINITIONS: Record<
     intro: "How and when orders arrive.",
     prompts: [
       "Dispatch in 3–4 business days",
-      "Delivery in 5–6 business days",
+      "Delivery within 14 days of order",
       "Additional dispatch time and natural wear for plated items",
       "Orders cannot be cancelled once placed",
       "Raw unboxing-video requirements for defect or wrong-item claims",

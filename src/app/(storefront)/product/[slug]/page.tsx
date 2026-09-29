@@ -255,8 +255,9 @@ export default async function ProductPage({ params }: Props) {
                 {
                   icon: Truck,
                   label:
-                    shipping.dispatchCopy ||
-                    "Free Shipping on all orders. Dispatched within 3–4 business days.",
+                    shipping?.deliveryCopy
+                      ? `Free Shipping · ${shipping.deliveryCopy}`
+                      : "Free Shipping · Delivered within 14 days of order",
                 },
                 { icon: Sparkles, label: "Natural tarnishing can be cleaned" },
                 { icon: CircleOff, label: "No warranty, returns or exchanges" },

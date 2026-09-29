@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Package, Plus, ShoppingBag, Sparkles, Tag, Trash2, X } from "lucide-react";
+import { Minus, Package, Plus, ShoppingBag, Sparkles, Tag, Trash2, Truck, X } from "lucide-react";
 
 import { MediaImage } from "@/components/ui/media-image";
 import { Button } from "@/components/ui/button";
@@ -196,6 +196,11 @@ export function CartView({ initialCart }: { initialCart: CartViewData }) {
           <p className="text-center text-xs text-content-subtle">
             Secure payment via Razorpay · UPI, cards, net banking
           </p>
+
+          <div className="flex items-center justify-center gap-1.5 pt-1 text-center text-xs text-content-muted">
+            <Truck className="size-3.5 text-[var(--color-accent)] shrink-0" aria-hidden="true" />
+            <span>Delivered within 14 days of order</span>
+          </div>
         </div>
       </aside>
     </div>

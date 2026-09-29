@@ -339,7 +339,7 @@ function ShippingPanel({ initial }: { initial: Initial["shipping"] }) {
           <Input
             value={form.deliveryCopy}
             onChange={(e) => setForm({ ...form, deliveryCopy: e.target.value })}
-            placeholder="e.g. Delivery in 3–7 business days."
+            placeholder="e.g. Delivered within 14 days of order."
             maxLength={160}
           />
         </Field>

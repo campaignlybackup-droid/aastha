@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { CheckCircle2, Gift, Lock, Package, Tag } from "lucide-react";
+import { CheckCircle2, Gift, Lock, Package, Tag, Truck } from "lucide-react";
 
 import {
   AddressBook,
@@ -286,9 +286,15 @@ export function CheckoutFlow({
         <div className="space-y-10">
           {/* --- Address ---------------------------------------------------- */}
           <section aria-labelledby="delivery-heading">
-            <h2 id="delivery-heading" className="mb-4 font-display text-2xl">
-              Delivery address
-            </h2>
+            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="delivery-heading" className="font-display text-2xl">
+                Delivery address
+              </h2>
+              <span className="flex items-center gap-1.5 text-xs text-content-muted">
+                <Truck className="size-3.5 text-[var(--color-accent)]" />
+                Delivered within 14 days of order
+              </span>
+            </div>
             <AddressBook
               addresses={addresses}
               selectedId={selectedAddressId}
@@ -765,6 +771,11 @@ export function CheckoutFlow({
               Payments are processed securely by Razorpay. We never see or store your
               card details.
             </p>
+
+            <div className="flex items-center justify-center gap-1.5 pt-1 text-center text-xs text-content-muted">
+              <Truck className="size-3.5 text-[var(--color-accent)] shrink-0" aria-hidden="true" />
+              <span>Delivered within 14 days of order</span>
+            </div>
 
             {needsScript && !scriptLoaded && status === "creating" ? (
               <p className="text-center text-xs text-content-subtle">

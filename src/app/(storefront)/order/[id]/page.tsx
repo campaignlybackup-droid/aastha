@@ -151,8 +151,7 @@ export default async function OrderPage({
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
               Thank you, {order.shipName.split(" ")[0]}. We&rsquo;ve received your order and payment.
-              {/* Only promise a dispatch time if the owner has set one. */}
-              {shipping.dispatchCopy ? ` ${shipping.dispatchCopy}` : ""}
+              {" "}Your order will be delivered within 14 days of order.
             </p>
           </>
         ) : (
@@ -178,7 +177,7 @@ export default async function OrderPage({
       </div>
 
       {/* --- Key facts ---------------------------------------------------- */}
-      <div className="mb-8 grid gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-3">
+      <div className="mb-8 grid gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-2 md:grid-cols-4">
         <Fact label="Order number" value={order.orderNumber} mono />
         <Fact
           label="Placed"
@@ -187,6 +186,10 @@ export default async function OrderPage({
         <Fact
           label="Payment"
           value={paymentStatusLabel(order.paymentStatus)}
+        />
+        <Fact
+          label="Delivery"
+          value="Within 14 days of order"
         />
       </div>
 

@@ -152,6 +152,7 @@ async function sendOrderEmail(order: OrderWithRelations) {
     `Shipping:  ${order.shippingPaise === 0 ? "Free" : formatPrice(order.shippingPaise)}`,
     `Total:     ${formatPrice(order.totalPaise)}`,
     `(includes ${formatPrice(order.taxPaise)} GST)`,
+    `Delivery:  Within 14 days of order`,
     ``,
     `Delivering to:`,
     `  ${order.shipName}`,
@@ -171,7 +172,7 @@ async function sendOrderEmail(order: OrderWithRelations) {
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1f1c18">
       <h1 style="font-weight:400;font-size:24px;letter-spacing:0.02em">Thank you for your order</h1>
       <p style="color:#625b50;font-size:14px;line-height:1.6">
-        Order <strong>${order.orderNumber}</strong> is confirmed.
+        Order <strong>${order.orderNumber}</strong> is confirmed. Your order will be delivered within 14 days of order.
       </p>
       <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px">
         ${order.items

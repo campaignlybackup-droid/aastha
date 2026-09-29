@@ -73,7 +73,7 @@ ${productLines}
 
 ## Quality Guarantees & Policy
 - **Purity**: Guaranteed genuine 925 sterling silver with authenticity certificate on every order.
-- **Dispatch & Delivery**: Dispatched within 3–4 business days with free nationwide shipping across India.
+- **Dispatch & Delivery**: Orders are delivered within 14 days of order with free nationwide shipping across India.
 - **Support**: WhatsApp assistance available at +91 9116662871 or via email at aasthasilverandjewels@gmail.com.
 `;
 

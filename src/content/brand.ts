@@ -8,7 +8,7 @@
 
 export const SHIPPING_COPY = {
   dispatch: "Orders are dispatched within 3–4 business days.",
-  delivery: "Delivery usually takes 5–6 business days.",
+  delivery: "Orders are delivered within 14 days of order.",
 } as const;
 
 export const PLATED_ITEMS_COPY =
@@ -120,8 +120,8 @@ export const HOMEPAGE_TRUST_BADGES = [
   },
   {
     icon: "Truck",
-    title: "Dispatch in 3–4 business days",
-    description: "Delivery usually takes 5–6 business days.",
+    title: "Delivery within 14 days",
+    description: "Orders are delivered within 14 days of order.",
   },
   {
     icon: "Sparkles",
