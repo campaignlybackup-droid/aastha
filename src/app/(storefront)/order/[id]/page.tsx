@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, Clock, MessageCircle, Package, Truck } from "lucide-react";
+import { CheckCircle2, Clock, MessageCircle, Package, Truck, XCircle } from "lucide-react";
 
 import { OrderSuccessTimer } from "@/components/storefront/order-success-timer";
 import {
@@ -65,10 +65,11 @@ export default async function OrderPage({
   ]);
   const whatsapp = contact.whatsapp || publicEnv.supportWhatsapp;
 
-  const confirmed = order.status === "CONFIRMED";
+  const isPaid = order.paymentStatus === "PAID" || order.paymentStatus === "AUTHORIZED";
+  const isConfirmed = isPaid || ["CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"].includes(order.status);
   const isJustPaid = query.success === "1";
   // The browser callback could not verify, but the webhook may still land.
-  const awaitingConfirmation = !confirmed && query.pending === "1";
+  const awaitingConfirmation = !isConfirmed && query.pending === "1";
 
   const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
   const advancePaise = isPartialCod ? Math.round(order.totalPaise * 0.60) : order.totalPaise;
@@ -86,7 +87,19 @@ export default async function OrderPage({
 
       {/* --- Headline ---------------------------------------------------- */}
       <div className="mb-10 text-center">
-        {confirmed ? (
+        {order.status === "CANCELLED" ? (
+          <>
+            <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-red-50">
+              <XCircle className="size-7 text-red-600" aria-hidden="true" />
+            </span>
+            <h1 className="text-display-sm md:text-display-md">
+              Order cancelled
+            </h1>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
+              This order has been cancelled. If any payment was captured, our team will process a refund to your original payment method.
+            </p>
+          </>
+        ) : order.status === "DELIVERED" ? (
           <>
             <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-success-50">
               <CheckCircle2
@@ -95,11 +108,49 @@ export default async function OrderPage({
               />
             </span>
             <h1 className="text-display-sm md:text-display-md">
-              Order placed successfully
+              Order delivered
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
-              Thank you, {order.shipName.split(" ")[0]}. We&rsquo;ve sent you a
-              confirmation.
+              Thank you for shopping with Aastha Silver &amp; Jewels, {order.shipName.split(" ")[0]}! We hope you love your authentic 925 sterling silver jewellery.
+            </p>
+          </>
+        ) : order.status === "SHIPPED" ? (
+          <>
+            <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-brand-50">
+              <Truck className="size-7 text-brand-700" aria-hidden="true" />
+            </span>
+            <h1 className="text-display-sm md:text-display-md">
+              Order dispatched &amp; on the way
+            </h1>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
+              Your jewellery is on its way, {order.shipName.split(" ")[0]}. You can track your package using the tracking details below.
+            </p>
+          </>
+        ) : order.status === "PACKED" ? (
+          <>
+            <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-brand-50">
+              <Package className="size-7 text-brand-700" aria-hidden="true" />
+            </span>
+            <h1 className="text-display-sm md:text-display-md">
+              Order packed &amp; ready for dispatch
+            </h1>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
+              Your order has been handcrafted, certified, and securely packed. It will be handed over to our delivery partner shortly.
+            </p>
+          </>
+        ) : isConfirmed ? (
+          <>
+            <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-success-50">
+              <CheckCircle2
+                className="size-7 text-success-700"
+                aria-hidden="true"
+              />
+            </span>
+            <h1 className="text-display-sm md:text-display-md">
+              {isJustPaid ? "Order placed successfully" : "Order confirmed"}
+            </h1>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-content-muted">
+              Thank you, {order.shipName.split(" ")[0]}. We&rsquo;ve received your order and payment.
               {/* Only promise a dispatch time if the owner has set one. */}
               {shipping.dispatchCopy ? ` ${shipping.dispatchCopy}` : ""}
             </p>
@@ -141,7 +192,7 @@ export default async function OrderPage({
 
       <div className="mb-8 flex flex-wrap items-center gap-3">
         <OrderStatusBadge status={order.status} />
-        {order.status === "PENDING" && !awaitingConfirmation ? (
+        {order.status === "PENDING" && !awaitingConfirmation && !isConfirmed ? (
           <Button asChild size="sm" variant="outline">
             <Link href="/cart">Complete payment</Link>
           </Button>
@@ -156,7 +207,7 @@ export default async function OrderPage({
         />
       ) : null}
 
-      {confirmed && isPartialCod ? (
+      {isConfirmed && isPartialCod ? (
         <Alert variant="info" className="mb-8">
           <strong>Partial COD Order Confirmed:</strong> You have paid the 60% advance of {formatPrice(advancePaise)}. Please pay the remaining balance of <strong>{formatPrice(balanceOnDeliveryPaise)}</strong> (40%) in cash or UPI to the courier upon delivery.
         </Alert>

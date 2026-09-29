@@ -195,7 +195,7 @@ export async function verifyCheckoutPayment(input: {
   });
   if (!order) return { ok: false, error: "Order not found." };
 
-  if (order.status === "CONFIRMED") {
+  if (order.status !== "PENDING" && order.status !== "CANCELLED") {
     return { ok: true, orderId: order.id, orderNumber: order.orderNumber };
   }
 

@@ -292,7 +292,7 @@ export async function confirmOrder({
 
       if (!order) return { ok: false as const, error: "Order not found." };
 
-      if (order.status === "CONFIRMED") {
+      if (order.status !== "PENDING" && order.status !== "CANCELLED") {
         return { ok: true as const, alreadyConfirmed: true, orderId };
       }
 
@@ -469,7 +469,7 @@ export async function cancelOrder({
     if (order.status === "CANCELLED") {
       return { ok: true as const, alreadyConfirmed: true, orderId };
     }
-    if (order.status === "CONFIRMED") {
+    if (order.status !== "PENDING") {
       return {
         ok: false as const,
         error: "Paid orders cannot be cancelled here.",
