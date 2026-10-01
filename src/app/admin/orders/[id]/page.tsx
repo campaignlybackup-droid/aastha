@@ -15,6 +15,7 @@ import { formatDateTime, formatMobile } from "@/lib/utils";
 import { requireArea } from "@/server/auth";
 
 import { OrderStatusEditor } from "@/components/admin/order-status-editor";
+import { ShiprocketSyncCard } from "@/components/admin/shiprocket-sync-card";
 
 export const metadata = { title: "Order" };
 
@@ -88,6 +89,13 @@ export default async function AdminOrderDetailPage({
           currentStatus={order.status}
           currentPaymentStatus={order.paymentStatus}
           currentTrackingNumber={order.trackingNumber}
+        />
+
+        <ShiprocketSyncCard
+          orderId={order.id}
+          orderNumber={order.orderNumber}
+          internalNote={order.internalNote}
+          totalPaise={order.totalPaise}
         />
       </div>
 

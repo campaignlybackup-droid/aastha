@@ -31,7 +31,21 @@ export async function onOrderConfirmed(orderId: string) {
     sendAdminWhatsApp(order),
     sendOrderEmail(order),
     reportPurchaseToMeta(order),
+    syncPartialCodOrder(order),
   ]);
+}
+
+async function syncPartialCodOrder(order: OrderWithRelations) {
+  // STRICT: Only Partial COD orders are pushed to Shiprocket (not fully paid).
+  const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+  if (!isPartialCod) return;
+
+  try {
+    const { createPartialCodShipment } = await import("@/lib/shiprocket/client");
+    await createPartialCodShipment(order);
+  } catch (error) {
+    console.error(`[shiprocket] Failed to sync Partial COD order ${order.orderNumber}:`, error);
+  }
 }
 
 const orderInclude = {

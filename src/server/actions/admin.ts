@@ -143,6 +143,52 @@ export async function adminUpdateOrderStatus({
   return { ok: true, message: "Order & Payment status updated." };
 }
 
+export async function adminPushToShiprocket(orderId: string): Promise<AdminResult> {
+  const user = await requireArea("orders");
+
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: true,
+      user: { select: { name: true, email: true, mobile: true } },
+    },
+  });
+
+  if (!order) return { ok: false, error: "Order not found." };
+
+  const isPartialCod = Boolean(order.internalNote?.includes("[PARTIAL_COD]"));
+  if (!isPartialCod) {
+    return { ok: false, error: "Only Partial COD orders can be pushed to Shiprocket." };
+  }
+
+  const { createPartialCodShipment } = await import("@/lib/shiprocket/client");
+  const result = await createPartialCodShipment(order);
+
+  if (!result.ok) {
+    return { ok: false, error: result.error };
+  }
+
+  await audit({
+    userId: user.id,
+    action: "order.shiprocket_push",
+    entityType: "Order",
+    entityId: orderId,
+    changes: {
+      shiprocketOrderId: result.shiprocketOrderId,
+      shipmentId: result.shipmentId,
+      codAmountRupees: result.codAmountRupees,
+    },
+  });
+
+  revalidatePath(`/admin/orders/${orderId}`);
+  return {
+    ok: true,
+    message: result.alreadySynced
+      ? "Order was already pushed to Shiprocket."
+      : `Pushed to Shiprocket! Order ID: ${result.shiprocketOrderId} (COD Due: ₹${result.codAmountRupees})`,
+  };
+}
+
 /* -----------------------------------------------------------------------------
  * Inventory
  * -------------------------------------------------------------------------- */

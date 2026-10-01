@@ -53,6 +53,10 @@ const schema = z.object({
   META_CAPI_ACCESS_TOKEN: optional,
   META_CAPI_TEST_EVENT_CODE: optional,
 
+  SHIPROCKET_EMAIL: optional,
+  SHIPROCKET_PASSWORD: optional,
+  SHIPROCKET_PICKUP_LOCATION: optional,
+
   CRON_SECRET: optional,
 });
 
