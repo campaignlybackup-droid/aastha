@@ -63,7 +63,10 @@ export default async function AdminCustomersPage({
         lastLoginAt: true,
         _count: { select: { orders: true } },
         orders: {
-          where: { status: "CONFIRMED" },
+          where: {
+            status: { in: ["CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"] },
+            paymentStatus: { in: ["PAID", "AUTHORIZED"] },
+          },
           select: { totalPaise: true },
         },
       },

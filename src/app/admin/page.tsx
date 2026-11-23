@@ -16,23 +16,64 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/money";
 import { formatDate } from "@/lib/utils";
 import { requireStaff } from "@/server/auth";
+import type { Prisma } from "@/generated/prisma/client";
+import type { OrderStatus, PaymentStatus } from "@/generated/prisma/enums";
 
 export const metadata = { title: "Dashboard" };
 
 /**
+ * Valid statuses that represent confirmed, paid, or fulfilled revenue.
+ * Orders start at CONFIRMED after payment and progress through PACKED -> SHIPPED -> DELIVERED.
+ */
+const REVENUE_ORDER_STATUSES: OrderStatus[] = [
+  "CONFIRMED",
+  "PACKED",
+  "SHIPPED",
+  "DELIVERED",
+];
+
+const REVENUE_PAYMENT_STATUSES: PaymentStatus[] = ["PAID", "AUTHORIZED"];
+
+function getISTMonthBoundaries(now = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "numeric",
+  });
+  const parts = formatter.formatToParts(now);
+  const year = Number(parts.find((p) => p.type === "year")?.value);
+  const month = Number(parts.find((p) => p.type === "month")?.value);
+
+  const monthStart = new Date(
+    Date.parse(`${year}-${String(month).padStart(2, "0")}-01T00:00:00+05:30`),
+  );
+
+  const prevYear = month === 1 ? year - 1 : year;
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevMonthStart = new Date(
+    Date.parse(
+      `${prevYear}-${String(prevMonth).padStart(2, "0")}-01T00:00:00+05:30`,
+    ),
+  );
+
+  return { monthStart, prevMonthStart };
+}
+
+/**
  * Admin dashboard.
  *
- * Revenue counts CONFIRMED orders only — a PENDING order is an intention, not
- * money, and reporting it would overstate takings.
+ * Revenue counts all confirmed and fulfilled orders (CONFIRMED, PACKED, SHIPPED, DELIVERED).
+ * Unpaid PENDING checkouts and CANCELLED / REFUNDED orders are excluded.
  */
 export default async function AdminDashboardPage() {
   await requireStaff();
 
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const { monthStart, prevMonthStart } = getISTMonthBoundaries();
 
-  const paidFilter = { status: "CONFIRMED" as const };
+  const paidFilter: Prisma.OrderWhereInput = {
+    status: { in: REVENUE_ORDER_STATUSES },
+    paymentStatus: { in: REVENUE_PAYMENT_STATUSES },
+  };
 
   const [
     revenueAllTime,
@@ -46,14 +87,30 @@ export default async function AdminDashboardPage() {
     bestSellers,
     pendingReviews,
   ] = await Promise.all([
-    db.order.aggregate({ where: paidFilter, _sum: { totalPaise: true }, _count: true }),
     db.order.aggregate({
-      where: { ...paidFilter, placedAt: { gte: monthStart } },
+      where: paidFilter,
       _sum: { totalPaise: true },
-      _count: true,
+      _count: { _all: true },
     }),
     db.order.aggregate({
-      where: { ...paidFilter, placedAt: { gte: prevMonthStart, lt: monthStart } },
+      where: {
+        ...paidFilter,
+        OR: [
+          { placedAt: { gte: monthStart } },
+          { placedAt: null, createdAt: { gte: monthStart } },
+        ],
+      },
+      _sum: { totalPaise: true },
+      _count: { _all: true },
+    }),
+    db.order.aggregate({
+      where: {
+        ...paidFilter,
+        OR: [
+          { placedAt: { gte: prevMonthStart, lt: monthStart } },
+          { placedAt: null, createdAt: { gte: prevMonthStart, lt: monthStart } },
+        ],
+      },
       _sum: { totalPaise: true },
     }),
     db.order.count(),
@@ -99,12 +156,13 @@ export default async function AdminDashboardPage() {
     db.review.count({ where: { status: "PENDING" } }),
   ]);
 
-  const paidCount = revenueAllTime._count || 0;
+  const paidCount = revenueAllTime._count._all || 0;
   const averageOrderPaise = paidCount
     ? Math.round((revenueAllTime._sum.totalPaise ?? 0) / paidCount)
     : 0;
 
   const thisMonthPaise = revenueThisMonth._sum.totalPaise ?? 0;
+  const thisMonthCount = revenueThisMonth._count._all || 0;
   const prevMonthPaise = revenuePrevMonth._sum.totalPaise ?? 0;
   const monthDelta =
     prevMonthPaise > 0
@@ -119,7 +177,7 @@ export default async function AdminDashboardPage() {
     <>
       <AdminHeading
         title="Dashboard"
-        description="Revenue counts confirmed orders only."
+        description="Revenue counts confirmed and fulfilled orders."
       />
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -128,25 +186,25 @@ export default async function AdminDashboardPage() {
           value={formatPrice(thisMonthPaise)}
           hint={
             monthDelta === null
-              ? "No sales last month to compare"
-              : `${monthDelta >= 0 ? "+" : ""}${monthDelta}% vs last month`
+              ? `${thisMonthCount} ${thisMonthCount === 1 ? "order" : "orders"}`
+              : `${monthDelta >= 0 ? "+" : ""}${monthDelta}% vs last month (${thisMonthCount} ${thisMonthCount === 1 ? "order" : "orders"})`
           }
         />
         <StatCard
           label="Revenue all time"
           value={formatPrice(revenueAllTime._sum.totalPaise ?? 0)}
-          hint={`${paidCount} confirmed ${paidCount === 1 ? "order" : "orders"}`}
+          hint={`${paidCount} paid ${paidCount === 1 ? "order" : "orders"}`}
         />
         <StatCard
           label="Average order"
           value={averageOrderPaise ? formatPrice(averageOrderPaise) : "—"}
-          hint={`${orderCount} orders total`}
+          hint={`Based on ${paidCount} paid orders (${orderCount} total)`}
           href="/admin/orders"
         />
         <StatCard
           label="Customers"
           value={String(customerCount)}
-          hint={pendingCount ? `${pendingCount} awaiting payment` : "All settled"}
+          hint={pendingCount ? `${pendingCount} orders awaiting payment` : "All settled"}
           href="/admin/customers"
         />
       </div>

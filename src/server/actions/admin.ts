@@ -89,7 +89,7 @@ export async function adminUpdateOrderStatus({
   trackingNumber,
 }: {
   orderId: string;
-  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput["set"] | "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput["set"] | "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"] | "PENDING" | "AUTHORIZED" | "PAID" | "FAILED" | "REFUNDED";
   trackingNumber?: string;
 }): Promise<AdminResult> {
@@ -102,14 +102,19 @@ export async function adminUpdateOrderStatus({
 
   if (!order) return { ok: false, error: "Order not found." };
 
-  if (paymentStatus === "PAID" || status === "CONFIRMED") {
-    await confirmOrder({
-      orderId: order.id,
-      providerPaymentId: `manual_admin_${Date.now()}`,
-      providerOrderId: null,
-      method: "MANUAL_ADMIN",
-      amountPaise: order.totalPaise,
-    });
+  const isFulfillmentStatus =
+    status && ["CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"].includes(status as string);
+
+  if (paymentStatus === "PAID" || isFulfillmentStatus) {
+    if (order.status === "PENDING") {
+      await confirmOrder({
+        orderId: order.id,
+        providerPaymentId: `manual_admin_${Date.now()}`,
+        providerOrderId: null,
+        method: "MANUAL_ADMIN",
+        amountPaise: order.totalPaise,
+      });
+    }
   }
 
   const trimmedTracking = trackingNumber?.trim() || undefined;
@@ -119,7 +124,7 @@ export async function adminUpdateOrderStatus({
     data: {
       ...(status ? { status } : {}),
       ...(paymentStatus ? { paymentStatus } : {}),
-      ...(status === "CONFIRMED" && !order.placedAt ? { placedAt: new Date() } : {}),
+      ...(isFulfillmentStatus && !order.placedAt ? { placedAt: new Date() } : {}),
       // Stamp shippedAt the first time we move to SHIPPED; preserve it on subsequent edits.
       ...(status === "SHIPPED" && !order.shippedAt ? { shippedAt: new Date() } : {}),
       // Store tracking number whenever one is provided.

@@ -24,6 +24,9 @@ const PER_PAGE = 25;
 const STATUS_TABS: Array<{ value: string; label: string }> = [
   { value: "all", label: "All" },
   { value: "CONFIRMED", label: "Confirmed" },
+  { value: "PACKED", label: "Packed" },
+  { value: "SHIPPED", label: "Shipped" },
+  { value: "DELIVERED", label: "Delivered" },
   { value: "PENDING", label: "Awaiting payment" },
   { value: "CANCELLED", label: "Cancelled" },
 ];
