@@ -51,6 +51,10 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
+    // Limit build workers to avoid OOM / SIGABRT crashes on high-core build environments
+    cpus: 4,
+    staticGenerationRetryCount: 2,
+    staticGenerationMaxConcurrency: 4,
     // Increased to 50MB to support high-quality product images and video uploads 
     // directly through Server Actions.
     serverActions: { bodySizeLimit: "50mb" },
