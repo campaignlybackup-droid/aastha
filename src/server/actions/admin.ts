@@ -87,17 +87,27 @@ export async function adminUpdateOrderStatus({
   status,
   paymentStatus,
   trackingNumber,
+  sendWhatsAppNotification = true,
 }: {
   orderId: string;
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput["set"] | "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"] | "PENDING" | "AUTHORIZED" | "PAID" | "FAILED" | "REFUNDED";
   trackingNumber?: string;
+  sendWhatsAppNotification?: boolean;
 }): Promise<AdminResult> {
   const user = await requireArea("orders");
 
   const order = await db.order.findUnique({
     where: { id: orderId },
-    select: { id: true, status: true, paymentStatus: true, totalPaise: true, placedAt: true, shippedAt: true },
+    select: {
+      id: true,
+      status: true,
+      paymentStatus: true,
+      totalPaise: true,
+      placedAt: true,
+      shippedAt: true,
+      trackingNumber: true,
+    },
   });
 
   if (!order) return { ok: false, error: "Order not found." };
@@ -128,7 +138,7 @@ export async function adminUpdateOrderStatus({
       // Stamp shippedAt the first time we move to SHIPPED; preserve it on subsequent edits.
       ...(status === "SHIPPED" && !order.shippedAt ? { shippedAt: new Date() } : {}),
       // Store tracking number whenever one is provided.
-      ...(trimmedTracking ? { trackingNumber: trimmedTracking } : {}),
+      ...(trimmedTracking !== undefined ? { trackingNumber: trimmedTracking } : {}),
     },
   });
 
@@ -140,12 +150,29 @@ export async function adminUpdateOrderStatus({
     changes: { status, paymentStatus, trackingNumber: trimmedTracking },
   });
 
+  let whatsappNote = "";
+  const trackingToSend = trimmedTracking || order.trackingNumber;
+  if (sendWhatsAppNotification && trackingToSend) {
+    try {
+      const { sendOrderShippedWhatsApp } = await import("@/server/notifications");
+      const whatsappRes = await sendOrderShippedWhatsApp(order.id, trackingToSend);
+      if (whatsappRes.ok) {
+        whatsappNote = " 📲 WhatsApp shipping notification sent to customer!";
+      } else {
+        whatsappNote = ` (WhatsApp: ${whatsappRes.error})`;
+      }
+    } catch (err) {
+      console.error("[notifications] Failed to send shipped WhatsApp notification:", err);
+      whatsappNote = " (WhatsApp notification failed to trigger)";
+    }
+  }
+
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
   revalidatePath(`/order/${orderId}`);
   revalidatePath("/account/orders");
 
-  return { ok: true, message: "Order & Payment status updated." };
+  return { ok: true, message: `Order & Payment status updated.${whatsappNote}` };
 }
 
 export async function adminPushToShiprocket(orderId: string): Promise<AdminResult> {

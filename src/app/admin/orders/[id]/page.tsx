@@ -89,6 +89,7 @@ export default async function AdminOrderDetailPage({
           currentStatus={order.status}
           currentPaymentStatus={order.paymentStatus}
           currentTrackingNumber={order.trackingNumber}
+          customerMobile={order.shipMobile || order.user.mobile}
         />
 
         <ShiprocketSyncCard

@@ -131,6 +131,66 @@ async function sendAdminWhatsApp(order: OrderWithRelations) {
   });
 }
 
+export async function sendOrderShippedWhatsApp(
+  orderId: string,
+  trackingNumber: string,
+) {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      orderNumber: true,
+      shipName: true,
+      shipMobile: true,
+      userId: true,
+      user: { select: { name: true, mobile: true } },
+    },
+  });
+
+  if (!order) return { ok: false as const, error: "Order not found" };
+
+  let to = (order.shipMobile || order.user.mobile || "").replace(/\D/g, "");
+  if (!to) return { ok: false as const, error: "Customer mobile number is missing" };
+  if (to.length === 10) to = `91${to}`;
+
+  const customerName =
+    (order.shipName || order.user.name || "Customer").trim().split(" ")[0] ||
+    "Customer";
+  const trackingUrl = "https://www.indiapost.gov.in/";
+
+  const result = await whatsappDriver().sendTemplate(to, {
+    name: WHATSAPP_TEMPLATES.orderShipped,
+    variables: [
+      customerName,
+      order.orderNumber,
+      trackingNumber,
+      trackingUrl,
+    ],
+  });
+
+  await db.notification.create({
+    data: {
+      channel: "WHATSAPP",
+      status: result.ok ? "SENT" : "FAILED",
+      recipient: to,
+      template: "order.shipped",
+      providerMessageId: result.ok ? result.providerMessageId : null,
+      error: result.ok ? null : result.error,
+      orderId: order.id,
+      userId: order.userId,
+      sentAt: result.ok ? new Date() : null,
+      attempts: 1,
+      payload: {
+        orderNumber: order.orderNumber,
+        trackingNumber,
+        trackingUrl,
+      },
+    },
+  });
+
+  return result;
+}
+
 /* -----------------------------------------------------------------------------
  * Email
  * -------------------------------------------------------------------------- */
